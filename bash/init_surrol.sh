@@ -1,4 +1,10 @@
-source config/config_surrol.sh
+####################################
+## modify to your setting
+ANACONDA_PATH="$HOME/ssd/miniconda3"
+ENV_NAME=gas_surrol
+######################
+
+
 source $ANACONDA_PATH/bin/activate
 conda activate $ENV_NAME
 alias python=$ANACONDA_PATH/envs/$ENV_NAME/bin/python3.9

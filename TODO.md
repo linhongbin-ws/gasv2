@@ -27,3 +27,8 @@ code
 - [ ] needle on uneven z-level ground
 - [ ] reduce hitting the ground
 - [ ] define task that with (1) only needle (2) limitted grasp trials (3) endoscopic depth setting, cam distance, angle, and the choices of masks (4) limited timesteps, wwwww
+
+2024-08-28
+- [ ] hybrid controller system for grasping: using image-based PID controller when it is far and use RL controller when it is near
+- [ ] reproject to 3 orthogonal plane
+- [ ] rectify the image

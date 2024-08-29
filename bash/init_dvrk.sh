@@ -1,3 +1,13 @@
+####################################
+## modify to your setting
+ANACONDA_PATH="$HOME/anazconda3"
+ENV_NAME=gas_dvrk
+ROS_DISTRO=melodic # modify to noetic if you are using it
+######################
+
+
+
+
 source ./config/config_dvrk.sh
 source $ANACONDA_PATH/bin/activate
 conda activate $ENV_NAME
