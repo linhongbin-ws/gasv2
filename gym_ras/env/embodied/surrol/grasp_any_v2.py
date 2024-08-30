@@ -56,10 +56,8 @@ class GraspAnyV2(PsmEnv):
         on_plane=False,
         **kwargs,
     ): 
-        if not on_plane:
-            _z_level = -0.035
-        else:
-            _z_level = 0.0025
+
+        _z_level = 0.0025
         self.POSE_TRAY = ((0.55, 0, 0.6751 + _z_level), (0, 0, 0))
         self._init_pose_ratio_low_gripper = init_pose_ratio_low_gripper
         self._init_pose_ratio_high_gripper = init_pose_ratio_high_gripper
@@ -94,7 +92,7 @@ class GraspAnyV2(PsmEnv):
         self._oracle_rot_thres = oracle_rot_thres
         self._done_z_thres = done_z_thres
 
-    def _psm_env_setup(self, stuff_path, tray_path, scaling, on_plane, goal_plot=False):
+    def _psm_env_setup(self, stuff_path,   tray_path, scaling, on_plane, goal_plot=False):
         # # camera
         # if self._render_mode == 'human':
         #     reset_camera(yaw=90.0, pitch=-30.0, dist=0.82 * self.SCALING,
