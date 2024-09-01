@@ -141,7 +141,7 @@ default:
         init_pose_ratio_low_stuff: [-0.5, -0.5, 0.1, -0.99]
         init_pose_ratio_high_stuff: [0.5, 0.5, 0.5, 0.99]
         random_obj_vis: false
-        depth_distance: 0.15
+        depth_distance: 0.2
         on_plane: true
         oracle_pos_thres: 1e-3
         oracle_rot_thres: 3e-1
@@ -176,7 +176,7 @@ gas_surrol:
   embodied.SurrolEnv.cam_target_noise: 1e-2
   embodied.SurrolEnv.cam_distance_noise: 5e-2
   embodied.SurrolEnv.cam_pitch_noise: 10e0
-  embodied.SurrolEnv.cam_roll_noise: 11e0
+  embodied.SurrolEnv.cam_roll_noise: 10e0
   embodied.SurrolEnv.cam_up_axis_noise: 5e0
   embodied.SurrolEnv.depth_remap_range_noise: 1e-2
   embodied.SurrolEnv.depth_remap_center_noise: 1e-2
@@ -264,7 +264,7 @@ gasv2_surrol:
   embodied.SurrolEnv.cam_distance_noise: 5e-2
   embodied.SurrolEnv.cam_pitch_noise: 10e0
   embodied.SurrolEnv.cam_roll_noise: 11e0
-  embodied.SurrolEnv.cam_up_axis_noise: 5e0
+  embodied.SurrolEnv.cam_up_axis_noise: 2e0
   embodied.SurrolEnv.depth_remap_range_noise: 1e-2
   embodied.SurrolEnv.depth_remap_center_noise: 1e-2
   embodied.SurrolEnv.no_depth_link: true
@@ -282,10 +282,10 @@ gasv2_surrol:
   embodied.SurrolEnv.grasp_any_v2.init_pose_ratio_high_gripper: [0.9, 0.9, 0.9, 0.9]
   embodied.SurrolEnv.grasp_any_v2.init_pose_ratio_low_stuff: [-0.8, -0.8, 0.1, -0.99,-0.99,-0.99]
   embodied.SurrolEnv.grasp_any_v2.init_pose_ratio_high_stuff: [0.8, 0.8, 0.5, 0.99, 0.99, 0.99]
-  embodied.SurrolEnv.grasp_any_v2.stuff_name: "any"
+  embodied.SurrolEnv.grasp_any_v2.stuff_name: "needle"
   embodied.SurrolEnv.grasp_any_v2.on_plane: false
   embodied.SurrolEnv.disturbance_scale: 0.01
-  embodied.SurrolEnv.cam_dynamic_noise_scale: 0.1
+  embodied.SurrolEnv.cam_dynamic_noise_scale: 0.0
   wrapper.DSA.zoom_box_fix_length_ratio: 0.3
   wrapper.DSA.encode_type: general_simple3
   wrapper.ImageNoise.skip: false
@@ -317,6 +317,9 @@ grasp_standing_needle:
   embodied.SurrolEnv.grasp_any.on_plane: false
   embodied.SurrolEnv.grasp_any.oracle_pos_thres: 15e-4
   wrapper.ActionNoise.noise_scale: 0.01
+
+timelimit_debug:
+  wrapper.TimeLimit: { max_timestep: 1}
 
 #########################################
 

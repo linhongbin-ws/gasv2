@@ -56,6 +56,7 @@ class SurrolEnv(BaseEnv):
         self._dr_scale = {"train": dr_scale_train, "eval": dr_scale_eval, }
         self._mode = "train"
         self._stuff_dist = stuff_dist
+        self._task_name = task
         if task == "needle_pick":
             from gym_ras.env.embodied.surrol.needle_pick import NeedlePickMod
             # print(kwargs)
@@ -143,8 +144,15 @@ class SurrolEnv(BaseEnv):
     def _reset_cam(self, cam_id, reset=True):
         # add_noise_fuc = lambda x, low, high: np.array(x) + self._cam_pose_rng.uniform(low, high)
         workspace_limits = self.client.workspace_limits1
-        target_pos = [workspace_limits[0].mean(
-        ),  workspace_limits[1].mean(),  workspace_limits[2][0]]
+        if self._task_name == "grasp_any_v2":
+            target_pos = [
+                workspace_limits[0].mean(),
+                workspace_limits[1].mean(),
+                workspace_limits[2].mean(),
+            ]
+        else:
+            target_pos = [workspace_limits[0].mean(
+            ),  workspace_limits[1].mean(),  workspace_limits[2][0]]
         roll = self._view["roll"]
         pitch = self._view["pitch"]
         yaw = self._view["yaw"]

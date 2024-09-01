@@ -25,12 +25,10 @@ from pathlib import Path
 class GraspAnyV2(PsmEnv):
     WORKSPACE_LIMITS1 = (
         (0.50, 0.60),
-        (-0.05 - 0.02, 0.05 + 0.02),
-        (0.675 + 0.0088, 0.745),
+        (-0.05, 0.05),
+        (0.675, 0.675 + 0.07),
     )
     POSE_TRAY = ((0.55, 0, 0.6751), (0, 0, 0))
-    WORKSPACE_LIMITS = ((0.50, 0.60), (-0.05, 0.05),
-                        (0.685, 0.745))  # reduce tip pad contact
     SCALING = 5.
     QPOS_ECM = (0, 0.6, 0.04, 0)
     ACTION_ECM_SIZE = 3
@@ -49,13 +47,14 @@ class GraspAnyV2(PsmEnv):
         init_pose_ratio_low_stuff=[-0.5, -0.5, 0.1, -0.99, -0.99, -0.99],
         init_pose_ratio_high_stuff=[0.5, 0.5, 0.5, 0.99, 0.99, 0.99],
         depth_distance=0.25,
-        stuff_scaling_low=0.75,
-        stuff_scaling_high=1.5,
-        needle_scaling_low=0.3,
-        needle_scaling_high=1.0,
+        stuff_scaling_low=0.5 * 0.75,
+        stuff_scaling_high=0.5 * 1.25,
+        needle_scaling_low=0.5 * 0.75,
+        needle_scaling_high=0.5 * 1.25,
         on_plane=False,
+        max_grasp_trial=3,
         **kwargs,
-    ): 
+    ):
 
         _z_level = 0.0025
         self.POSE_TRAY = ((0.55, 0, 0.6751 + _z_level), (0, 0, 0))
@@ -69,7 +68,7 @@ class GraspAnyV2(PsmEnv):
         self._needle_scaling_low = needle_scaling_low
         self._needle_scaling_high = needle_scaling_high
         self._on_plane = on_plane
-
+        self._max_grasp_trial = max_grasp_trial
         self._fix_goal = fix_goal
         super().__init__(render_mode, cid)
         self._view_param = {
@@ -87,7 +86,7 @@ class GraspAnyV2(PsmEnv):
             roll=0,
             upAxisIndex=2
         )
-        self._proj_param = {"fov": 420, "nearVal": 0.1, "farVal": 1000} # large fov to make sure large focus value, to rectify image without distortion
+        self._proj_param = {"fov": 45, "nearVal": 0.001, "farVal": 1000} # large fov to make sure large focus value, to rectify image without distortion
         self._oracle_pos_thres = oracle_pos_thres
         self._oracle_rot_thres = oracle_rot_thres
         self._done_z_thres = done_z_thres
@@ -128,9 +127,7 @@ class GraspAnyV2(PsmEnv):
                                 globalScaling=0.01) #visually remove
             self.obj_ids['fixed'].append(obj_id)  # 0    
 
-
         ####### some modification
-
 
         self.has_object = True
         self._waypoint_goal = True
@@ -176,6 +173,7 @@ class GraspAnyV2(PsmEnv):
             useFixedBase=False,
             globalScaling=self.SCALING * scaling,
         )
+        print("scaling: ", scaling)
         # p.changeVisualShape(
         #     obj_id, -1, rgbaColor=[0, 0.7, 0, 1], specularColor=(80, 80, 80))  # green
         self.obj_ids['rigid'].append(obj_id)  # 0
@@ -221,8 +219,6 @@ class GraspAnyV2(PsmEnv):
             pose = get_link_pose(self.obj_id, self.obj_link1)
             return pose[0][2] > self._waypoint_z_init + 0.005 * self.SCALING
 
-
-
     def get_oracle_action(self, obs) -> np.ndarray:
         """
         Define a human expert strategy
@@ -247,7 +243,7 @@ class GraspAnyV2(PsmEnv):
             break
 
         return action
-    
+
     def _env_setup(self):
         asset_path = (
             Path(__file__).resolve().parent.parent.parent.parent / "asset" / "urdf"
@@ -292,7 +288,7 @@ class GraspAnyV2(PsmEnv):
         scaling = self._stuff_urdf_rng.uniform(_low, _high)
 
         _tray_dir = asset_path / "tray" / "tray_no_collide.urdf"
-        self._psm_env_setup(stuff_path=str(_stuff_dir), tray_path=str(_tray_dir), scaling=scaling if self._on_plane else 1, on_plane=self._on_plane)
+        self._psm_env_setup(stuff_path=str(_stuff_dir), tray_path=str(_tray_dir), scaling=scaling, on_plane=self._on_plane)
 
         # set random gripper init pose
         pos_rel = self._gripper_pose_rng.uniform(
@@ -320,7 +316,7 @@ class GraspAnyV2(PsmEnv):
         )
         _z_level = 0 if self._on_plane else -0.1 
         new_low = np.array([ws[0][0], ws[1][0], ws[2][0] + _z_level, -180, -180, -180])
-        new_high = np.array([ws[0][1], ws[1][1], ws[2][0] + _z_level, 180, 180, 180])
+        new_high = np.array([ws[0][1], ws[1][1], ws[2][1] + _z_level, 180, 180, 180])
 
         pose = scale_arr(
             pos_rel, -np.ones(pos_rel.shape), np.ones(pos_rel.shape), new_low, new_high
@@ -329,8 +325,11 @@ class GraspAnyV2(PsmEnv):
         if self._on_plane:
             M1 = Euler2M([0, 0, pose[5]], convension="xyz", degrees=True)
         else:
-            _m1 = Euler2M([-90, 0, 0], convension="xyz", degrees=True)
-            _m2 = Euler2M([0, -60, 0], convension="xyz", degrees=True)
+            # _m1 = Euler2M([-90, 0, 0], convension="xyz", degrees=True)
+            # _m2 = Euler2M([0, -60, 0], convension="xyz", degrees=True)
+            # _m3 = Euler2M([0, 0, pose[5]], convension="xyz", degrees=True)
+            _m1 = Euler2M([pose[3], 0, 0], convension="xyz", degrees=True)
+            _m2 = Euler2M([0, pose[4], 0], convension="xyz", degrees=True)
             _m3 = Euler2M([0, 0, pose[5]], convension="xyz", degrees=True)
             M1 = np.matmul(_m2,_m1,)
             M1 = np.matmul(_m3, M1,)
@@ -364,6 +363,7 @@ class GraspAnyV2(PsmEnv):
 
     def reset(self):
         obs = super().reset()
+        self._grasp_trial_cnt = 0
         self._init_stuff_z = self._get_stuff_z()
         self._create_waypoint()
         return obs
@@ -432,6 +432,8 @@ class GraspAnyV2(PsmEnv):
 
     def step(self, action):
         obs, reward, done, info = super().step(action)
+        if self._jump_sig_prv:
+            self._grasp_trial_cnt += 1
         info["fsm"] = self._fsm()
         return obs, reward, done, info
 
@@ -462,7 +464,10 @@ class GraspAnyV2(PsmEnv):
             return "prog_norm"
         else:
             if self._init_stuff_constraint is not None and self._contact_constraint is None:
-                return "prog_norm"
+                if self._grasp_trial_cnt >= self._max_grasp_trial:
+                    return "done_fail"
+                else:
+                    return "prog_norm"
             elif self._init_stuff_constraint is None and self._contact_constraint is not None:
                 return "done_success"
             else:
@@ -590,7 +595,6 @@ class GraspAnyV2(PsmEnv):
     @property
     def random_vis_key(self):
         return ["tray", "psm1", "stuff"]
-
 
     @property
     def random_color_range(
