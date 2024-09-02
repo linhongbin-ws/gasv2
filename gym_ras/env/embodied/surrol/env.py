@@ -333,6 +333,7 @@ class SurrolEnv(BaseEnv):
                 far = self._project["farVal"]
                 near = self._project["nearVal"]
                 depth = far * near / (far - (far - near) * depth)
+                imgs["depReal"+postfix] = depth
                 depth = np.uint8(np.clip(self._scale(
                     depth, self._depth_remap_range[j][0], self._depth_remap_range[j][1], 0, 255), 0, 255))  # to image
                 imgs["depth"+postfix] = depth
