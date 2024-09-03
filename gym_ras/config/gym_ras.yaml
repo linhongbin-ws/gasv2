@@ -289,7 +289,7 @@ gasv2_surrol:
   embodied.SurrolEnv.disturbance_scale: 0.01
   embodied.SurrolEnv.cam_dynamic_noise_scale: 0.0
   wrapper.DSA.zoom_box_fix_length_ratio: 0.3
-  wrapper.DSA.encode_type: general_simple3
+  wrapper.DSA.encode_type: occup
   wrapper.ImageNoise.skip: false
   wrapper.ImageNoise.cutout_all_amount_range: [0.54, 1.0]
   wrapper.ImageNoise.cutout_depth_amount_range: [1.0, 1.0]

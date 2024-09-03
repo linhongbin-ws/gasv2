@@ -286,6 +286,30 @@ class DSA(BaseWrapper):
             im_pre = np.stack([layer1, layer2, layer3], axis=2)
             img_dsa = im_pre
 
+        elif self._encode_type in ["occup"]:
+            layers = [
+                np.zeros(img["rgb" + pfix].shape[0:2], dtype=np.uint8) for i in range(3)
+            ]
+            idxs = [0,2]
+            for i in range(2):
+                zoom_mask = img["occup" + pfix]["psm1"][idxs[i]]
+                zoom_box_x, zoom_box_y, _, _ = self._get_box_from_masks(zoom_mask)
+                zoom_box_length = self._zoom_box_fix_length_ratio * min(
+                    zoom_mask.shape[0], zoom_mask.shape[1]
+                )
+                zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max = self._get_zoom_coordinate(
+                    zoom_box_x, zoom_box_y, zoom_box_length, zoom_mask.shape
+                )
+
+                layers[i][img["occup" + pfix]["psm1"][idxs[i]]] = self._image_encode_id["psm1"]
+                layers[i][img["occup" + pfix]["stuff"][idxs[i]]] = self._image_encode_id["stuff"]
+                layers[i] = self._zoom_legal(
+                    layers[i], zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max
+                )
+
+            im_pre = np.stack(layers, axis=2)
+            img_dsa = im_pre
+
         if self._timestep_prv != self.env.timestep:
             self._zoom_coordinate_prv = (
                 zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max)
