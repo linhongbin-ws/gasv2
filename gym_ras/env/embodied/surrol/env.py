@@ -6,7 +6,7 @@ import numpy as np
 from gym_ras.tool.common import *
 from pathlib import Path
 import colorsys
-
+from gym_ras.tool.depth import get_intrinsic_matrix, depth_image_to_point_cloud, pointclouds2occupancy
 
 class SurrolEnv(BaseEnv):
     def __init__(self,
