@@ -60,6 +60,31 @@ class CV2_Visualizer():
                     imgs_dict[k] = v
                 if k.find("image") >= 0:
                     imgs_dict[k] = v
+                elif k.find("occup") >= 0:
+                    for occ_key, occ_v in v.items():
+                        for axx in range(len(occ_v)):
+                            _mat = occ_v[axx]
+                            _key = "occup_"+["x","y","z"][axx]+"@"+occ_key
+                            color_mat = np.zeros(_mat.shape, dtype=np.uint8)
+                            color_mat[_mat] = 255
+                            imgs_dict[_key] = (
+                                np.stack([color_mat] * 3, axis=2)
+                                if len(_mat.shape) == 2
+                                else color_mat
+                            )
+                            imgs_dict[_key] = cv2.resize(
+                                imgs_dict[_key],
+                                (
+                                    imgs["rgb"].shape[0],
+                                    imgs["rgb"].shape[1],
+                                ),
+                                interpolation={
+                                    "nearest": cv2.INTER_NEAREST,
+                                    "linear": cv2.INTER_LINEAR,
+                                    "area": cv2.INTER_AREA,
+                                    "cubic": cv2.INTER_CUBIC,
+                                }[self._cv_interpolate],
+                            )
                 elif k.find("depth") >= 0:
                     imgs_dict[k] = np.stack(
                         [v]*3, axis=2) if len(v.shape) == 2 else v

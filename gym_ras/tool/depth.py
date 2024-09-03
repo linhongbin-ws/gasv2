@@ -1,9 +1,10 @@
-#https://github.com/vitalemonate/depth2Cloud/blob/main/depth2Cloud.py
+# https://github.com/vitalemonate/depth2Cloud/blob/main/depth2Cloud.py
 import os
 import numpy as np
 import cv2
 from tqdm import tqdm
 from gym_ras.tool.common import scale_arr
+import time
 
 def write_point_cloud(ply_filename, points):
     formatted_points = []
@@ -27,42 +28,37 @@ def write_point_cloud(ply_filename, points):
     out_file.close()
 
 
-def depth_image_to_point_cloud(rgb, depth, scale, K, pose, encode_mask=None):
+def depth_image_to_point_cloud(rgb, depth, scale, K, pose, encode_mask=None, tolist=True):
+    start = time.time()
+
     u = range(0, rgb.shape[1])
     v = range(0, rgb.shape[0])
-
     u, v = np.meshgrid(u, v)
     u = u.astype(float)
     v = v.astype(float)
-
     Z = depth.astype(float) / scale
     X = (u - K[0, 2]) * Z / K[0, 0]
     Y = (v - K[1, 2]) * Z / K[1, 1]
-
     X = np.ravel(X)
     Y = np.ravel(Y)
     Z = np.ravel(Z)
-
     valid = Z > 0
-
-
     X = X[valid]
     Y = Y[valid]
     Z = Z[valid]
-
-
     stacklist = (X, Y, Z, np.ones(len(X)))
     position = np.vstack(stacklist)
     position = np.dot(pose, position)
-
     R = np.ravel(rgb[:, :, 0])[valid]
     G = np.ravel(rgb[:, :, 1])[valid]
     B = np.ravel(rgb[:, :, 2])[valid]
     if encode_mask is None:
-        points = np.transpose(np.vstack((position[0:3, :], R, G, B))).tolist()
+        points = np.transpose(np.vstack((position[0:3, :], R, G, B)))
     else:
         M = np.ravel(encode_mask)[valid]
-        points = np.transpose(np.vstack((position[0:3, :], R, G, B, M))).tolist()
+        points = np.transpose(np.vstack((position[0:3, :], R, G, B, M)))
+    if tolist:
+        points = points.tolist()
     return points
 
 
@@ -112,7 +108,8 @@ def get_intrinsic_matrix(width, height, fov):
 def pointclouds2occupancy(pc_mat, occup_h, occup_w, occup_d, 
                           pc_x_min,pc_x_max,
                           pc_y_min,pc_y_max,
-                          pc_z_min,pc_z_max,):
+                          pc_z_min,pc_z_max,
+                          ):
     _pc_mat = pc_mat.copy()
     # print(_pc_mat[:,0],  pc_x_min, pc_x_max, 0, occup_h-1,)
     get_idx = lambda mat, min, max, occ_s: np.clip(scale_arr(mat, min, max, 0, occ_s-1), 0, occ_s-1).astype(int)
@@ -124,11 +121,11 @@ def pointclouds2occupancy(pc_mat, occup_h, occup_w, occup_d,
     idx_z = get_idx(_pc_mat[:,2],  pc_z_min, pc_z_max,occup_d)
     occ_mat = np.zeros((occup_h, occup_w, occup_d), dtype=bool)
     occ_mat[idx_x,idx_y,idx_z] = True
-    occ_mat_image_x = np.sum(occ_mat, axis=2) !=0
+    occ_proj_y = np.sum(occ_mat, axis=0) !=0
+    occ_proj_z = np.flip(np.transpose(np.sum(occ_mat, axis=1) != 0), 0)
+    occ_proj_x = np.transpose(np.sum(occ_mat, axis=2) != 0)
 
-
-
-    return occ_mat_image_x
+    return occ_proj_x, occ_proj_y, occ_proj_z
 
 if __name__ == '__main__':
     # dataset_folder = Path("dataset")
@@ -147,19 +144,23 @@ if __name__ == '__main__':
     print(imgs['mask'].keys())
     rgb = imgs["rgb"]
     depth = imgs["depReal"]
-    mask = np.logical_or(imgs['mask']['psm1'],imgs['mask']['stuff'] )
-    encode_mask = np.zeros(mask.shape)
-    encode_mask[mask] = 1
+    encode_mask = np.zeros(depth.shape, dtype=np.uint8)
+    masks = [imgs["mask"]["psm1"], imgs["mask"]["stuff"]]
+    for i in range(len(masks)):
+        encode_mask[masks[i]] = i
     scale = 1
     K = get_intrinsic_matrix(depth.shape[0],depth.shape[1],fov=45) 
     pose = np.eye(4)
-    points = depth_image_to_point_cloud(rgb, depth, scale, K, pose, encode_mask = encode_mask)
+    points = depth_image_to_point_cloud(
+        rgb, depth, scale, K, pose, encode_mask=encode_mask
+    )
 
     save_ply_name = "test_pc.ply"
     save_ply_path = Path('./data/test_pc') 
     save_ply_path.mkdir(parents=True, exist_ok=True)
     write_point_cloud(str(save_ply_path / save_ply_name), points)
     import matplotlib.pyplot as plt
+    from matplotlib.pyplot import imshow, subplot, axis, cm, show
     from gym_ras.tool.common import getT, invT, TxT
     points = np.array(points)
     points = points[points[:,6]==1] # mask out
@@ -169,10 +170,21 @@ if __name__ == '__main__':
     P = np.concatenate((points[:,:3], ones), axis=1)
     points[:,:3] = np.matmul(P, np.transpose(TxT([T2, T1,])))[:,:3]
     print(points[:,:3])
-    occ_mat_image_x = pointclouds2occupancy(points, occup_h=64, occup_w=64, occup_d=64, 
-                          pc_x_min=-0.1*5,pc_x_max=0.1*5,
-                          pc_y_min=-0.1*5,pc_y_max=0.1*5,
-                          pc_z_min=-0.1*5,pc_z_max=0.1*5)
-    
-    plt.imshow(occ_mat_image_x, cmap='gray')
-    plt.show()
+    occ_proj_x, occ_proj_y, occ_proj_z = pointclouds2occupancy(
+        points,
+        occup_h=200,
+        occup_w=200,
+        occup_d=200,
+        pc_x_min=-0.1 * 5,
+        pc_x_max=0.1 * 5,
+        pc_y_min=-0.1 * 5,
+        pc_y_max=0.1 * 5,
+        pc_z_min=-0.1 * 5,
+        pc_z_max=0.1 * 5,
+    )
+    im = [occ_proj_x, occ_proj_y, occ_proj_z]
+    for k in range(len(im)):
+        subplot(1, len(im), k + 1)
+        axis("off")
+        plt.imshow(im[k], cmap="gray")
+    plt.show()  

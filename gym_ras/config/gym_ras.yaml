@@ -7,6 +7,7 @@ default:
         "TimeLimit",
         "DiscreteAction",
         "DepthProcess",
+        'Occup',
         "DSA",
         "VirtualClutch",
         "FSM",
@@ -31,6 +32,7 @@ default:
     TimeLimit: { max_timestep: 200 }
     DepthProcess: { skip: true, uncert_scale: 1.0, eval: false }
     FSM: { arg: 0 , ensure_norm_reward: false,  dsa_out_zoom_anamaly: false,}
+    Occup: {is_skip: false}
     OBS:
       {
         image_obs_key: ["dsa"],
