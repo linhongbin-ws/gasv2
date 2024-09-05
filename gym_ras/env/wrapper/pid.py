@@ -22,18 +22,21 @@ class PID(BaseWrapper):
     
     def reset(self):
         obs = self.env.reset()
-        _obs = self._get_pid_observation()
-        obs["controller_state"] = 1  if self._check_pid_phase(_obs) else 0
+        # _obs = self._get_pid_observation()
+        obs["controller_state"] = 1
+        # obs["controller_state"] = 1  if self._check_pid_phase(_obs) else 0
+        return obs
 
     def step(self, action):
         obs = self._get_pid_observation()
+        pid_phase = False
         if self._check_pid_phase(obs):
             action = self._get_pid_action(obs)
-            obs["controller_state"] = 1
-        else:
-            obs["controller_state"] = 0
-        return self.env.step(action)
-    
+            pid_phase =True 
+            
+        obs, reward, done, info = self.env.step(action)
+        obs["controller_state"] = 1  if pid_phase else 0
+        return obs, reward, done, info
 
     def _get_pid_observation(self):
         if self._obs_type == 'occup':

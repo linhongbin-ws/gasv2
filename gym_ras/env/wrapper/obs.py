@@ -140,7 +140,7 @@ class OBS(BaseWrapper):
         # print("jj",_value_norm)
         if self._vector2image_type == "row":
             # print(_value_norm.shape)
-            extend_d = 32
+            extend_d = image_in.shape[0] // vector.shape[0]
             _value_norm_l = np.zeros((_value_norm.shape[0] * extend_d,), dtype=np.uint8)
             # print(_value_norm)
             for i in range(_value_norm.shape[0]):
@@ -160,6 +160,7 @@ class OBS(BaseWrapper):
                 a2 = s-0*ROW_SIZE-1-ROW_SIZE
                 b2 = s-0*ROW_SIZE-1
                 image[a2:b2, a1:b1, fill_channel] = _value_norm[_v]
+
 
         elif self._vector2image_type == "pixel":
             _shape = image.shape
