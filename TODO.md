@@ -36,3 +36,4 @@ code
 
 2024-08-30
 - [ ] voxelization, and map to 2D plane
+- [x] voxel projection, try occlusion representation. (Not work, it seems pixel is too sparse and loose its shape if apply occlusin filter)

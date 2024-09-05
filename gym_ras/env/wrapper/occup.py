@@ -57,9 +57,9 @@ class Occup(BaseWrapper):
             _points = points[points[:, 6] == m_id + 1]  # mask out
             (x, y, z) = pointclouds2occupancy(
                 _points,
-                occup_h=100,
-                occup_w=100,
-                occup_d=100,
+                occup_h=200,
+                occup_w=200,
+                occup_d=200,
                 pc_x_min=-0.1 * 5,
                 pc_x_max=0.1 * 5,
                 pc_y_min=-0.1 * 5,
@@ -72,9 +72,14 @@ class Occup(BaseWrapper):
             z = self._resize_bool(z, imgs["rgb"].shape[0])
             occup_imgs[self._mask_key[m_id]] = [x,y,z]
         imgs["occup"] = occup_imgs
+        self._occup_projection = occup_imgs
         return imgs
     def _resize_bool(self, im, size):
         _in = np.zeros(im.shape,dtype=np.uint8)
         _in[im] = 1
         _out = cv2.resize(_in, (size, size))
         return _out == 1
+
+    @property
+    def occupancy_projection(self):
+        return self._occup_projection 

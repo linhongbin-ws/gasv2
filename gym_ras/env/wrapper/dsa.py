@@ -301,8 +301,8 @@ class DSA(BaseWrapper):
                     zoom_box_x, zoom_box_y, zoom_box_length, zoom_mask.shape
                 )
 
-                layers[i][img["occup" + pfix]["psm1"][idxs[i]]] = self._image_encode_id["psm1"]
-                layers[i][img["occup" + pfix]["stuff"][idxs[i]]] = self._image_encode_id["stuff"]
+                layers[i][img["occup" + pfix]["psm1"][idxs[i]]] += self._image_encode_id["psm1"]
+                layers[i][img["occup" + pfix]["stuff"][idxs[i]]] += self._image_encode_id["stuff"]
                 layers[i] = self._zoom_legal(
                     layers[i], zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max
                 )

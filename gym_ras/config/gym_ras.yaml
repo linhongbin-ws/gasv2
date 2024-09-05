@@ -5,10 +5,11 @@ default:
         "ActionNoise",
         "ImageNoise",
         "TimeLimit",
-        "DiscreteAction",
         "DepthProcess",
         'Occup',
+        'PID',
         "DSA",
+        "DiscreteAction",
         "VirtualClutch",
         "FSM",
         "OBS",
@@ -33,6 +34,7 @@ default:
     DepthProcess: { skip: true, uncert_scale: 1.0, eval: false }
     FSM: { arg: 0 , ensure_norm_reward: false,  dsa_out_zoom_anamaly: false,}
     Occup: {is_skip: false}
+    PID: {obs_type: occup}
     OBS:
       {
         image_obs_key: ["dsa"],

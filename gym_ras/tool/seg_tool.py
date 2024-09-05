@@ -254,67 +254,13 @@ class ColorSegmentor():
                 raise NotImplementedError
         return (mask, 1)  # mask, confidence
 
-
-# here are simple coco example
-# {
-#   "images": [
-#     {
-#       "id": 1,
-#       "file_name": "image1.jpg",
-#       "width": 640,
-#       "height": 480
-#     },
-#     {
-#       "id": 2,
-#       "file_name": "image2.jpg",
-#       "width": 800,
-#       "height": 600
-#     }
-#   ],
-#   "annotations": [
-#     {
-#       "id": 1,
-#       "image_id": 1,
-#       "category_id": 1,
-#       "segmentation": [[x1, y1, x2, y2, ...]],
-#       "area": 1234,
-#       "bbox": [x, y, width, height],
-#       "iscrowd": 0
-#     },
-#     {
-#       "id": 2,
-#       "image_id": 1,
-#       "category_id": 2,
-#       "segmentation": [[x1, y1, x2, y2, ...]],
-#       "area": 567,
-#       "bbox": [x, y, width, height],
-#       "iscrowd": 0
-#     }
-#   ],
-#   "categories": [
-#     {
-#       "id": 1,
-#       "name": "person",
-#       "supercategory": "human"
-#     },
-#     {
-#       "id": 2,
-#       "name": "car",
-#       "supercategory": "vehicle"
-#     }
-#   ],
-#   "info": {
-#     "description": "COCO 2017 dataset",
-#     "version": "1.0",
-#     "year": 2017,
-#     "contributor": "Microsoft COCO group",
-#     "url": "http://cocodataset.org"
-#   },
-#   "licenses": [
-#     {
-#       "id": 1,
-#       "name": "CC BY-SA 2.0",
-#       "url": "https://creativecommons.org/licenses/by-sa/2.0/"
-#     }
-#   ]
-# }
+def get_mask_boundary(mask):
+    rows = np.any(mask, axis=1)
+    cols = np.any(mask, axis=0)
+    try:
+        rmin, rmax = np.where(rows)[0][[0, -1]]
+        cmin, cmax = np.where(cols)[0][[0, -1]]
+        _s = mask.shape
+        return (rmin, rmax), (cmin, cmax), (rmin/_s[0], rmax/_s[0]), (cmin/_s[1], cmax/_s[1])
+    except:
+        return (0, 0), (0, 0), (0, 0), (0, 0)  # by default
