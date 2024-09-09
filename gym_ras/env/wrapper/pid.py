@@ -58,9 +58,9 @@ class PID(BaseWrapper):
             x_err = mean(x1, x2) 
             y_err = mean(y1, y2)
             z_err = mean(z1, z2)
-            print("x", x1, x2, x_err)
-            print("y", y1, y2, y_err)
-            print("z", z1, z2, z_err)
+            # print("x", x1, x2, x_err)
+            # print("y", y1, y2, y_err)
+            # print("z", z1, z2, z_err)
             obs = {}
             obs['err'] = [ x_err, y_err, z_err]
         return  obs
@@ -73,7 +73,7 @@ class PID(BaseWrapper):
         x_phase = phase(0)
         y_phase = phase(1)
         z_phase = phase(2)
-        print("phase", x_phase,y_phase,z_phase)
+        # print("phase", x_phase,y_phase,z_phase)
         return x_phase or y_phase or z_phase
         
     def _get_pid_action(self, obs):
@@ -85,7 +85,7 @@ class PID(BaseWrapper):
                      1,])
             # action = np.array([0,0,2,0,0])
             action = np.clip(action, -np.ones(action.shape), np.ones(action.shape))
-            print("action is ", action)
+            # print("action is ", action)
             return action
 
     def _get_mask_centroid(self, mask):

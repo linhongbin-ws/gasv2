@@ -173,7 +173,7 @@ class GraspAnyV2(PsmEnv):
             useFixedBase=False,
             globalScaling=self.SCALING * scaling,
         )
-        print("scaling: ", scaling)
+        # print("scaling: ", scaling)
         # p.changeVisualShape(
         #     obj_id, -1, rgbaColor=[0, 0.7, 0, 1], specularColor=(80, 80, 80))  # green
         self.obj_ids['rigid'].append(obj_id)  # 0
