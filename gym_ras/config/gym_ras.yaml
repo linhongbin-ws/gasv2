@@ -149,6 +149,7 @@ default:
         on_plane: true
         oracle_pos_thres: 1e-3
         oracle_rot_thres: 3e-1
+        max_grasp_trial: 2
     dVRKEnv:
       grasp_any:
         arm_names: ["PSM1"]
@@ -288,21 +289,23 @@ gasv2_surrol:
   embodied.SurrolEnv.grasp_any_v2.init_pose_ratio_high_stuff: [0.8, 0.8, 0.5, 0.99, 0.99, 0.99]
   embodied.SurrolEnv.grasp_any_v2.stuff_name: "needle"
   embodied.SurrolEnv.grasp_any_v2.on_plane: false
+  embodied.SurrolEnv.grasp_any_v2.max_grasp_trial: 1
   embodied.SurrolEnv.disturbance_scale: 0.01
   embodied.SurrolEnv.cam_dynamic_noise_scale: 0.0
   wrapper.DSA.zoom_box_fix_length_ratio: 0.3
   wrapper.DSA.encode_type: occup
   wrapper.ImageNoise.skip: false
-  wrapper.ImageNoise.cutout_all_amount_range: [0.54, 1.0]
+  wrapper.ImageNoise.cutout_all_amount_range: [0.8, 1.0]
   wrapper.ImageNoise.cutout_depth_amount_range: [1.0, 1.0]
   wrapper.ImageNoise.cutout_line_num_low: 0
   wrapper.ImageNoise.cutout_line_num_high: 0
   wrapper.FSM.dsa_out_zoom_anamaly: true
-  wrapper.TimeLimit: { max_timestep: 300 }
+  wrapper.TimeLimit: { max_timestep: 40 }
   wrapper.ActionNoise.noise_scale: 0.04
-  wrapper.OBS.vector2image_type: "square"
   wrapper.DepthProcess.skip: false
   wrapper.DepthProcess.uncert_scale: 1.5
+  wrapper.OBS.vector_obs_key: ["gripper_state", "fsm_state", "controller_state"]
+  wrapper.OBS.vector2image_type: row
 
 
 gui: 

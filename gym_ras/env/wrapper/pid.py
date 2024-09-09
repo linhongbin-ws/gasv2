@@ -82,7 +82,7 @@ class PID(BaseWrapper):
                                 -self._control_p*(x_err+self._err_offset[0]),
                                 self._control_p*(z_err+self._err_offset[2]),
                      0,
-                     0,])
+                     1,])
             # action = np.array([0,0,2,0,0])
             action = np.clip(action, -np.ones(action.shape), np.ones(action.shape))
             print("action is ", action)
