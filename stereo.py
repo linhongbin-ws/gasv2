@@ -167,7 +167,7 @@ class VisPlayer(nn.Module):
         self._segmentor = None
         # self.init_run()
 
-        self.depth_center = 0.11577537
+        self.depth_center = 0.14179377
         self.depth_range = 0.1
 
         self._depth_remap = True
@@ -636,6 +636,7 @@ class VisPlayer(nn.Module):
             data = {k: depth_remap(v, self.depth_center, 0.3) if k!="mask" else {i: (depth_remap(j[0], self.depth_center, 0.3), 1) for i,j in v.items()} for k,v in self.img_data.items()}
         else:
             data = self.img_data
+        print('get_image', data["depReal"])
         return deepcopy(data)
 
     def _get_image_worker(self):
@@ -656,7 +657,6 @@ class VisPlayer(nn.Module):
         frame1=cv2.resize(frame1, self.img_size)
         frame2=cv2.resize(frame2, self.img_size)
 
-        # print(depth)
 
         low = self.depth_center - self.depth_range / 2
         high = self.depth_center + self.depth_range / 2
@@ -666,6 +666,9 @@ class VisPlayer(nn.Module):
 
         frame1=cv2.resize(frame1, (600,600))
         depth_px=cv2.resize(depth_px, (600,600))
+        d = cv2.resize(depth, (600,600))
+        self.img_data["depReal"] = d.copy()
+        print("in the update", self.img_data["depReal"])
         self.img_data["rgb"] = frame1
         self.img_data["depth"] = depth_px
         if self._segmentor is not None:

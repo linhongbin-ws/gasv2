@@ -326,19 +326,19 @@ csr_grasp_any:
   embodied.dVRKEnv.grasp_any.psm_init_pose_high_gripper: [0.8, 0.8, 0.3, 0.8]
   embodied.dVRKEnv.grasp_any.psm_max_step_pos: 0.014
   embodied.dVRKEnv.grasp_any.psm_max_step_rot: 40.0
-  wrapper.pipeline:
-      [
-        "ActionSmooth",
-        "ImageNoise",
-        "DepthProcess",
-        "DSA",
-        "VirtualClutch",
-        "ActionNoise",
-        "DiscreteAction",
-        "TimeLimit",
-        "FSM",
-        "OBS",
-      ]
+  # wrapper.pipeline:
+  #     [
+  #       "ActionSmooth",
+  #       "ImageNoise",
+  #       "DepthProcess",
+  #       "DSA",
+  #       "VirtualClutch",
+  #       "ActionNoise",
+  #       "DiscreteAction",
+  #       "TimeLimit",
+  #       "FSM",
+  #       "OBS",
+  #     ]
 
 gui: 
   embodied.SurrolEnv.pybullet_gui: true
