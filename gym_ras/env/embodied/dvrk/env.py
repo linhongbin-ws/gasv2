@@ -12,7 +12,7 @@ class dVRKEnv(BaseEnv):
                  **kwargs,
                  ):
         if task in "grasp_any":
-            from gym_ras.env.embodied.dvrk.grasp_any import GraspAny
+            from gym_ras.env.embodied.dvrk.grasp_any_csr import GraspAny
             client = GraspAny(**kwargs)
         else:
             raise Exception("Not support")
@@ -24,7 +24,7 @@ class dVRKEnv(BaseEnv):
         self._init_vars()
         _ = self.client.reset()
         obs, reward, done, info = self.client.step(
-            np.array([0.0, 0.0, 0.0, 0.0, 1.0]))
+            np.array([0.0, 0.0, 0.0, 0.0, 1.0]), False)
         obs["robot_prio"], obs["gripper_state"] = self._get_prio_obs()
         self.step_func_prv = (obs, reward, done, info)
         return obs
@@ -38,7 +38,7 @@ class dVRKEnv(BaseEnv):
             _is_out, action_clip = self._check_new_action(_prio, action[:3])
             _action = action.copy()
             _action[:3] = action_clip
-            obs, reward, done, info = self.client.step(_action)
+            obs, reward, done, info = self.client.step(_action, _is_out)
             obs["robot_prio"], obs["gripper_state"] = self._get_prio_obs()
             gripper_toggle = np.abs(
                 obs["gripper_state"]-self.step_func_prv[0]["gripper_state"]) > 0.1
@@ -107,3 +107,5 @@ class dVRKEnv(BaseEnv):
 
     def to_train(self):
         self._mode = "train"
+    def __del__(self):
+        del self.client
