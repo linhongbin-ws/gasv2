@@ -1,0 +1,1065 @@
+<dds xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://community.rti.com/schema/6.1.2/rti_dds_qos_profiles.xsd">
+    <qos_library name="CsrosQosLib">
+
+        <qos_profile name="ParticipantQosInterfacesSnippet">
+            <participant_qos>
+                <property>
+                    <value>
+                        <element>
+                            <name>dds.transport.UDPv4.builtin.parent.allow_interfaces_list</name>
+                            <value>127.0.0.*,192.168.6.*</value>
+                        </element>
+                    </value>
+                </property>
+            </participant_qos>
+        </qos_profile>
+
+        <qos_profile name="ParticipantQosTimeCriticalInterfaceSnippet">
+            <participant_qos>
+                <property>
+                    <value>
+                        <element>
+                            <name>dds.transport.UDPv4.builtin.parent.allow_interfaces_list</name>
+                            <value>127.0.0.*,192.168.5.*</value>
+                        </element>
+                    </value>
+                </property>
+            </participant_qos>
+        </qos_profile>
+
+        <qos_profile name="ParticipantQosPropertySnippet">
+            <participant_qos>
+                <property>
+                    <value>
+                        <element>
+                          <name>dds.participant.property_validation_action</name>
+                          <value>1</value>
+                        </element>
+
+                        <element>
+                          <name>dds.transport.UDPv4.builtin.parent.message_size_max</name>
+                          <value>65536</value>
+                        </element>
+                        <element>
+                          <name>dds.transport.UDPv4.builtin.send_socket_buffer_size</name>
+                          <value>1048576</value>
+                        </element>
+                        <element>
+                          <name>dds.transport.UDPv4.builtin.recv_socket_buffer_size</name>
+                          <value>2097152</value>
+                        </element>
+
+                        <element>
+                          <name>dds.transport.shmem.builtin.parent.message_size_max</name>
+                          <value>65536</value>
+                        </element>
+                        <element>
+                          <name>dds.transport.shmem.builtin.received_message_count_max</name>
+                          <value>256</value>
+                        </element>
+                        <element>
+                          <name>dds.transport.shmem.builtin.receive_buffer_size</name>
+                          <value>6684672</value>
+                        </element>
+                        <element>
+                            <name>dds.clock.external_clock</name>
+                            <value>monotonic</value>
+                        </element>
+                        <element>
+                            <name>dds.clock.internal_clock</name>
+                            <value>monotonic</value>
+                        </element>
+                    </value>
+                </property>
+            </participant_qos>
+        </qos_profile>
+
+        <qos_profile name="ParticipantQosDiscoverysSnippet">
+            <participant_qos>
+                <discovery>
+                    <initial_peers>
+                        <element>100@builtin.udpv4://239.255.0.1</element>
+                        <element>100@builtin.udpv4://127.0.0.1</element>
+                        <element>100@builtin.shmem://</element>
+                    </initial_peers>
+                </discovery>
+            </participant_qos>
+        </qos_profile>
+
+        <qos_profile name="ParticipantQosResourceLimitsSnippet">
+            <participant_qos>
+                <resource_limits>
+                    <type_object_max_serialized_length>16384</type_object_max_serialized_length>
+                    <local_writer_hash_buckets>200</local_writer_hash_buckets>
+                    <local_reader_hash_buckets>200</local_reader_hash_buckets>
+                    <local_publisher_hash_buckets>200</local_publisher_hash_buckets>
+                    <local_subscriber_hash_buckets>200</local_subscriber_hash_buckets>
+                    <local_topic_hash_buckets>200</local_topic_hash_buckets>
+                    <remote_writer_hash_buckets>200</remote_writer_hash_buckets>
+                    <remote_reader_hash_buckets>200</remote_reader_hash_buckets>
+                    <remote_participant_hash_buckets>20</remote_participant_hash_buckets>
+                    <matching_writer_reader_pair_hash_buckets>200</matching_writer_reader_pair_hash_buckets>
+                    <matching_reader_writer_pair_hash_buckets>200</matching_reader_writer_pair_hash_buckets>
+                </resource_limits>
+            </participant_qos>
+        </qos_profile>
+
+        <qos_profile name="AutoDisposeUnregisteredInstancesFalse">
+            <datawriter_qos>
+                <writer_data_lifecycle>
+                    <autodispose_unregistered_instances>false</autodispose_unregistered_instances>
+                </writer_data_lifecycle>
+            </datawriter_qos>
+        </qos_profile>
+
+
+        <qos_profile name="XCDR2ReaderWriter">
+            <datareader_qos>
+                <representation>
+                  <value>
+                    <element>XCDR2_DATA_REPRESENTATION</element>
+                  </value>
+                </representation>
+            </datareader_qos>
+            <datawriter_qos>
+                <representation>
+                  <value>
+                    <element>XCDR2_DATA_REPRESENTATION</element>
+                  </value>
+                </representation>
+            </datawriter_qos>
+        </qos_profile>
+
+        <!-- ================================================================= -->
+        <!-- Base QoS Profile                                                  -->
+        <!-- ================================================================= -->
+        <qos_profile name="ProfileDefault" is_default_qos="true" base_name="XCDR2ReaderWriter">
+
+            <base_name>
+                <element>ParticipantQosInterfacesSnippet</element>
+                <element>ParticipantQosPropertySnippet</element>
+<!--                <element>ParticipantQosDiscoverysSnippet</element>-->
+                <element>ParticipantQosResourceLimitsSnippet</element>
+            </base_name>
+
+            <participant_qos>
+                <participant_name>
+                    <name>CSROS Default Profile</name>
+                </participant_name>
+
+            </participant_qos>
+            <datareader_qos name="bestEffortReader">
+                <reliability>
+                    <kind>BEST_EFFORT_RELIABILITY_QOS</kind>
+                </reliability>
+                <resource_limits>
+                    <max_samples>64</max_samples>
+                    <initial_samples>64</initial_samples>
+                    <instance_hash_buckets>1</instance_hash_buckets>
+                </resource_limits>
+            </datareader_qos>
+            <datawriter_qos name="bestEffortWriter">
+                <reliability>
+                    <kind>BEST_EFFORT_RELIABILITY_QOS</kind>
+                </reliability>
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>1</depth>
+                </history>
+                <resource_limits>
+                    <max_samples>64</max_samples>
+                    <initial_samples>64</initial_samples>
+                    <instance_hash_buckets>1</instance_hash_buckets>
+                </resource_limits>
+            </datawriter_qos>
+            <datareader_qos name="reliableReader">
+                <reliability>
+                    <kind>RELIABLE_RELIABILITY_QOS</kind>
+                    <max_blocking_time>
+                        <sec>3</sec>
+                        <nanosec>0</nanosec>
+                    </max_blocking_time>
+                </reliability>
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>16</depth>
+                </history>
+
+                <reader_resource_limits>
+                    <initial_outstanding_reads>16</initial_outstanding_reads>
+                    <max_outstanding_reads>16</max_outstanding_reads>
+                    <max_samples_per_remote_writer>16</max_samples_per_remote_writer>
+                </reader_resource_limits>
+
+                <protocol>
+                    <rtps_reliable_reader>
+                        <min_heartbeat_response_delay>
+                            <sec>DURATION_ZERO_SEC</sec>
+                            <nanosec>DURATION_ZERO_NSEC</nanosec>
+                        </min_heartbeat_response_delay>
+                        <max_heartbeat_response_delay>
+                            <sec>DURATION_ZERO_SEC</sec>
+                            <nanosec>DURATION_ZERO_NSEC</nanosec>
+                        </max_heartbeat_response_delay>
+                        <heartbeat_suppression_duration>
+                            <sec>DURATION_ZERO_SEC</sec>
+                            <nanosec>DURATION_ZERO_NSEC</nanosec>
+                        </heartbeat_suppression_duration>
+                        <app_ack_period>
+                            <sec>DURATION_ZERO_SEC</sec>
+                            <nanosec>4000000</nanosec>
+                        </app_ack_period>
+                    </rtps_reliable_reader>
+                </protocol>
+            </datareader_qos>
+
+            <datareader_qos name="reliableSlowReader">
+                <reliability>
+                    <kind>RELIABLE_RELIABILITY_QOS</kind>
+                    <max_blocking_time>
+                        <sec>3</sec>
+                        <nanosec>0</nanosec>
+                    </max_blocking_time>
+                </reliability>
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>256</depth>
+                </history>
+
+                <reader_resource_limits>
+                    <initial_outstanding_reads>256</initial_outstanding_reads>
+                    <max_outstanding_reads>256</max_outstanding_reads>
+                    <max_samples_per_remote_writer>256</max_samples_per_remote_writer>
+                </reader_resource_limits>
+
+                <protocol>
+                    <rtps_reliable_reader>
+                        <min_heartbeat_response_delay>
+                            <sec>DURATION_ZERO_SEC</sec>
+                            <nanosec>DURATION_ZERO_NSEC</nanosec>
+                        </min_heartbeat_response_delay>
+                        <max_heartbeat_response_delay>
+                            <sec>DURATION_ZERO_SEC</sec>
+                            <nanosec>DURATION_ZERO_NSEC</nanosec>
+                        </max_heartbeat_response_delay>
+                        <heartbeat_suppression_duration>
+                            <sec>DURATION_ZERO_SEC</sec>
+                            <nanosec>DURATION_ZERO_NSEC</nanosec>
+                        </heartbeat_suppression_duration>
+                    </rtps_reliable_reader>
+                </protocol>
+            </datareader_qos>
+
+            <datawriter_qos name="reliableSlowWriter">
+                <reliability>
+                    <kind>RELIABLE_RELIABILITY_QOS</kind>
+                </reliability>
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>128</depth>
+                </history>
+                <resource_limits>
+                    <max_samples>128</max_samples>
+                    <initial_samples>128</initial_samples>
+                    <instance_hash_buckets>1</instance_hash_buckets>
+                </resource_limits>
+                <protocol>
+                    <rtps_reliable_writer>
+                        <low_watermark>0</low_watermark>
+                        <high_watermark>1</high_watermark>
+                        <fast_heartbeat_period>
+                            <sec>0</sec>
+                            <nanosec>6000000</nanosec>
+                        </fast_heartbeat_period>
+                        <heartbeats_per_max_samples>128</heartbeats_per_max_samples>
+                        <max_send_window_size>128</max_send_window_size>
+                        <min_send_window_size>128</min_send_window_size>
+                        <max_heartbeat_retries>3</max_heartbeat_retries>
+                    </rtps_reliable_writer>
+                </protocol>
+            </datawriter_qos>
+
+            <datawriter_qos name="reliableWriter">
+                <reliability>
+                    <kind>RELIABLE_RELIABILITY_QOS</kind>
+                </reliability>
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>16</depth>
+                </history>
+                <resource_limits>
+                    <max_samples>16</max_samples>
+                    <initial_samples>16</initial_samples>
+                    <instance_hash_buckets>1</instance_hash_buckets>
+                </resource_limits>
+                <protocol>
+                    <rtps_reliable_writer>
+                        <low_watermark>0</low_watermark>
+                        <high_watermark>1</high_watermark>
+                        <fast_heartbeat_period>
+                            <sec>0</sec>
+                            <nanosec>6000000</nanosec>
+                        </fast_heartbeat_period>
+                        <heartbeats_per_max_samples>16</heartbeats_per_max_samples>
+                        <max_send_window_size>16</max_send_window_size>
+                        <min_send_window_size>16</min_send_window_size>
+                        <max_heartbeat_retries>3</max_heartbeat_retries>
+                    </rtps_reliable_writer>
+                </protocol>
+            </datawriter_qos>
+
+            <datareader_qos name="reliableReaderAppAck">
+                <reliability>
+                    <kind>RELIABLE_RELIABILITY_QOS</kind>
+                    <max_blocking_time>
+                        <sec>3</sec>
+                        <nanosec>0</nanosec>
+                    </max_blocking_time>
+                    <acknowledgment_kind>APPLICATION_AUTO_ACKNOWLEDGMENT_MODE</acknowledgment_kind>
+                </reliability>
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>16</depth>
+                </history>
+
+                <reader_resource_limits>
+                    <initial_outstanding_reads>16</initial_outstanding_reads>
+                    <max_outstanding_reads>16</max_outstanding_reads>
+                    <max_samples_per_remote_writer>16</max_samples_per_remote_writer>
+                </reader_resource_limits>
+
+                <protocol>
+                    <rtps_reliable_reader>
+                        <min_heartbeat_response_delay>
+                            <sec>DURATION_ZERO_SEC</sec>
+                            <nanosec>DURATION_ZERO_NSEC</nanosec>
+                        </min_heartbeat_response_delay>
+                        <max_heartbeat_response_delay>
+                            <sec>DURATION_ZERO_SEC</sec>
+                            <nanosec>DURATION_ZERO_NSEC</nanosec>
+                        </max_heartbeat_response_delay>
+                        <heartbeat_suppression_duration>
+                            <sec>DURATION_ZERO_SEC</sec>
+                            <nanosec>DURATION_ZERO_NSEC</nanosec>
+                        </heartbeat_suppression_duration>
+                        <app_ack_period>
+                            <sec>DURATION_ZERO_SEC</sec>
+                            <nanosec>4000000</nanosec>
+                        </app_ack_period>
+                    </rtps_reliable_reader>
+                </protocol>
+            </datareader_qos>
+
+            <datawriter_qos name="reliableWriterAppAck">
+                <reliability>
+                    <kind>RELIABLE_RELIABILITY_QOS</kind>
+                    <acknowledgment_kind>APPLICATION_AUTO_ACKNOWLEDGMENT_MODE</acknowledgment_kind>
+                </reliability>
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>16</depth>
+                </history>
+                <resource_limits>
+                    <max_samples>16</max_samples>
+                    <initial_samples>16</initial_samples>
+                    <instance_hash_buckets>1</instance_hash_buckets>
+                </resource_limits>
+                <protocol>
+                    <rtps_reliable_writer>
+                        <low_watermark>0</low_watermark>
+                        <high_watermark>1</high_watermark>
+                        <fast_heartbeat_period>
+                            <sec>0</sec>
+                            <nanosec>6000000</nanosec>
+                        </fast_heartbeat_period>
+                        <heartbeats_per_max_samples>16</heartbeats_per_max_samples>
+                        <max_send_window_size>16</max_send_window_size>
+                        <min_send_window_size>16</min_send_window_size>
+                        <max_heartbeat_retries>3</max_heartbeat_retries>
+                    </rtps_reliable_writer>
+                </protocol>
+            </datawriter_qos>
+            <datareader_qos name="lateJoinerReliableReader" base_name="reliableReader">
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>32</depth>
+                </history>
+                <durability>
+                    <kind>TRANSIENT_LOCAL_DURABILITY_QOS</kind>
+                </durability>
+            </datareader_qos>
+            <datawriter_qos name="lateJoinerReliableWriter" base_name="reliableWriter">
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>32</depth>
+                </history>
+                <durability>
+                    <kind>TRANSIENT_LOCAL_DURABILITY_QOS</kind>
+                </durability>
+                <resource_limits>
+                    <max_samples>32</max_samples>
+                    <initial_samples>32</initial_samples>
+                    <instance_hash_buckets>1</instance_hash_buckets>
+                </resource_limits>
+                <protocol>
+                    <rtps_reliable_writer>
+                        <heartbeats_per_max_samples>32</heartbeats_per_max_samples>
+                        <max_send_window_size>32</max_send_window_size>
+                        <min_send_window_size>32</min_send_window_size>
+                    </rtps_reliable_writer>
+                </protocol>
+            </datawriter_qos>
+            <datareader_qos name="bestEffortSlowReader" topic_filter="*">
+                <reliability>
+                    <kind>BEST_EFFORT_RELIABILITY_QOS</kind>
+                </reliability>
+                <resource_limits>
+                    <max_samples>256</max_samples>
+                    <initial_samples>256</initial_samples>
+                    <instance_hash_buckets>1</instance_hash_buckets>
+                </resource_limits>
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>256</depth>
+                </history>
+            </datareader_qos>
+            <datawriter_qos name="bestEffortSlowWriter" topic_filter="*">
+                <reliability>
+                    <kind>BEST_EFFORT_RELIABILITY_QOS</kind>
+                </reliability>
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>256</depth>
+                </history>
+                <resource_limits>
+                    <max_samples>256</max_samples>
+                    <initial_samples>256</initial_samples>
+                    <instance_hash_buckets>1</instance_hash_buckets>
+                </resource_limits>
+            </datawriter_qos>
+            <datawriter_qos name="asynBatchWriter" base_name="reliableWriter">
+                <publish_mode>
+                    <kind>ASYNCHRONOUS_PUBLISH_MODE_QOS</kind>
+                    <flow_controller_name>DDS_DEFAULT_FLOW_CONTROLLER_NAME</flow_controller_name>
+                </publish_mode>
+                <batch>
+                    <enable>true</enable>
+                    <max_flush_delay>
+                        <sec>2</sec>
+                        <nanosec>0</nanosec>
+                    </max_flush_delay>
+                </batch>
+            </datawriter_qos>
+        </qos_profile>
+
+        <qos_profile name="SnippetReliableDatawriter">
+<!--            <datawriter_qos>-->
+<!--                <reliability>-->
+<!--                    <kind>RELIABLE_RELIABILITY_QOS</kind>-->
+<!--                    <acknowledgment_kind>APPLICATION_AUTO_ACKNOWLEDGMENT_MODE</acknowledgment_kind>-->
+<!--                </reliability>-->
+<!--                <resource_limits>-->
+<!--                    <max_samples>1</max_samples>-->
+<!--                    <initial_samples>1</initial_samples>-->
+<!--                </resource_limits>-->
+<!--                <protocol>-->
+<!--                    <rtps_reliable_writer>-->
+<!--                        <fast_heartbeat_period>-->
+<!--                            <sec>0</sec>-->
+<!--                            <nanosec>2000000</nanosec>-->
+<!--                        </fast_heartbeat_period>-->
+<!--                        <heartbeats_per_max_samples>1</heartbeats_per_max_samples>-->
+<!--                    </rtps_reliable_writer>-->
+<!--                </protocol>-->
+<!--            </datawriter_qos>-->
+            <datawriter_qos>
+                <reliability>
+                    <kind>RELIABLE_RELIABILITY_QOS</kind>
+                    <acknowledgment_kind>APPLICATION_AUTO_ACKNOWLEDGMENT_MODE</acknowledgment_kind>
+                </reliability>
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>1</depth>
+                </history>
+                <resource_limits>
+                    <max_samples>8</max_samples>
+                    <initial_samples>8</initial_samples>
+                    <instance_hash_buckets>1</instance_hash_buckets>
+                </resource_limits>
+                <protocol>
+                    <rtps_reliable_writer>
+                        <fast_heartbeat_period>
+                            <sec>0</sec>
+                            <nanosec>250000000</nanosec>
+                        </fast_heartbeat_period>
+                    </rtps_reliable_writer>
+                </protocol>
+            </datawriter_qos>
+        </qos_profile>
+        <qos_profile name="SnippetReliableDatareader">
+<!--            <datareader_qos name="ReliableDataReader">-->
+<!--                <reliability>-->
+<!--                    <kind>RELIABLE_RELIABILITY_QOS</kind>-->
+<!--                    <acknowledgment_kind>APPLICATION_AUTO_ACKNOWLEDGMENT_MODE</acknowledgment_kind>-->
+<!--                    <max_blocking_time>-->
+<!--                        <sec>3</sec>-->
+<!--                        <nanosec>0</nanosec>-->
+<!--                    </max_blocking_time>-->
+<!--                </reliability>-->
+<!--                <history>-->
+<!--                    <kind>KEEP_LAST_HISTORY_QOS</kind>-->
+<!--                    <depth>100</depth>-->
+<!--                </history>-->
+<!--            </datareader_qos>-->
+            <datareader_qos>
+                <reliability>
+                    <kind>RELIABLE_RELIABILITY_QOS</kind>
+                    <max_blocking_time>
+                        <sec>3</sec>
+                        <nanosec>0</nanosec>
+                    </max_blocking_time>
+                    <acknowledgment_kind>APPLICATION_AUTO_ACKNOWLEDGMENT_MODE</acknowledgment_kind>
+                </reliability>
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>5</depth>
+                </history>
+            </datareader_qos>
+        </qos_profile>
+        <qos_profile name="LatencyQos">
+            <datawriter_qos>
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>1</depth>
+                </history>
+
+                <!--
+                Setting reliability.kind = RELIABLE_RELIABILITY_QOS, data samples
+                originating from a single DataWriter cannot be made available to the
+                DataReader if there are previous data samples that have not been
+                received yet due to a communication error.
+
+                The default value is RELIABLE_RELIABILITY_QOS.
+                It can be modified to BEST_EFFORT_RELIABILITY_QOS
+                using the command-line option -bestEffort.
+                -->
+                <reliability>
+                    <kind>BEST_EFFORT_RELIABILITY_QOS</kind>
+                    <max_blocking_time>
+                        <sec>DURATION_INFINITE_SEC</sec>
+                        <nanosec>DURATION_INFINITE_NSEC</nanosec>
+                    </max_blocking_time>
+                </reliability>
+
+                <!--
+
+                The Durability QoS policy specifies whether or not Connext will store and
+                deliver previously published data samples to new DataReaders that join the
+                network later.
+
+                Important: durability.kind and durability.direct_communication are configured
+                automatically within the source code. To modify them, use the input commands
+                -durability and -noDirectCommunication.
+
+                The default value of _DirectCommunication is true.
+                The default value of _Durability is DDS_VOLATILE_DURABILITY_QOS
+
+                if _DirectCommunication is false
+                  if _Durability is DDS_TRANSIENT_DURABILITY_QOS or DDS_PERSISTENT_DURABILITY_QOS
+                    <durability>
+                      <kind>_Durability</kind>
+                      <direct_communication>_DirectCommunication</direct_communication>
+                    </durability>
+                -->
+
+                <!--
+                The number of samples for which Connext will set aside space.
+                See the comments above for more information.
+                -->
+                <resource_limits>
+                    <max_samples>LENGTH_UNLIMITED</max_samples>
+                    <initial_samples>100</initial_samples>
+                    <max_samples_per_instance>LENGTH_UNLIMITED</max_samples_per_instance>
+                </resource_limits>
+
+                <!--
+                The behavioral contract under which the DataWriter will carry out the
+                reliability protocol. See the comments above for more information.
+                -->
+                <protocol>
+                    <rtps_reliable_writer>
+                        <low_watermark>10</low_watermark>
+                        <high_watermark>100</high_watermark>
+                        <heartbeats_per_max_samples>1000</heartbeats_per_max_samples>
+                        <!--                        <heartbeat_period>
+                                                    <sec>DURATION_ZERO_SEC</sec>
+                                                    <nanosec>10000000</nanosec>
+                                                </heartbeat_period>
+                                                <fast_heartbeat_period>
+                                                    <sec>DURATION_ZERO_SEC</sec>
+                                                    <nanosec>1000000</nanosec>
+                                                </fast_heartbeat_period>-->
+                        <late_joiner_heartbeat_period>
+                            <sec>DURATION_ZERO_SEC</sec>
+                            <nanosec>10000000</nanosec>
+                        </late_joiner_heartbeat_period>
+                        <max_heartbeat_retries>LENGTH_UNLIMITED</max_heartbeat_retries>
+                        <min_nack_response_delay>
+                            <sec>DURATION_ZERO_SEC</sec>
+                            <nanosec>DURATION_ZERO_NSEC</nanosec>
+                        </min_nack_response_delay>
+                        <max_nack_response_delay>
+                            <sec>DURATION_ZERO_SEC</sec>
+                            <nanosec>DURATION_ZERO_NSEC</nanosec>
+                        </max_nack_response_delay>
+                        <min_send_window_size>LENGTH_UNLIMITED</min_send_window_size>
+                        <max_send_window_size>LENGTH_UNLIMITED</max_send_window_size>
+                    </rtps_reliable_writer>
+                </protocol>
+
+                <writer_data_lifecycle>
+                    <autodispose_unregistered_instances>false</autodispose_unregistered_instances>
+                </writer_data_lifecycle>
+
+            </datawriter_qos>
+            <datareader_qos>
+                <!--
+                The default value of reliability.kind is RELIABLE_RELIABILITY_QOS.
+
+                The reliability.kind can be modified to BEST_EFFORT_RELIABILITY_QOS
+                by using the command-line option -bestEffort.
+                -->
+                <reliability>
+                    <kind>BEST_EFFORT_RELIABILITY_QOS</kind>
+                </reliability>
+
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>1</depth>
+                </history>
+
+                <!--
+                DurabilityQos policy specifies whether or not Connext will store and
+                deliver previously published data samples to new DDSDataReader entities
+                that join the network later.
+
+                Important: durability.kind and durability.direct_communication are configured
+                automatically within the source code. To modify them, use the input commands
+                -durability and -noDirectCommunication.
+
+                The default value of _DirectCommunication is true.
+                The default value of _Durability is DDS_VOLATILE_DURABILITY_QOS
+
+                if _DirectCommunication is false
+                  if _Durability is DDS_TRANSIENT_DURABILITY_QOS or DDS_PERSISTENT_DURABILITY_QOS
+                    <durability>
+                      <kind>_Durability</kind>
+                      <direct_communication>_DirectCommunication</direct_communication>
+                    </durability>
+                -->
+
+                <!--
+                The number of samples for which the middleware will set aside space.
+                See the comments above for more information.
+                -->
+                <resource_limits>
+                    <max_samples>100</max_samples>
+                    <initial_samples>100</initial_samples>
+                    <max_samples_per_instance>100</max_samples_per_instance>
+                </resource_limits>
+
+                <reader_resource_limits>
+                    <initial_outstanding_reads>4</initial_outstanding_reads>
+                    <max_outstanding_reads>4</max_outstanding_reads>
+                    <max_samples_per_remote_writer>100</max_samples_per_remote_writer>
+                </reader_resource_limits>
+
+                <!--
+                The behavioral contract under which the DataReader will carry out the
+                reliability protocol. See the comments above for more information.
+                -->
+                <protocol>
+                    <rtps_reliable_reader>
+                        <min_heartbeat_response_delay>
+                            <sec>DURATION_ZERO_SEC</sec>
+                            <nanosec>DURATION_ZERO_NSEC</nanosec>
+                        </min_heartbeat_response_delay>
+                        <max_heartbeat_response_delay>
+                            <sec>DURATION_ZERO_SEC</sec>
+                            <nanosec>DURATION_ZERO_NSEC</nanosec>
+                        </max_heartbeat_response_delay>
+                        <heartbeat_suppression_duration>
+                            <sec>DURATION_ZERO_SEC</sec>
+                            <nanosec>DURATION_ZERO_NSEC</nanosec>
+                        </heartbeat_suppression_duration>
+                    </rtps_reliable_reader>
+                </protocol>
+            </datareader_qos>
+        </qos_profile>
+        <qos_profile name="ProfileNonTimeCritical" base_name="ProfileDefault">
+            <participant_qos>
+                <participant_name>
+                    <name>Non time critical</name>
+                </participant_name>
+            </participant_qos>
+
+            <datawriter_qos topic_filter="*csr/logMessage" base_name="ProfileDefault::asynBatchWriter">
+                <batch>
+                    <max_samples>100</max_samples>
+                    <max_data_bytes>2800</max_data_bytes>
+                </batch>
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>300</depth>
+                </history>
+                <resource_limits>
+                    <max_samples>300</max_samples>
+                    <initial_samples>300</initial_samples>
+                </resource_limits>
+                <protocol>
+                    <rtps_reliable_writer>
+                        <heartbeats_per_max_samples>300</heartbeats_per_max_samples>
+                        <max_send_window_size>300</max_send_window_size>
+                        <min_send_window_size>300</min_send_window_size>
+                    </rtps_reliable_writer>
+                </protocol>
+            </datawriter_qos>
+            <datawriter_qos topic_filter="*Profiling" base_name="ProfileDefault::asynBatchWriter">
+                <batch>
+                    <max_samples>800</max_samples>
+                    <max_data_bytes>2800</max_data_bytes>
+                    <max_flush_delay>
+                        <sec>1</sec>
+                        <nanosec>0</nanosec>
+                    </max_flush_delay>
+                </batch>
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>1600</depth>
+                </history>
+                <resource_limits>
+                    <max_samples>1600</max_samples>
+                    <initial_samples>1600</initial_samples>
+                </resource_limits>
+                <protocol>
+                    <rtps_reliable_writer>
+                        <heartbeats_per_max_samples>1600</heartbeats_per_max_samples>
+                        <max_send_window_size>1600</max_send_window_size>
+                        <min_send_window_size>1600</min_send_window_size>
+                    </rtps_reliable_writer>
+                </protocol>
+            </datawriter_qos>
+            <datawriter_qos topic_filter="*veryFastAppHeartbeat" base_name="ProfileDefault::bestEffortWriter">
+                <base_name>
+                    <element>AutoDisposeUnregisteredInstancesFalse</element>
+                </base_name>
+                <liveliness>
+                    <kind>DDS_MANUAL_BY_TOPIC_LIVELINESS_QOS</kind>
+                    <lease_duration>
+                        <sec>0</sec>
+                        <nanosec>10000000</nanosec>
+                    </lease_duration>
+                </liveliness>
+                <transport_selection>
+                  <enabled_transports>
+                    <element>shmem</element>
+                  </enabled_transports>
+                </transport_selection>
+            </datawriter_qos>
+
+            <datareader_qos topic_filter="*veryFastAppHeartbeat" base_name="ProfileDefault::bestEffortReader">
+                <liveliness>
+                    <kind>DDS_MANUAL_BY_TOPIC_LIVELINESS_QOS</kind>
+                    <lease_duration>
+                        <sec>0</sec>
+                        <nanosec>10000000</nanosec>
+                    </lease_duration>
+                </liveliness>
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>128</depth>
+                </history>
+                <resource_limits>
+                    <max_samples>128</max_samples>
+                    <initial_samples>128</initial_samples>
+                    <instance_hash_buckets>1</instance_hash_buckets>
+                    <initial_instances>24</initial_instances>
+                </resource_limits>
+
+                <transport_selection>
+                  <enabled_transports>
+                    <element>shmem</element>
+                  </enabled_transports>
+                </transport_selection>
+
+            </datareader_qos>
+
+            <datawriter_qos topic_filter="*fastAppHeartbeat" base_name="ProfileDefault::bestEffortWriter">
+                <base_name>
+                    <element>AutoDisposeUnregisteredInstancesFalse</element>
+                </base_name>
+                <liveliness>
+                    <kind>DDS_MANUAL_BY_TOPIC_LIVELINESS_QOS</kind>
+                    <lease_duration>
+                        <sec>0</sec>
+                        <nanosec>40000000</nanosec>
+                    </lease_duration>
+                </liveliness>
+                <transport_selection>
+                  <enabled_transports>
+                    <element>shmem</element>
+                  </enabled_transports>
+                </transport_selection>
+            </datawriter_qos>
+
+            <datareader_qos topic_filter="*fastAppHeartbeat" base_name="ProfileDefault::bestEffortReader">
+                <liveliness>
+                    <kind>DDS_MANUAL_BY_TOPIC_LIVELINESS_QOS</kind>
+                    <lease_duration>
+                        <sec>0</sec>
+                        <nanosec>40000000</nanosec>
+                    </lease_duration>
+                </liveliness>
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>128</depth>
+                </history>
+                <resource_limits>
+                    <max_samples>128</max_samples>
+                    <initial_samples>128</initial_samples>
+                    <instance_hash_buckets>1</instance_hash_buckets>
+                    <initial_instances>24</initial_instances>
+                </resource_limits>
+
+                <transport_selection>
+                  <enabled_transports>
+                    <element>shmem</element>
+                  </enabled_transports>
+                </transport_selection>
+
+            </datareader_qos>
+
+            <datawriter_qos topic_filter="*appHeartbeat" base_name="ProfileDefault::bestEffortWriter">
+                <base_name>
+                    <element>AutoDisposeUnregisteredInstancesFalse</element>
+                </base_name>
+                <liveliness>
+                    <kind>DDS_MANUAL_BY_TOPIC_LIVELINESS_QOS</kind>
+                    <lease_duration>
+                        <sec>4</sec>
+                        <nanosec>0</nanosec>
+                    </lease_duration>
+                </liveliness>
+            </datawriter_qos>
+
+            <datareader_qos topic_filter="*appHeartbeat" base_name="ProfileDefault::bestEffortReader">
+                <liveliness>
+                    <kind>DDS_MANUAL_BY_TOPIC_LIVELINESS_QOS</kind>
+                    <lease_duration>
+                        <sec>4</sec>
+                        <nanosec>0</nanosec>
+                    </lease_duration>
+                </liveliness>
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>128</depth>
+                </history>
+                <resource_limits>
+                    <max_samples>128</max_samples>
+                    <initial_samples>128</initial_samples>
+                    <instance_hash_buckets>1</instance_hash_buckets>
+                    <initial_instances>24</initial_instances>
+                </resource_limits>
+            </datareader_qos>
+
+            <datareader_qos topic_filter="*faultDetection" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*faultDetection" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*manipulateReq" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*manipulateReq" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*mctReq" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*mctReq" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*mctAck" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*mctAck" base_name="ProfileDefault::reliableWriter"/>
+
+            <datareader_qos topic_filter="*rtrkRealTimeSyncState" base_name="ProfileDefault::bestEffortReader">
+            </datareader_qos>
+
+            <datareader_qos topic_filter="*measuredPoseTwistJaw_bTVMt" base_name="ProfileDefault::bestEffortReader">
+            </datareader_qos>
+
+            <datareader_qos topic_filter="*measuredPoseTwistJaw_vTVMg" base_name="ProfileDefault::bestEffortReader">
+            </datareader_qos>
+
+            <datareader_qos topic_filter="*measuredPoseTwistJaw_cTVMs" base_name="ProfileDefault::bestEffortReader">
+            </datareader_qos>
+
+            <datareader_qos topic_filter="*osim*" base_name="ProfileDefault::bestEffortReader">
+            <history>
+                <kind>KEEP_LAST_HISTORY_QOS</kind>
+                <depth>10</depth>
+            </history>
+            </datareader_qos>
+
+            <datareader_qos topic_filter="*ecmReq" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*ecmReq" base_name="ProfileDefault::reliableWriter">
+                <history>
+                    <kind>KEEP_LAST_HISTORY_QOS</kind>
+                    <depth>3</depth>
+                </history>
+            </datawriter_qos>
+            <datareader_qos topic_filter="*ecmAck" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*ecmAck" base_name="ProfileDefault::reliableWriter"/>
+
+            <datareader_qos topic_filter="*Service*" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*Service*" base_name="ProfileDefault::reliableWriter"/>
+
+            <datareader_qos topic_filter="*setLedMode" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*setLedMode" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*upsReq" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*upsReq" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*upsAck" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*upsAck" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*systemState" base_name="ProfileDefault::lateJoinerReliableReader"/>
+            <datawriter_qos topic_filter="*systemState" base_name="ProfileDefault::lateJoinerReliableWriter"/>
+            <datareader_qos topic_filter="*endoscopeState" base_name="ProfileDefault::lateJoinerReliableReader"/>
+            <datawriter_qos topic_filter="*endoscopeState" base_name="ProfileDefault::lateJoinerReliableWriter"/>
+            <datareader_qos topic_filter="*energyCtrl" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*energyCtrl" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*ultrasonicGeneratorAck" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*ultrasonicGeneratorAck" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*ultrasonicGeneratorReq" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*ultrasonicGeneratorReq" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*behaviorAck" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*behaviorAck" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*behaviorReq" base_name="ProfileDefault::reliableReaderAppAck"/>
+            <datawriter_qos topic_filter="*behaviorReq" base_name="ProfileDefault::reliableWriterAppAck"/>
+            <datareader_qos topic_filter="*systemSound" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*systemSound" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*changeInstrument" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*changeInstrument" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*manipulateAck" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*manipulateAck" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*robotIoState" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*robotIoState" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*arm/rtrk/request" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*arm/rtrk/request" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*arm/kin/param" base_name="ProfileDefault::lateJoinerReliableReader"/>
+            <datawriter_qos topic_filter="*arm/kin/param" base_name="ProfileDefault::lateJoinerReliableWriter"/>
+            <datareader_qos topic_filter="*arm/kin/gTvg" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*arm/kin/gTvg" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*hardwareInfo" base_name="ProfileDefault::lateJoinerReliableReader"/>
+            <datawriter_qos topic_filter="*hardwareInfo" base_name="ProfileDefault::lateJoinerReliableWriter"/>
+            <datareader_qos topic_filter="*jointLimit" base_name="ProfileDefault::lateJoinerReliableReader"/>
+            <datawriter_qos topic_filter="*jointLimit" base_name="ProfileDefault::lateJoinerReliableWriter"/>
+            <datareader_qos topic_filter="*sgiId" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*sgiId" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*powerReq" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*powerReq" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*logMessage" base_name="ProfileDefault::reliableSlowReader"/>
+            <datawriter_qos topic_filter="*logMessage" base_name="ProfileDefault::reliableSlowWriter"/>
+            <datareader_qos topic_filter="ParameterServer*" base_name="ProfileDefault::bestEffortSlowReader"/>
+            <datawriter_qos topic_filter="ParameterServer*" base_name="ProfileDefault::bestEffortSlowWriter"/>
+            <datareader_qos topic_filter="*vctReq" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*vctReq" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*audioReq" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*audioReq" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*vctAudioReq" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*vctAudioReq" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*talkConsoleReq" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*talkConsoleReq" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*atpCommReq" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*atpCommReq" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*linkStat" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*linkStat" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*setToolParam" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*setToolParam" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*toolHeader" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*toolHeader" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*rfidMemoryRead" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*rfidMemoryRead" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*setRecoverState" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*setRecoverState" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*/FRL/test" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*/FRL/test" base_name="ProfileDefault::reliableWriter"/>
+            <datareader_qos topic_filter="*dtwinIoState" base_name="ProfileDefault::reliableReader"/>
+            <datawriter_qos topic_filter="*dtwinIoState" base_name="ProfileDefault::reliableWriter"/>
+        </qos_profile>
+        <qos_profile name="ProfileTimeCritical" base_name="LatencyQos">
+
+            <base_name>
+                <element>ParticipantQosTimeCriticalInterfaceSnippet</element>
+                <element>ParticipantQosPropertySnippet</element>
+<!--                <element>ParticipantQosDiscoverysSnippet</element>-->
+                <element>ParticipantQosResourceLimitsSnippet</element>
+            </base_name>
+
+            <participant_qos>
+                <participant_name>
+                    <name>Time critical</name>
+                </participant_name>
+                <receiver_pool>
+                    <thread>
+                        <cpu_list>
+                            <element>12</element>
+                            <element>13</element>
+                            <element>27</element>
+                            <element>28</element>
+                            <element>29</element>
+                        </cpu_list>
+                        <mask>DDS_THREAD_SETTINGS_REALTIME_PRIORITY</mask>
+                        <priority>99</priority>
+                    </thread>
+                </receiver_pool>
+                <event>
+                    <thread>
+                        <cpu_list>
+                            <element>11</element>
+                        </cpu_list>
+                        <mask>DDS_THREAD_SETTINGS_REALTIME_PRIORITY</mask>
+                        <priority>99</priority>
+                    </thread>
+                </event>
+            </participant_qos>
+        </qos_profile>
+        <qos_profile name="ProfileLargeDataFastFlow" base_name="BuiltinQosLibExp::Generic.StrictReliable.LargeData.FastFlow">
+            <datareader_qos>
+                <representation>
+                  <value>
+                    <element>XCDR2_DATA_REPRESENTATION</element>
+                  </value>
+                </representation>
+                <liveliness>
+                    <lease_duration>
+                        <sec>3</sec>
+                        <nanosec>0</nanosec>
+                    </lease_duration>
+                </liveliness>
+            </datareader_qos>
+            <datawriter_qos>
+                <representation>
+                  <value>
+                    <element>XCDR2_DATA_REPRESENTATION</element>
+                  </value>
+                </representation>
+                <reliability>
+                    <kind>RELIABLE_RELIABILITY_QOS</kind>
+                    <max_blocking_time>
+                        <sec>1</sec>
+                        <nanosec>0</nanosec>
+                    </max_blocking_time>
+                </reliability>
+                <durability_service>
+                    <history_kind>KEEP_LAST_HISTORY_QOS</history_kind>
+                    <history_depth>8</history_depth>
+                </durability_service>
+                <liveliness>
+                    <lease_duration>
+                        <sec>3</sec>
+                        <nanosec>0</nanosec>
+                    </lease_duration>
+                </liveliness>
+            </datawriter_qos>
+        </qos_profile>
+    </qos_library>
+</dds>

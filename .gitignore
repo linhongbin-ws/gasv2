@@ -25,3 +25,7 @@ ext/ds4drv
 ext/r3m
 
 result/
+
+csr_install/
+
+pretrained_models/
