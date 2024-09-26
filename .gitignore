@@ -29,3 +29,5 @@ result/
 csr_install/
 
 pretrained_models/
+
+logdir/

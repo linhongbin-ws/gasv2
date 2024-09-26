@@ -216,6 +216,19 @@ gas_surrol:
   wrapper.OBS.vector2image_type: "square"
   wrapper.DepthProcess.skip: false
   wrapper.DepthProcess.uncert_scale: 1.5
+  wrapper.pipeline:
+    [
+      "ActionSmooth",
+      "ImageNoise",
+      "DepthProcess",
+      "DSA",
+      "VirtualClutch",
+      "ActionNoise",
+      "DiscreteAction",
+      "TimeLimit",
+      "FSM",
+      "OBS",
+    ]
 
 dvrk:
   embodied_name: dVRKEnv

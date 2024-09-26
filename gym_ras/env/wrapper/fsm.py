@@ -67,5 +67,5 @@ class FSM(BaseWrapper):
     def observation_space(self):
         obs = {k: v for k, v in self.env.observation_space.items()}
         obs['fsm_state'] = gym.spaces.Box(low=0,
-                                          high=len(self._states)-1, shape=(1,), dtype=np.float32)
+                                          high=len(self._states)-1, shape=(1,), dtype=float)
         return gym.spaces.Dict(obs)

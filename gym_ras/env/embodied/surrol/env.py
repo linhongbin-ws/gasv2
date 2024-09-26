@@ -495,12 +495,12 @@ class SurrolEnv(BaseEnv):
     @property
     def observation_space(self):
         obs = {}
-        obs['gripper_state'] = gym.spaces.Box(-1, 1, (1,), dtype=np.float32)
+        obs['gripper_state'] = gym.spaces.Box(-1, 1, (1,), dtype=float)
         prio, _ = self._get_prio_obs()
         ws = self.workspace_limit
         _low = ws[:, 0]
         _high = ws[:, 1]
-        obs['robot_prio'] = gym.spaces.Box(_low, _high, dtype=np.float32)
+        obs['robot_prio'] = gym.spaces.Box(_low, _high, dtype=float)
         return gym.spaces.Dict(obs)
 
     @property
