@@ -264,3 +264,9 @@ high_oracle:
 
 debug_prefill:
   prefill: { random: 10, oracle: 10 }
+
+oracle_1e3:
+  prefill: { random: 9e3, oracle: 1e3 }
+  
+inf_step:
+  steps: 1e8
