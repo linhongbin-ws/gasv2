@@ -36,13 +36,13 @@ class Occup(BaseWrapper):
                     [0, 788, 300],
                     [0, 0, 1]]).astype(np.float)
         pose = np.eye(4)
-        print('oo', imgs["depReal"])
+        # print('oo', imgs["depReal"])
         points = depth_image_to_point_cloud(
             rgb, depth, scale, K, pose, encode_mask=encode_mask,tolist=False
         )
         T1 = getT([0, 0, -0.2 * 5], [0, 0, 0], rot_type="euler")
         T2 = getT([0, 0, 0], [-45, 0, 0], rot_type="euler", euler_Degrees=True)
-        print(points[:100,:3])
+        # print(points[:100,:3])
         T1 = getT([0, 0, -0.14], [0, 0, 0], rot_type="euler")
         T2 = getT([0, 0, 0], [-45, 0, 0], rot_type="euler", euler_Degrees=True)
         ones = np.ones((points.shape[0], 1))
