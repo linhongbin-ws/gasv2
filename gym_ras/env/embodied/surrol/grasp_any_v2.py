@@ -3,7 +3,7 @@ import time
 import numpy as np
 
 import pybullet as p
-from surrol.tasks.psm_env import PsmEnv
+from gym_ras.env.embodied.surrol.psm_env import PsmEnv
 from surrol.utils.pybullet_utils import (
     get_link_pose,
     reset_camera,
@@ -39,8 +39,8 @@ class GraspAnyV2(PsmEnv):
         cid=-1,
         stuff_name="needle",
         fix_goal=True,
-        oracle_pos_thres=1e-3,
-        oracle_rot_thres=3e-1,
+        oracle_pos_thres=0.1,
+        oracle_rot_thres=1,
         done_z_thres=0.3,
         init_pose_ratio_low_gripper=[-0.5, -0.5, -0.5, -0.9],
         init_pose_ratio_high_gripper=[0.5, 0.5, 0.5, 0.9],
@@ -53,6 +53,7 @@ class GraspAnyV2(PsmEnv):
         needle_scaling_high=0.5 * 1.25,
         on_plane=False,
         max_grasp_trial=3,
+        stuff_free_rot = False,
         **kwargs,
     ):
 
@@ -70,6 +71,8 @@ class GraspAnyV2(PsmEnv):
         self._on_plane = on_plane
         self._max_grasp_trial = max_grasp_trial
         self._fix_goal = fix_goal
+        self._stuff_free_rot = stuff_free_rot
+
         super().__init__(render_mode, cid)
         self._view_param = {
             "distance": depth_distance * self.SCALING,
@@ -219,30 +222,32 @@ class GraspAnyV2(PsmEnv):
             pose = get_link_pose(self.obj_id, self.obj_link1)
             return pose[0][2] > self._waypoint_z_init + 0.005 * self.SCALING
 
-    def get_oracle_action(self, obs) -> np.ndarray:
-        """
-        Define a human expert strategy
-        """
-        # four waypoints executed in sequential order
-        action = np.zeros(5)
-        action[4] = -0.5
-        for i, waypoint in enumerate(self._waypoints):
-            if waypoint is None:
-                continue
-            delta_pos = (waypoint[:3] - obs['observation']
-                         [:3]) / 0.01 / self.SCALING
-            delta_yaw = (waypoint[3] - obs['observation'][5]).clip(-0.4, 0.4)
-            if np.abs(delta_pos).max() > 1:
-                delta_pos /= np.abs(delta_pos).max()
-            scale_factor = 0.4
-            delta_pos *= scale_factor
-            action = np.array([delta_pos[0], delta_pos[1],
-                              delta_pos[2], delta_yaw, waypoint[4]])
-            if np.linalg.norm(delta_pos) * 0.01 / scale_factor < 1e-4 and np.abs(delta_yaw) < 1e-2:
-                self._waypoints[i] = None
-            break
+    # def get_oracle_action(self, obs) -> np.ndarray:
+    #     """
+    #     Define a human expert strategy
+    #     """
+    #     # four waypoints executed in sequential order
+    #     action = np.zeros(5)
+    #     action[4] = -0.5
+    #     for i, waypoint in enumerate(self._waypoints):
+    #         print("waypoint:", i)
+    #         if waypoint is None:
+    #             continue
+    #         delta_pos = (waypoint[:3] - obs['observation']
+    #                      [:3]) / 0.01 / self.SCALING
+    #         delta_yaw = (waypoint[3] - obs['observation'][5]).clip(-0.4, 0.4)
+    #         if np.abs(delta_pos).max() > 1:
+    #             delta_pos /= np.abs(delta_pos).max()
+    #         scale_factor = 0.4
+    #         delta_pos *= scale_factor
+    #         action = np.array([delta_pos[0], delta_pos[1],
+    #                           delta_pos[2], delta_yaw, waypoint[4]])
+    #         print("dddd", delta_pos)
+    #         if np.linalg.norm(delta_pos) * 0.01 / scale_factor < 1e-4 and np.abs(delta_yaw) < 1e-2:
+    #             self._waypoints[i] = None
+    #         break
 
-        return action
+    #     return action
 
     def _env_setup(self):
         asset_path = (
@@ -325,12 +330,15 @@ class GraspAnyV2(PsmEnv):
         if self._on_plane:
             M1 = Euler2M([0, 0, pose[5]], convension="xyz", degrees=True)
         else:
-            # _m1 = Euler2M([-90, 0, 0], convension="xyz", degrees=True)
-            # _m2 = Euler2M([0, -60, 0], convension="xyz", degrees=True)
-            # _m3 = Euler2M([0, 0, pose[5]], convension="xyz", degrees=True)
-            _m1 = Euler2M([pose[3], 0, 0], convension="xyz", degrees=True)
-            _m2 = Euler2M([0, pose[4], 0], convension="xyz", degrees=True)
-            _m3 = Euler2M([0, 0, pose[5]], convension="xyz", degrees=True)
+            if self._stuff_free_rot:
+                _m1 = Euler2M([pose[3], 0, 0], convension="xyz", degrees=True)
+                _m2 = Euler2M([0, pose[4], 0], convension="xyz", degrees=True)
+                _m3 = Euler2M([0, 0, pose[5]], convension="xyz", degrees=True)
+            else:
+                _m1 = Euler2M([-0, 0, 0], convension="xyz", degrees=True)
+                _m2 = Euler2M([0, -0, 0], convension="xyz", degrees=True)
+                _m3 = Euler2M([0, 0, pose[5]], convension="xyz", degrees=True)
+
             M1 = np.matmul(_m2,_m1,)
             M1 = np.matmul(_m3, M1,)
         M2 = np.matmul(M1, M)
@@ -383,52 +391,28 @@ class GraspAnyV2(PsmEnv):
             < abs(wrap_angle(orn[2] + np.pi - orn_eef[2]))
             else wrap_angle(orn[2] + np.pi)
         )  #
-        self._WAYPOINTS = [None] * 5
+        self._WAYPOINTS = [None] * 4
         self._WAYPOINTS[0] = np.array(
             [
                 pos_obj[0],
                 pos_obj[1],
-                pos_obj[2] + (-0.0007 + 0.0102 + 0.005) * self.SCALING,
+                pos_obj[2] + 0.01 * self.SCALING,
                 yaw,
-                0.5,
+                1,
             ]
         )  # approach
         self._WAYPOINTS[1] = np.array(
             [
                 pos_obj[0],
                 pos_obj[1],
-                pos_obj[2] + (-0.0007 + 0.0102) * self.SCALING,
+                pos_obj[2] - 0.005 * self.SCALING,
                 yaw,
-                0.5,
+                1,
             ]
         )  # approach
-        self._WAYPOINTS[2] = np.array(
-            [
-                pos_obj[0],
-                pos_obj[1],
-                pos_obj[2] + (-0.0007 + 0.0102) * self.SCALING,
-                yaw,
-                -0.5,
-            ]
-        )  # grasp
-        self._WAYPOINTS[3] = np.array(
-            [
-                pos_obj[0],
-                pos_obj[1],
-                pos_obj[2] + (-0.0007 + 0.0102 + 0.005) * self.SCALING,
-                yaw,
-                -0.5,
-            ]
-        )  # lift
-        self._WAYPOINTS[4] = np.array(
-            [
-                pos_obj[0],
-                pos_obj[1],
-                pos_obj[2] + (-0.0007 + 0.0102 + 1) * self.SCALING,
-                yaw,
-                -0.5,
-            ]
-        )  # lift
+        self._WAYPOINTS[2] = self._WAYPOINTS[1].copy()  # grasp
+        self._WAYPOINTS[2][4] = -1
+        self._WAYPOINTS[3] = self._WAYPOINTS[0].copy()
 
     def step(self, action):
         obs, reward, done, info = super().step(action)
@@ -493,6 +477,7 @@ class GraspAnyV2(PsmEnv):
         action = np.zeros(5)
         action[4] = -0.5
         for i, waypoint in enumerate(self._WAYPOINTS):
+            print("waypoint", i)
             if waypoint is None:
                 continue
             if i == 4 and (not self._is_grasp_obj()):
@@ -507,6 +492,8 @@ class GraspAnyV2(PsmEnv):
             action = np.array(
                 [delta_pos[0], delta_pos[1], delta_pos[2], delta_yaw, waypoint[4]]
             )
+            print(delta_pos * 0.01 / scale_factor, self._oracle_pos_thres)
+            print(np.abs(delta_yaw), self._oracle_rot_thres)
             if (
                 np.linalg.norm(delta_pos) * 0.01 / scale_factor < self._oracle_pos_thres
                 and np.abs(delta_yaw) < self._oracle_rot_thres

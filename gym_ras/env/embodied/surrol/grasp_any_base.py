@@ -135,11 +135,12 @@ class GraspAnyBase(PsmEnv):
         self._waypoints[0] = np.array([pos_obj[0], pos_obj[1],
                                        pos_obj[2] + (-0.0007 + 0.0102 + 0.005) * self.SCALING, yaw, 0.5])  # approach
         self._waypoints[1] = np.array([pos_obj[0], pos_obj[1],
-                                       pos_obj[2] + (-0.0007 + 0.0102) * self.SCALING, yaw, 0.5])  # approach
+                                       pos_obj[2] + 0 * self.SCALING, yaw, 0.5])  # approach
         self._waypoints[2] = np.array([pos_obj[0], pos_obj[1],
-                                       pos_obj[2] + (-0.0007 + 0.0102) * self.SCALING, yaw, -0.5])  # grasp
+                                       pos_obj[2] + 0 * self.SCALING, yaw, -0.5])  # grasp
         self._waypoints[3] = np.array([self.goal[0], self.goal[1],
                                        self.goal[2] + 0.0102 * self.SCALING, yaw, -0.5])  # lift up
+        
 
     def _meet_contact_constraint_requirement(self):
         # add a contact constraint to the grasped block to make it stable
