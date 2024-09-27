@@ -10,3 +10,6 @@
 [submodule "ext/Track-Anything"]
 	path = ext/Track-Anything
 	url = https://github.com/linhongbin-ws/Track-Anything.git
+[submodule "ext/dreamerv3"]
+	path = ext/dreamerv3
+	url = https://github.com/danijar/dreamerv3.git
