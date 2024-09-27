@@ -19,7 +19,7 @@ class PID(BaseWrapper):
         self._control_p = control_p
         self._phase_thres  =phase_thres
         self._err_offset = err_offset
-    
+
     def reset(self):
         obs = self.env.reset()
         # _obs = self._get_pid_observation()
@@ -33,16 +33,17 @@ class PID(BaseWrapper):
         if self._check_pid_phase(obs):
             action = self._get_pid_action(obs)
             pid_phase =True 
-            
+
         obs, reward, done, info = self.env.step(action)
         obs["controller_state"] = 1  if pid_phase else 0
+        info["controller_state"] = obs["controller_state"]
         return obs, reward, done, info
 
     def _get_pid_observation(self):
         if self._obs_type == 'occup':
             occ = self.env.occupancy_projection
             centroids = {}
-            
+
             for k, v in occ.items():
                 x = self._get_mask_centroid(v[0])
                 y = self._get_mask_centroid(v[1])
@@ -64,7 +65,7 @@ class PID(BaseWrapper):
             obs = {}
             obs['err'] = [ x_err, y_err, z_err]
         return  obs
-    
+
     def _check_pid_phase(self, obs):
         err1 = np.array(obs['err'])
         err2 = err1 + np.array(self._err_offset)
@@ -75,18 +76,18 @@ class PID(BaseWrapper):
         z_phase = phase(2)
         # print("phase", x_phase,y_phase,z_phase)
         return x_phase or y_phase or z_phase
-        
+
     def _get_pid_action(self, obs):
-            x_err, y_err, z_err = obs['err'][0], obs['err'][1], obs['err'][2]
-            action = np.array([-self._control_p*(y_err+self._err_offset[1]),
+        x_err, y_err, z_err = obs['err'][0], obs['err'][1], obs['err'][2]
+        action = np.array([-self._control_p*(y_err+self._err_offset[1]),
                                 -self._control_p*(x_err+self._err_offset[0]),
                                 self._control_p*(z_err+self._err_offset[2]),
                      0,
                      1,])
-            # action = np.array([0,0,2,0,0])
-            action = np.clip(action, -np.ones(action.shape), np.ones(action.shape))
-            # print("action is ", action)
-            return action
+        # action = np.array([0,0,2,0,0])
+        action = np.clip(action, -np.ones(action.shape), np.ones(action.shape))
+        # print("action is ", action)
+        return action
 
     def _get_mask_centroid(self, mask):
         _, _, r, c =get_mask_boundary(mask)
