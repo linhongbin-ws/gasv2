@@ -259,6 +259,8 @@ no_oracle:
   prefill: { random: 1e4, oracle: 0 }
 low_oracle:
   prefill: { random: 97e2, oracle: 3e2 }
+mid_oracle:
+  prefill: { random: 7e3, oracle: 3e3 }
 high_oracle:
   prefill: { random: 7e3, oracle: 3e4 }
 

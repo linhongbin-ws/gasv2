@@ -53,7 +53,7 @@ class GraspAnyV2(PsmEnv):
         needle_scaling_high=0.5 * 1.25,
         on_plane=False,
         max_grasp_trial=3,
-        stuff_free_rot = False,
+        stuff_free_rot = True,
         **kwargs,
     ):
 
@@ -192,27 +192,27 @@ class GraspAnyV2(PsmEnv):
                          workspace_limits[2][1] - 0.04 * self.SCALING])
         return goal.copy()
 
-    def _sample_goal_callback(self):
-        """ Define waypoints
-        """
-        super()._sample_goal_callback()
-        self._waypoints = [None, None, None, None]  # four waypoints
-        pos_obj, orn_obj = get_link_pose(self.obj_id, self.obj_link1)
-        self._waypoint_z_init = pos_obj[2]
-        orn = p.getEulerFromQuaternion(orn_obj)
-        orn_eef = get_link_pose(self.psm1.body, self.psm1.EEF_LINK_INDEX)[1]
-        orn_eef = p.getEulerFromQuaternion(orn_eef)
-        yaw = orn[2] if abs(wrap_angle(orn[2] - orn_eef[2])) < abs(wrap_angle(orn[2] + np.pi - orn_eef[2])) \
-            else wrap_angle(orn[2] + np.pi)  # minimize the delta yaw
+    # def _sample_goal_callback(self):
+    #     """ Define waypoints
+    #     """
+    #     super()._sample_goal_callback()
+    #     self._waypoints = [None, None, None, None]  # four waypoints
+    #     pos_obj, orn_obj = get_link_pose(self.obj_id, self.obj_link1)
+    #     self._waypoint_z_init = pos_obj[2]
+    #     orn = p.getEulerFromQuaternion(orn_obj)
+    #     orn_eef = get_link_pose(self.psm1.body, self.psm1.EEF_LINK_INDEX)[1]
+    #     orn_eef = p.getEulerFromQuaternion(orn_eef)
+    #     yaw = orn[2] if abs(wrap_angle(orn[2] - orn_eef[2])) < abs(wrap_angle(orn[2] + np.pi - orn_eef[2])) \
+    #         else wrap_angle(orn[2] + np.pi)  # minimize the delta yaw
 
-        self._waypoints[0] = np.array([pos_obj[0], pos_obj[1],
-                                       pos_obj[2] + (-0.0007 + 0.0102 + 0.005) * self.SCALING, yaw, 0.5])  # approach
-        self._waypoints[1] = np.array([pos_obj[0], pos_obj[1],
-                                       pos_obj[2] + (-0.0007 + 0.0102) * self.SCALING, yaw, 0.5])  # approach
-        self._waypoints[2] = np.array([pos_obj[0], pos_obj[1],
-                                       pos_obj[2] + (-0.0007 + 0.0102) * self.SCALING, yaw, -0.5])  # grasp
-        self._waypoints[3] = np.array([self.goal[0], self.goal[1],
-                                       self.goal[2] + 0.0102 * self.SCALING, yaw, -0.5])  # lift up
+    #     self._waypoints[0] = np.array([pos_obj[0], pos_obj[1],
+    #                                    pos_obj[2] + (-0.0007 + 0.0102 + 0.005) * self.SCALING, yaw, 0.5])  # approach
+    #     self._waypoints[1] = np.array([pos_obj[0], pos_obj[1],
+    #                                    pos_obj[2] + (-0.0007 + 0.0102) * self.SCALING, yaw, 0.5])  # approach
+    #     self._waypoints[2] = np.array([pos_obj[0], pos_obj[1],
+    #                                    pos_obj[2] + (-0.0007 + 0.0102) * self.SCALING, yaw, -0.5])  # grasp
+    #     self._waypoints[3] = np.array([self.goal[0], self.goal[1],
+    #                                    self.goal[2] + 0.0102 * self.SCALING, yaw, -0.5])  # lift up
 
     def _meet_contact_constraint_requirement(self):
         # add a contact constraint to the grasped block to make it stable
@@ -405,7 +405,7 @@ class GraspAnyV2(PsmEnv):
             [
                 pos_obj[0],
                 pos_obj[1],
-                pos_obj[2] - 0.005 * self.SCALING,
+                pos_obj[2] - 0.002 * self.SCALING,
                 yaw,
                 1,
             ]
@@ -413,8 +413,11 @@ class GraspAnyV2(PsmEnv):
         self._WAYPOINTS[2] = self._WAYPOINTS[1].copy()  # grasp
         self._WAYPOINTS[2][4] = -1
         self._WAYPOINTS[3] = self._WAYPOINTS[0].copy()
+        self._WAYPOINTS[3][4] = -1
+        
 
     def step(self, action):
+        print("action", action)
         obs, reward, done, info = super().step(action)
         if self._jump_sig_prv:
             self._grasp_trial_cnt += 1
@@ -477,7 +480,7 @@ class GraspAnyV2(PsmEnv):
         action = np.zeros(5)
         action[4] = -0.5
         for i, waypoint in enumerate(self._WAYPOINTS):
-            print("waypoint", i)
+            # print("waypoint", i)
             if waypoint is None:
                 continue
             if i == 4 and (not self._is_grasp_obj()):
@@ -492,8 +495,8 @@ class GraspAnyV2(PsmEnv):
             action = np.array(
                 [delta_pos[0], delta_pos[1], delta_pos[2], delta_yaw, waypoint[4]]
             )
-            print(delta_pos * 0.01 / scale_factor, self._oracle_pos_thres)
-            print(np.abs(delta_yaw), self._oracle_rot_thres)
+            # print(delta_pos * 0.01 / scale_factor, self._oracle_pos_thres)
+            # print(np.abs(delta_yaw), self._oracle_rot_thres)
             if (
                 np.linalg.norm(delta_pos) * 0.01 / scale_factor < self._oracle_pos_thres
                 and np.abs(delta_yaw) < self._oracle_rot_thres

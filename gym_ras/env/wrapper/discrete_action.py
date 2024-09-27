@@ -5,7 +5,8 @@ import gym
 
 class DiscreteAction(BaseWrapper):
     def __init__(self, env,
-                 action_scale=0.2,
+                 pos_action_scale=0.2,
+                 rot_action_scale=1,
                  **kwargs):
         super().__init__(env)
         self._action_dim = self.env.action_space.shape[0]
@@ -20,10 +21,10 @@ class DiscreteAction(BaseWrapper):
         # create map
         for i in range(4):
             _action = np.zeros(self._action_dim)
-            _action[i] = -action_scale
+            _action[i] = -pos_action_scale if i!=3 else rot_action_scale
             self._action_prim[self._action_strs[2*i]] = _action
             _action = np.zeros(self._action_dim)
-            _action[i] = action_scale
+            _action[i] = pos_action_scale if i!=3 else rot_action_scale
             self._action_prim[self._action_strs[2*i+1]] = _action
         self._action_prim['gripper_toggle'] = np.zeros(self._action_dim)
 

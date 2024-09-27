@@ -570,7 +570,7 @@ class PsmsEnv(PsmEnv):
             rot = get_euler_from_matrix(pose_world[:3, :3])
             psm_eul = self.psm1_eul if i == 0 else self.psm2_eul
             if self.ACTION_MODE == 'yaw':
-                action[idx + 3] *= np.deg2rad(20)  # limit maximum change in rotation
+                action[idx + 3] *= np.deg2rad(40)  # limit maximum change in rotation
                 rot = (psm_eul[0], psm_eul[1], wrap_angle(rot[2] + action[idx + 3]))  # only change yaw
             elif self.ACTION_MODE == 'pitch':
                 action[idx + 3] *= np.deg2rad(15)  # limit maximum change in rotation

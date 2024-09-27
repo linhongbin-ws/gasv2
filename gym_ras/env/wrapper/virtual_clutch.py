@@ -13,10 +13,17 @@ class VirtualClutch(BaseWrapper):
 
     def _reset_vars(self):
         self.env._reset_vars()
-        self._clutch = False  # False for open, True for closed
+        self.open_clutch()  # False for open, True for closed
+    
+    def close_clutch(self):
+        self._clutch = True
+    
+    def open_clutch(self):
+        self._clutch = False
 
     def step(self, action):
-        self._clutch = self.unwrapped.timestep >= self._start  # time-dependent clutch
+        if self.unwrapped.timestep >= self._start:
+            self.close_clutch()
         self.unwrapped.skip = not self._clutch
         return self.env.step(action)
 

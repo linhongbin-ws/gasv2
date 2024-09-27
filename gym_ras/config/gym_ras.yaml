@@ -5,12 +5,12 @@ default:
         "ActionNoise",
         "ImageNoise",
         "TimeLimit",
+        "VirtualClutch",
         "DepthProcess",
         'Occup',
         'PID',
         "DSA",
         "DiscreteAction",
-        "VirtualClutch",
         "FSM",
         "OBS",
       ]
@@ -29,7 +29,7 @@ default:
       }
     VirtualClutch: { start: 6 }
     ActionNoise: { noise_scale: 0.0 }
-    DiscreteAction: { action_scale: 0.2 }
+    DiscreteAction: { pos_action_scale: 0.2, rot_action_scale:  0.2,}
     TimeLimit: { max_timestep: 200 }
     DepthProcess: { skip: true, uncert_scale: 1.0, eval: false }
     FSM: { arg: 0 , ensure_norm_reward: false,  dsa_out_zoom_anamaly: false,}
@@ -147,8 +147,8 @@ default:
         random_obj_vis: false
         depth_distance: 0.2
         on_plane: true
-        oracle_pos_thres: 1e-3
-        oracle_rot_thres: 3e-1
+        oracle_pos_thres: 2e-3
+        oracle_rot_thres: 4e-1
         max_grasp_trial: 2
     dVRKEnv:
       grasp_any:
@@ -313,12 +313,14 @@ gasv2_surrol:
   wrapper.ImageNoise.cutout_line_num_low: 0
   wrapper.ImageNoise.cutout_line_num_high: 0
   wrapper.FSM.dsa_out_zoom_anamaly: true
-  wrapper.TimeLimit: { max_timestep: 40 }
+  wrapper.TimeLimit: { max_timestep: 80 }
   wrapper.ActionNoise.noise_scale: 0.04
   wrapper.DepthProcess.skip: false
   wrapper.DepthProcess.uncert_scale: 1.5
   wrapper.OBS.vector_obs_key: ["gripper_state", "fsm_state", "controller_state"]
   wrapper.OBS.vector2image_type: row
+  wrapper.VirtualClutch.start: 3
+  wrapper.DiscreteAction.rot_action_scale: 1
 
 csr_grasp_any:
   # dvrk_real_dsa
