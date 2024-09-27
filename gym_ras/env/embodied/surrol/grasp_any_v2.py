@@ -417,7 +417,7 @@ class GraspAnyV2(PsmEnv):
         
 
     def step(self, action):
-        print("action", action)
+        # print("action", action)
         obs, reward, done, info = super().step(action)
         if self._jump_sig_prv:
             self._grasp_trial_cnt += 1
