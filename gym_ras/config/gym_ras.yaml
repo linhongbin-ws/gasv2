@@ -147,8 +147,8 @@ default:
         random_obj_vis: false
         depth_distance: 0.2
         on_plane: true
-        oracle_pos_thres: 2e-3
-        oracle_rot_thres: 4e-1
+        oracle_pos_thres: 15e-4
+        oracle_rot_thres: 0.5
         max_grasp_trial: 2
     dVRKEnv:
       grasp_any:
@@ -314,12 +314,12 @@ gasv2_surrol:
   wrapper.ImageNoise.cutout_line_num_high: 0
   wrapper.FSM.dsa_out_zoom_anamaly: true
   wrapper.TimeLimit: { max_timestep: 80 }
-  wrapper.ActionNoise.noise_scale: 0.04
+  wrapper.ActionNoise.noise_scale: 0.01
   wrapper.DepthProcess.skip: false
   wrapper.DepthProcess.uncert_scale: 1.5
   wrapper.OBS.vector_obs_key: ["gripper_state", "fsm_state", "controller_state"]
   wrapper.OBS.vector2image_type: row
-  wrapper.VirtualClutch.start: 3
+  wrapper.VirtualClutch.start: 6
   wrapper.DiscreteAction.rot_action_scale: 1
 
 csr_grasp_any:

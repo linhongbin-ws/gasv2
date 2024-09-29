@@ -11,7 +11,7 @@ class PID(BaseWrapper):
          obs_type='occup',
          control_p=10,
          phase_thres = [0.1,0.1,0.05],
-         err_offset = [0,0,0.15],
+         err_offset = [0.0,0.0,0.10],
            **kwargs
     ):
         super().__init__(env, **kwargs)

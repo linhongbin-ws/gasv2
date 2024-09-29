@@ -71,6 +71,7 @@ class DiscreteAction(BaseWrapper):
             return _action
         else:
             _err[-1] = 0
+            _err[-2] *= 0.4 # reduce rotation weight
             _index = np.argmax(np.abs(_err))
             _direction = _err[_index] > 0
             if _direction:

@@ -4,6 +4,7 @@ import numpy as np
 
 import pybullet as p
 from gym_ras.env.embodied.surrol.psm_env import PsmEnv
+from gym_ras.env.embodied.surrol.grasp_any_base import GraspAnyBase
 from surrol.utils.pybullet_utils import (
     get_link_pose,
     reset_camera,
@@ -13,10 +14,10 @@ from surrol.const import ASSET_DIR_PATH
 
 from surrol.robots.psm import Psm1
 
-from gym_ras.env.embodied.surrol.grasp_any_base import GraspAnyBase
+
 import numpy as np
 import pybullet as p
-from surrol.utils.pybullet_utils import get_link_pose, wrap_angle
+# from surrol.utils.pybullet_utils import get_link_pose, wrap_angle
 import os
 from gym_ras.tool.common import *
 from pathlib import Path
@@ -41,6 +42,7 @@ class GraspAnyV2(PsmEnv):
         fix_goal=True,
         oracle_pos_thres=0.1,
         oracle_rot_thres=1,
+        oracle_discrete=True,
         done_z_thres=0.3,
         init_pose_ratio_low_gripper=[-0.5, -0.5, -0.5, -0.9],
         init_pose_ratio_high_gripper=[0.5, 0.5, 0.5, 0.9],
@@ -72,6 +74,7 @@ class GraspAnyV2(PsmEnv):
         self._max_grasp_trial = max_grasp_trial
         self._fix_goal = fix_goal
         self._stuff_free_rot = stuff_free_rot
+        self._oracle_discrete = oracle_discrete
 
         super().__init__(render_mode, cid)
         self._view_param = {
@@ -487,7 +490,7 @@ class GraspAnyV2(PsmEnv):
                 self._create_waypoint()
                 return self.get_oracle_action(obs)
             delta_pos = (waypoint[:3] - obs["observation"][:3]) / 0.01 / self.SCALING
-            delta_yaw = (waypoint[3] - obs["observation"][5]).clip(-0.4, 0.4)
+            delta_yaw = wrapAngle((waypoint[3] - obs["observation"][5]), degrees=False, angle_range=np.pi/2)
             if np.abs(delta_pos).max() > 1:
                 delta_pos /= np.abs(delta_pos).max()
             scale_factor = 0.4
@@ -496,14 +499,16 @@ class GraspAnyV2(PsmEnv):
                 [delta_pos[0], delta_pos[1], delta_pos[2], delta_yaw, waypoint[4]]
             )
             # print(delta_pos * 0.01 / scale_factor, self._oracle_pos_thres)
-            # print(np.abs(delta_yaw), self._oracle_rot_thres)
+            # print("oracle debug")
+            # print((waypoint[3] - obs["observation"][5]),delta_yaw, self._oracle_rot_thres)
             if (
                 np.linalg.norm(delta_pos) * 0.01 / scale_factor < self._oracle_pos_thres
                 and np.abs(delta_yaw) < self._oracle_rot_thres
             ):
                 self._WAYPOINTS[i] = None
             break
-
+        if self._oracle_discrete and np.abs(delta_yaw) < self._oracle_rot_thres:
+            action[3] = 0
         return action
 
     def seed(self, seed=0):
