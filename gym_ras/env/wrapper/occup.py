@@ -13,11 +13,18 @@ import time
 
 class Occup(BaseWrapper):
     def __init__(
-        self, env, mask_key=["psm1", "stuff"], fov=45, is_skip=False, **kwargs
+        self, env, mask_key=["psm1", "stuff"], fov=45, is_skip=False, 
+        occup_h=200,
+        occup_w=200,
+        occup_d=200,
+        **kwargs
     ):
         super().__init__(env, **kwargs)
         self._mask_key = mask_key
         self._fov = fov
+        self._occup_h=occup_h
+        self._occup_w=occup_w
+        self._occup_d=occup_d
 
     def render(
         self,
@@ -53,14 +60,16 @@ class Occup(BaseWrapper):
                 )
             ),
         )[:, :3]
+        # print("1.2", time.time()-start)
         occup_imgs = {}
+        # print("2", time.time()-start)
         for m_id, _ in enumerate(masks):
             _points = points[points[:, 6] == m_id + 1]  # mask out
             (x, y, z) = pointclouds2occupancy(
                 _points,
-                occup_h=200,
-                occup_w=200,
-                occup_d=200,
+                occup_h=self._occup_h,
+                occup_w=self._occup_w,
+                occup_d=self._occup_d,
                 pc_x_min=-0.1 * 5,
                 pc_x_max=0.1 * 5,
                 pc_y_min=-0.1 * 5,
@@ -72,6 +81,7 @@ class Occup(BaseWrapper):
             y = self._resize_bool(y, imgs["rgb"].shape[0])
             z = self._resize_bool(z, imgs["rgb"].shape[0])
             occup_imgs[self._mask_key[m_id]] = [x, y, z]
+            # print("3", time.time()-start)
         imgs["occup"] = occup_imgs
         self._occup_projection = occup_imgs
         return imgs

@@ -21,8 +21,8 @@ default:
         encode_type: general_simple2,
         cv_interpolate: area,
         zoom_box_fix_length_ratio: 0.5,
-        encoding_id_needle: 60,
-        encoding_id_psm1: 130,
+        encoding_id_stuff: 50,
+        encoding_id_psm1: 100,
         encoding_id_zoom_box: 30,
         zoom_movement_type: continuous,
         dense_reward: false,
@@ -33,7 +33,11 @@ default:
     TimeLimit: { max_timestep: 200 }
     DepthProcess: { skip: true, uncert_scale: 1.0, eval: false }
     FSM: { arg: 0 , ensure_norm_reward: false,  dsa_out_zoom_anamaly: false,}
-    Occup: {is_skip: false}
+    Occup: {is_skip: false,
+            occup_h: 200,
+        occup_w: 200,
+        occup_d: 200,
+    }
     PID: {obs_type: occup}
     OBS:
       {
@@ -354,6 +358,14 @@ csr_grasp_any:
   #       "FSM",
   #       "OBS",
   #     ]
+dsa1:
+    wrapper.DSA.encoding_id_stuff: 200
+    wrapper.DSA.encoding_id_psm1: 150
+occup1:
+  wrapper.Occup.occup_h: 100
+  wrapper.Occup.occup_w: 100
+  wrapper.Occup.occup_d: 100
+
 
 gui: 
   embodied.SurrolEnv.pybullet_gui: true

@@ -226,7 +226,7 @@ gas:
   steps: 1820000
 
 gasv2:
-  eval_every: 2e5
+  eval_every: 1e4
   encoder: { mlp_keys: "$^", cnn_keys: "image" }
   decoder: { mlp_keys: "$^", cnn_keys: "image" }
   eval_eps: 20
@@ -274,3 +274,6 @@ oracle_1e3:
   
 inf_step:
   steps: 1e8
+
+train_every1:
+  train_every: 2
