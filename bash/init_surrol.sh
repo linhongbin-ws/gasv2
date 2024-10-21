@@ -1,6 +1,6 @@
 ####################################
 ## modify to your setting
-ANACONDA_PATH="$HOME/ssd/miniconda3"
+ANACONDA_PATH="$HOME/miniconda3"
 ENV_NAME=gasv2_surrol
 ######################
 

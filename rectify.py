@@ -11,7 +11,8 @@ def my_rectify(left_image, right_image, fs):
     fn_D2 = fs.getNode("D2")
 
     stereo_R = fn_R.mat().astype(np.float64)
-    stereo_T = fn_T.mat().astype(np.float64).transpose()
+    stereo_T = fn_T.mat().astype(np.float64)
+    # stereo_T = fn_T.mat().astype(np.float64).transpose()
 
     stereo_M1 = fn_M1.mat()
     stereo_D1 = fn_D1.mat()
@@ -83,14 +84,14 @@ def get_F(fs):
 
 if __name__ == '__main__':
 
-    left_image_path = "../miccai_kitti/dataset-1/keyframe_2/image_02/000000.jpg"
+    left_image_path = "./ext/python_stereo_camera_calibrate/frames_pair/camera0_0.png"
 
-    right_image_path = "../miccai_kitti/dataset-1/keyframe_2/image_03/000000.jpg"
+    right_image_path = "./ext/python_stereo_camera_calibrate/frames_pair/camera1_0.png"
 
     left_image = cv.imread(left_image_path)
     right_image = cv.imread(right_image_path)
 
-    fs = cv.FileStorage("../miccai/dataset-1/keyframe_2/endoscope_calibration.yaml", cv.FILE_STORAGE_READ)
+    fs = cv.FileStorage("./ext/python_stereo_camera_calibrate/cam_cal.yaml", cv.FILE_STORAGE_READ)
 
     left_rectified, right_rectified = my_rectify(left_image, right_image, fs)
 

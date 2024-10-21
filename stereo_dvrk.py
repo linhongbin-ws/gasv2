@@ -3,17 +3,14 @@ import torch.nn as nn
 import numpy as np
 import os
 import cv2
-# edit for csr
-from csrk.arm_proxy import ArmProxy
-from csrk.node import Node
-import PyCSR
-# end edit for csr
+
+
 # import dvrk
 # import PyKDL
 
 from torchvision import transforms
 from PIL import Image
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import yaml
 import math
 from scipy.spatial.transform import Rotation as R
@@ -42,9 +39,8 @@ import queue, threading
 
 from rectify import my_rectify
 import time
-# edit for csr
-node_ = Node("/home/student/csr_test/NDDS_QOS_PROFILES.CSROS.xml") # NOTE: path Where you put the ndds xml file
-# end edit for csr
+
+
 
 from copy import deepcopy
 
@@ -93,6 +89,9 @@ class VideoCapture:
 
   def __init__(self, name):
     self.cap = cv2.VideoCapture(name)
+    self.cap.set(cv2.CAP_PROP_FPS, 60)
+    self.cap.set(3,1280)
+    self.cap.set(4,720)
     video_name='test_record/{}.mp4'.format(name.split('/')[-1])
     # self.output_video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), 60, (800, 600))
     self.is_alive = True
@@ -100,6 +99,7 @@ class VideoCapture:
     t = threading.Thread(target=self._reader)
     t.daemon = True
     t.start()
+
     #t.join()
 
   # read frames as soon as they are available, keeping only most recent one
@@ -117,7 +117,11 @@ class VideoCapture:
       self.q.put(frame)
 
   def read(self):
-    return self.q.get()
+    frame = self.q.get()
+    frame = frame[:,160:1120]
+    frame = frame[::-1]
+    frame=cv2.resize(frame, (800, 600))
+    return frame
   
   def release(self):
       self.is_alive = False
@@ -158,16 +162,17 @@ class VisPlayer(nn.Module):
         self.scaling=1. # for peg transfer
         # edit for csr camera
         self.calibration_data = {
-            'baseline': 0.004671,
-            'focal_length_left': 788.96950318,
-            'focal_length_right': 788.96950318
+            'baseline':0.0042591615951678321,
+            'focal_length_left':  630,
+            'focal_length_right':630,
         }
+
         # edit for csr camera end
         self.threshold=0.009
         self._segmentor = None
         # self.init_run()
 
-        self.depth_center = 0.14179377
+        self.depth_center = 0.17179377
         self.depth_range = 0.1
 
         self._depth_remap = True
@@ -540,13 +545,13 @@ class VisPlayer(nn.Module):
         # edit for csr
         # self.p = dvrk.psm('PSM1')
 
-        self.p= ArmProxy(node_, "psa3")
-        while(not self.p.is_connected):
-            self.p.measured_cp()
-        # To check if the arm is connected
-        self.p.read_rtrk_arm_state()
-        print("connection: ",self.p.is_connected)
-        # end edit for csr
+        # self.p= ArmProxy(node_, "psa3")
+        # while(not self.p.is_connected):
+        #     self.p.measured_cp()
+        # # To check if the arm is connected
+        # self.p.read_rtrk_arm_state()
+        # print("connection: ",self.p.is_connected)
+        # # end edit for csr
 
         self._finished=False
         # player=VisPlayer()
@@ -558,8 +563,8 @@ class VisPlayer(nn.Module):
         # self._load_policy_model(filepath='./pretrained_models/csr_ar_policy.pt')
         # self._load_fastsam()
 
-        self.cap_0=VideoCapture("/dev/video0") # left 708
-        self.cap_2=VideoCapture("/dev/video2") # right 708
+        self.cap_0=VideoCapture("/dev/video2") # left 708
+        self.cap_2=VideoCapture("/dev/video0") # right 708
         print("kkkkkkkkkk")
         # init
         # open jaw
@@ -572,18 +577,13 @@ class VisPlayer(nn.Module):
             print(i)
             frame1=self.cap_0.read()
             frame2=self.cap_2.read()
-            frame1 = frame1[:,160:1120]
-            frame1 = frame1[::-1]
-            frame2 = frame2[:,160:1120]
-            frame2 = frame2[::-1]
-
-            frame1=cv2.resize(frame1, (800, 600))
-            frame2=cv2.resize(frame2, (800, 600))
 
         # point=SetPoints("test", frame1)
 
         # edit for csr camera
-        self.fs = cv2.FileStorage("/home/student/csr_test/endoscope_calibration.yaml", cv2.FILE_STORAGE_READ)
+        # self.fs = cv2.FileStorage("./ext/python_stereo_camera_calibrate/cam_cal.yaml", cv2.FILE_STORAGE_READ)
+        # self.fs = cv2.FileStorage("./endoscope_calibration.yaml", cv2.FILE_STORAGE_READ)
+        self.fs = cv2.FileStorage("./cam_cal.yaml", cv2.FILE_STORAGE_READ)
         # edit for csr camera end
         print("a")
         frame1, frame2 = my_rectify(frame1, frame2, self.fs)
@@ -623,19 +623,12 @@ class VisPlayer(nn.Module):
     def get_center_depth(self):
         frame1 = self.cap_0.read()
         frame2 = self.cap_2.read()
-        frame1 = frame1[:,160:1120]
-        frame1 = frame1[::-1]
-        frame2 = frame2[:,160:1120]
-        frame2 = frame2[::-1]
-
-        frame1=cv2.resize(frame1, (800, 600))
-        frame2=cv2.resize(frame2, (800, 600))
 
         frame1, frame2 = my_rectify(frame1, frame2, self.fs)
 
         frame1=cv2.cvtColor(frame1, cv2.COLOR_BGR2RGB)
         frame2=cv2.cvtColor(frame2, cv2.COLOR_BGR2RGB)
-
+        # print(frame1.shape)
         depth=self._get_depth(frame1, frame2)
         depth=cv2.resize(depth, self.img_size, interpolation=cv2.INTER_NEAREST)
         s = depth.shape
@@ -651,7 +644,7 @@ class VisPlayer(nn.Module):
             data = {k: depth_remap(v, self.depth_center, 0.3) if k!="mask" else {i: (depth_remap(j[0], self.depth_center, 0.3), 1) for i,j in v.items()} for k,v in self.img_data.items()}
         else:
             data = self.img_data
-        print('get_image', data["depReal"])
+        # print('get_image', data["depReal"])
         return deepcopy(data)
 
     def _get_image_worker(self):
@@ -662,13 +655,6 @@ class VisPlayer(nn.Module):
     def _update_image(self):
         frame1 = self.cap_0.read()
         frame2 = self.cap_2.read()
-        frame1 = frame1[:,160:1120]
-        frame1 = frame1[::-1]
-        frame2 = frame2[:,160:1120]
-        frame2 = frame2[::-1]
-
-        frame1=cv2.resize(frame1, (800, 600))
-        frame2=cv2.resize(frame2, (800, 600))
         frame1, frame2 = my_rectify(frame1, frame2, self.fs)
 
         frame1=cv2.cvtColor(frame1, cv2.COLOR_BGR2RGB)
@@ -690,7 +676,7 @@ class VisPlayer(nn.Module):
         depth_px=cv2.resize(depth_px, (600,600))
         d = cv2.resize(depth, (600,600))
         self.img_data["depReal"] = d.copy()
-        print("in the update", self.img_data["depReal"])
+        # print("in the update", self.img_data["depReal"])
         self.img_data["rgb"] = frame1
         self.img_data["depth"] = depth_px
         if self._segmentor is not None:
@@ -718,13 +704,6 @@ class VisPlayer(nn.Module):
 
         frame1=self.cap_0.read()
         frame2=self.cap_2.read()
-        frame1 = frame1[:,160:1120]
-        frame1 = frame1[::-1]
-        frame2 = frame2[:,160:1120]
-        frame2 = frame2[::-1]
-
-        frame1=cv2.resize(frame1, (800, 600))
-        frame2=cv2.resize(frame2, (800, 600))
 
         # fs = cv2.FileStorage("/home/kj/ar/EndoscopeCalibration/calibration_new.yaml", cv2.FILE_STORAGE_READ)
 
