@@ -1,4 +1,4 @@
-import tensorflow as tf # need to first "import tf" and "import torch" after, otherwise will cause error, see https://discuss.pytorch.org/t/use-tensorflow-and-pytorch-in-same-code-caused-error/34537
+# import tensorflow as tf # need to first "import tf" and "import torch" after, otherwise will cause error, see https://discuss.pytorch.org/t/use-tensorflow-and-pytorch-in-same-code-caused-error/34537
 import gradio as gr
 import argparse
 import gdown
@@ -36,7 +36,7 @@ class track_args():
         
 
 class Tracker:
-    def __init__(self, save_dir='./data/track_any',sam=True, xmem=True, inpainter=False):
+    def __init__(self, save_dir='./pretrained_models/track_any',sam=True, xmem=True, inpainter=False):
                 # args, defined in track_anything.py
         args = track_args()
 

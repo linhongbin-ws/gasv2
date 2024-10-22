@@ -16,8 +16,9 @@ import math
 from scipy.spatial.transform import Rotation as R
 from easydict import EasyDict as edict
 import sys
-sys.path.append('IGEV/core')
-sys.path.append('IGEV')
+sys.path.append('./ext/IGEV/core')
+sys.path.append('./ext/IGEV')
+sys.path.append('./ext')
 from igev_stereo import IGEVStereo
 from IGEV.core.utils.utils import InputPadder
 # from rl.agents.ddpg import DDPG
@@ -33,6 +34,8 @@ from PIL import Image
 from torchvision.transforms import Compose
 import torch.nn.functional as F
 import queue, threading
+from multiprocessing import Queue as MPQueue
+from multiprocessing import Process
 
 # # from vmodel import vismodel
 # from config import opts
@@ -47,42 +50,42 @@ from copy import deepcopy
 from gym_ras.tool.common import scale_arr
 from gym_ras.tool.depth_remap import depth_remap
 
-def SetPoints(windowname, img):
+# def SetPoints(windowname, img):
     
-    points = []
+#     points = []
 
-    def onMouse(event, x, y, flags, param):
-        if event == cv2.EVENT_LBUTTONDOWN:
-            cv2.circle(temp_img, (x, y), 10, (102, 217, 239), -1)
-            points.append([x, y])
-            cv2.imshow(windowname, temp_img)
+#     def onMouse(event, x, y, flags, param):
+#         if event == cv2.EVENT_LBUTTONDOWN:
+#             cv2.circle(temp_img, (x, y), 10, (102, 217, 239), -1)
+#             points.append([x, y])
+#             cv2.imshow(windowname, temp_img)
 
-    temp_img = img.copy()
-    cv2.namedWindow(windowname)
-    cv2.imshow(windowname, temp_img)
-    cv2.setMouseCallback(windowname, onMouse)
-    key = cv2.waitKey(0)
-    if key == 13:  # Enter
-        print('select point: ', points)
-        del temp_img
-        cv2.destroyAllWindows()
-        return points
-    elif key == 27:  # ESC
-        print('quit!')
-        del temp_img
-        cv2.destroyAllWindows()
-        return
-    else:
+#     temp_img = img.copy()
+#     cv2.namedWindow(windowname)
+#     cv2.imshow(windowname, temp_img)
+#     cv2.setMouseCallback(windowname, onMouse)
+#     key = cv2.waitKey(0)
+#     if key == 13:  # Enter
+#         print('select point: ', points)
+#         del temp_img
+#         cv2.destroyAllWindows()
+#         return points
+#     elif key == 27:  # ESC
+#         print('quit!')
+#         del temp_img
+#         cv2.destroyAllWindows()
+#         return
+#     else:
         
-        print('retry')
-        return SetPoints(windowname, img)
+#         print('retry')
+#         return SetPoints(windowname, img)
 
-def crop_img(img):
-    crop_img = img[:,100: ]
-    crop_img = crop_img[:,: -100]
-    #print(crop_img.shape)
-    crop_img=cv2.resize(crop_img ,(256,256))
-    return crop_img
+# def crop_img(img):
+#     crop_img = img[:,100: ]
+#     crop_img = crop_img[:,: -100]
+#     #print(crop_img.shape)
+#     crop_img=cv2.resize(crop_img ,(256,256))
+#     return crop_img
 
 # bufferless VideoCapture
 class VideoCapture:
@@ -95,26 +98,37 @@ class VideoCapture:
     video_name='test_record/{}.mp4'.format(name.split('/')[-1])
     # self.output_video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), 60, (800, 600))
     self.is_alive = True
-    self.q = queue.Queue()
-    t = threading.Thread(target=self._reader)
-    t.daemon = True
+    self.q = MPQueue(maxsize=3)
+    self.term_q = MPQueue()
+    t = Process(target=self._reader)
+    # t.daemon = True
     t.start()
 
     #t.join()
 
   # read frames as soon as they are available, keeping only most recent one
   def _reader(self):
-    while self.is_alive:
-      ret, frame = self.cap.read()
-      if not ret:
-        break
+    while True:
+        ret, frame = self.cap.read()
+        if not ret:
+            break
     #   self.output_video.write(frame)
-      if not self.q.empty():
+        if not self.q.empty():
+            try:
+                self.q.get_nowait()   # discard previous (unprocessed) frame
+            except queue.Empty:
+                pass
+        self.q.put(frame)
+        
         try:
-          self.q.get_nowait()   # discard previous (unprocessed) frame
+            is_break = self.term_q.get(block=False)
+            if is_break:
+                break
+            break
         except queue.Empty:
-          pass
-      self.q.put(frame)
+            continue
+        except Exception as e:
+                print(e)
 
   def read(self):
     frame = self.q.get()
@@ -124,7 +138,7 @@ class VideoCapture:
     return frame
   
   def release(self):
-      self.is_alive = False
+      self.term_q.put(True)
       self.cap.release()
     #   self.output_video.release()
 
@@ -151,32 +165,36 @@ cam_T_basePSM =np.array([[ 0.70426313,  0.70239444,  0.1032255 ,  0.12565967],
 
 
 class VisPlayer(nn.Module):
-    def __init__(self):
+    def __init__(self,
+                 cam_cal="./config/cam_cal.yaml",
+                 depth_center=0.17179377,
+                 depth_range=0.1,
+                 baseline=0.0042591615951678321,
+                 focal_length_left= 630,
+                 focal_length_right=630,
+                 depth_remap= True,
+                 ):
         super().__init__()
-        # depth estimation
         self.device='cuda:0'
-        # self._load_depth_model()
-        # self._load_policy_model()
         self._init_rcm()
         self.img_size=(320,240)
         self.scaling=1. # for peg transfer
-        # edit for csr camera
         self.calibration_data = {
-            'baseline':0.0042591615951678321,
-            'focal_length_left':  630,
-            'focal_length_right':630,
+            'baseline':baseline,
+            'focal_length_left':  focal_length_left,
+            'focal_length_right':focal_length_right,
         }
-
+        self._depth_remap = depth_remap
         # edit for csr camera end
         self.threshold=0.009
         self._segmentor = None
         # self.init_run()
 
-        self.depth_center = 0.17179377
-        self.depth_range = 0.1
+        self.depth_center = depth_center
+        self.depth_range = depth_range
 
-        self._depth_remap = True
-
+        
+        self.fs = cv2.FileStorage(cam_cal, cv2.FILE_STORAGE_READ)
 
 
     def _init_rcm(self):
@@ -313,7 +331,6 @@ class VisPlayer(nn.Module):
         '''
         limg=torch.from_numpy(limg).permute(2, 0, 1).float().to(self.device).unsqueeze(0)
         rimg=torch.from_numpy(rimg).permute(2, 0, 1).float().to(self.device).unsqueeze(0)
-
         with torch.no_grad():
             # print(limg.ndim)
             padder = InputPadder(limg.shape, divis_by=32)
@@ -583,7 +600,7 @@ class VisPlayer(nn.Module):
         # edit for csr camera
         # self.fs = cv2.FileStorage("./ext/python_stereo_camera_calibrate/cam_cal.yaml", cv2.FILE_STORAGE_READ)
         # self.fs = cv2.FileStorage("./endoscope_calibration.yaml", cv2.FILE_STORAGE_READ)
-        self.fs = cv2.FileStorage("./cam_cal.yaml", cv2.FILE_STORAGE_READ)
+        
         # edit for csr camera end
         print("a")
         frame1, frame2 = my_rectify(frame1, frame2, self.fs)
@@ -613,10 +630,11 @@ class VisPlayer(nn.Module):
 
         self.count=0
 
-        self.img_data = {}
         self._thread = threading.Thread(target=self._get_image_worker)
-        self.is_active = True
         self._thread.start()
+        self._image_queue = queue.Queue(maxsize=1)
+        self._term_queue = queue.Queue()
+
         time.sleep(1)
 
     
@@ -637,26 +655,36 @@ class VisPlayer(nn.Module):
         return depth[cx][cy]
 
     def get_image(self):
-        while True:
-            if len(self.img_data)!=0:
-                break
+        img_data = self._image_queue.get()
         if self._depth_remap:
-            data = {k: depth_remap(v, self.depth_center, 0.3) if k!="mask" else {i: (depth_remap(j[0], self.depth_center, 0.3), 1) for i,j in v.items()} for k,v in self.img_data.items()}
+            data = {k: depth_remap(v, self.depth_center, 0.3) if k!="mask" else {i: (depth_remap(j[0], self.depth_center, 0.3), 1) for i,j in v.items()} for k,v in img_data.items()}
         else:
-            data = self.img_data
+            data = img_data
         # print('get_image', data["depReal"])
         return deepcopy(data)
 
     def _get_image_worker(self):
-        while self.is_active:
+        while True:
             self._update_image()
+            print("update.....")
+            try:
+                is_break = self._term_queue.get(block=False)
+                print("breaking!!!")
+                if is_break:
+                    print("vvv")
+                    break
+            except:
+                print("a")
+                continue
+            # except Exception as e:
+            #     print(e)
+        
         print("exit stereo worker")
 
     def _update_image(self):
         frame1 = self.cap_0.read()
         frame2 = self.cap_2.read()
         frame1, frame2 = my_rectify(frame1, frame2, self.fs)
-
         frame1=cv2.cvtColor(frame1, cv2.COLOR_BGR2RGB)
         frame2=cv2.cvtColor(frame2, cv2.COLOR_BGR2RGB)
 
@@ -665,30 +693,34 @@ class VisPlayer(nn.Module):
         frame1=cv2.resize(frame1, self.img_size)
         frame2=cv2.resize(frame2, self.img_size)
 
-
         low = self.depth_center - self.depth_range / 2
         high = self.depth_center + self.depth_range / 2
         depth_px = scale_arr(depth, low, high, 0, 255)
         depth_px = np.clip(depth_px, 0 , 255)
         depth_px = np.uint8(depth_px)
-
         frame1=cv2.resize(frame1, (600,600))
         depth_px=cv2.resize(depth_px, (600,600))
         d = cv2.resize(depth, (600,600))
-        self.img_data["depReal"] = d.copy()
-        # print("in the update", self.img_data["depReal"])
-        self.img_data["rgb"] = frame1
-        self.img_data["depth"] = depth_px
+        img_data = {}
+        img_data["depReal"] = d.copy()
+        img_data["rgb"] = frame1
+        img_data["depth"] = depth_px
         if self._segmentor is not None:
-            self.img_data["mask"] = self._segmentor.predict(self.img_data['rgb'])
+            img_data["mask"] = self._segmentor.predict(img_data['rgb'])
+        self._image_queue.put(img_data)
+
     def close(self):
         print("call stereo delelte")
-        self.is_active = False
+        for i in range(10):
+            print("putting....")
+            self._term_queue.put(True)
+        time.sleep(5)
         self._thread.join()
-        print("after join")
+        print("thread join")
         self.cap_0.release()
+        print("cap 1 close")
         self.cap_2.release()
-        print("after release")
+        print("cap 2 close")
         del self._thread
 
 

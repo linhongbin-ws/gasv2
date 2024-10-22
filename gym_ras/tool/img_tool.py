@@ -197,7 +197,8 @@ class CV2_Visualizer():
                 if k & 0xFF == ord('q'):    # q key to exit
                     print("press q ..")
                     is_quit = True
-                    sys.exit(0)
+                    break
+                    # sys.exit(0)
                 elif k & 0xFF == ord('s'):    # s key to save pic
                     for _key in self._save_img_key:
                         self._render_dir.mkdir(exist_ok=True, parents=True)
