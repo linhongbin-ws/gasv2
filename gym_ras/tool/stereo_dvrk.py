@@ -37,7 +37,7 @@ import queue, threading
 # # from vmodel import vismodel
 # from config import opts
 
-from rectify import my_rectify
+from gym_ras.tool.rectify import my_rectify
 import time
 
 
@@ -45,7 +45,7 @@ import time
 from copy import deepcopy
 
 from gym_ras.tool.common import scale_arr
-from depth_remap import depth_remap
+from gym_ras.tool.depth_remap import depth_remap
 
 def SetPoints(windowname, img):
     

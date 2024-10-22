@@ -1,6 +1,6 @@
 from pathlib import Path
 import numpy as np
-from stereo import VisPlayer
+from gym_ras.tool.stereo_csr import VisPlayer
 
 class RGBD_CAM():
 

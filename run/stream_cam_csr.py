@@ -26,7 +26,7 @@ if args.seg:
     segment_engine.model = tracker
 
 if args.cam == "stereo":
-    from stereo import VisPlayer
+    from gym_ras.tool.stereo_csr import VisPlayer
     engine = VisPlayer()
     engine.init_run()
     print("finish init")

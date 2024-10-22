@@ -40,7 +40,7 @@ import queue, threading
 # # from vmodel import vismodel
 # from config import opts
 
-from rectify import my_rectify
+from gym_ras.tool.rectify import my_rectify
 import time
 # edit for csr
 node_ = Node("/home/student/csr_test/NDDS_QOS_PROFILES.CSROS.xml") # NOTE: path Where you put the ndds xml file
@@ -49,7 +49,7 @@ node_ = Node("/home/student/csr_test/NDDS_QOS_PROFILES.CSROS.xml") # NOTE: path 
 from copy import deepcopy
 
 from gym_ras.tool.common import scale_arr
-from depth_remap import depth_remap
+from gym_ras.tool.depth_remap import depth_remap
 
 def SetPoints(windowname, img):
     

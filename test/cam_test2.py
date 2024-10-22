@@ -2,7 +2,7 @@ import cv2
 import matplotlib.pyplot as plt
 from PIL import Image
 import numpy as np
-from rectify import my_rectify
+from gym_ras.tool.rectify import my_rectify
 
 
 cap_0=cv2.VideoCapture("/dev/video2")
