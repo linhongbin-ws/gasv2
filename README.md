@@ -37,8 +37,9 @@
     ```
 - Install Conda Dependency
     ```
+    source bash/init_dvrk.sh 
     conda install -c conda-forge ros-rospy wstool ros-sensor-msgs ros-geometry-msgs ros-diagnostic-msgs empy rospkg python-orocos-kdl -y 
-    conda install pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 -c pytorch
+    conda install pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 -c pytorch -y
     conda install cudnn=8.2 cudatoolkit=11.3 -c anaconda -y 
     conda install ffmpeg libffi==3.3 -y
     ```
@@ -54,7 +55,6 @@
     ```
 - Install ROS dependency in Conda environment
     ```sh
-    #conda install -c conda-forge empy rospkg python-orocos-kdl -y # install pre-compiled ros packages
     mkdir -p ext/ros_ws/src 
     pushd ext/ros_ws/src 
     git clone https://github.com/ros/geometry -b $ROS_DISTRO-devel 
@@ -68,7 +68,7 @@
 - Install dVRK
     ```sh
     python -m pip install defusedxml numpy==1.23
-    mkdir ./ext/dvrk_2_1/
+    mkdir ./ext/dvrk_2_1/src
     pushd ./ext/dvrk_2_1/
     catkin init
     catkin config --cmake-args -DPYTHON_EXECUTABLE=$ANACONDA_PATH/envs/$ENV_NAME/bin/python3.9 -DPYTHON_INCLUDE_DIR=$ANACONDA_PATH/envs/$ENV_NAME/include/python3.9 -DPYTHON_LIBRARY=$ANACONDA_PATH/envs/$ENV_NAME/lib/libpython3.9.so
@@ -81,6 +81,5 @@
 - Install package 
     ```sh
     pip install timm==0.5.4 easydict opt-einsum
-    conda install -c conda-forge python-orocos-kdl -y
     python -m pip install -e . # install gym_ras
     ``````

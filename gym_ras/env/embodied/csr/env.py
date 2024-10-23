@@ -12,7 +12,7 @@ class dVRKEnv(BaseEnv):
                  **kwargs,
                  ):
         if task in "grasp_any":
-            from gym_ras.env.embodied.dvrk.grasp_any_csr import GraspAny
+            from gym_ras.env.embodied.dvrk.grasp_any_dvrk import GraspAny
             client = GraspAny(**kwargs)
         else:
             raise Exception("Not support")

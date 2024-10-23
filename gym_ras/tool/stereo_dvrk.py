@@ -35,6 +35,7 @@ from torchvision.transforms import Compose
 import torch.nn.functional as F
 import queue, threading
 from multiprocessing import Queue as MPQueue
+from multiprocessing import Event as MPEvent
 from multiprocessing import Process
 
 # # from vmodel import vismodel
@@ -95,20 +96,15 @@ class VideoCapture:
     self.cap.set(cv2.CAP_PROP_FPS, 60)
     self.cap.set(3,1280)
     self.cap.set(4,720)
-    video_name='test_record/{}.mp4'.format(name.split('/')[-1])
-    # self.output_video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), 60, (800, 600))
-    self.is_alive = True
     self.q = MPQueue(maxsize=3)
-    self.term_q = MPQueue()
-    t = Process(target=self._reader)
-    # t.daemon = True
-    t.start()
+    self.term = MPEvent()
+    self.proc = Process(target=self._reader)
+    self.proc.start()
 
-    #t.join()
 
   # read frames as soon as they are available, keeping only most recent one
   def _reader(self):
-    while True:
+    while not self.term.is_set():
         ret, frame = self.cap.read()
         if not ret:
             break
@@ -120,15 +116,6 @@ class VideoCapture:
                 pass
         self.q.put(frame)
         
-        try:
-            is_break = self.term_q.get(block=False)
-            if is_break:
-                break
-            break
-        except queue.Empty:
-            continue
-        except Exception as e:
-                print(e)
 
   def read(self):
     frame = self.q.get()
@@ -137,10 +124,10 @@ class VideoCapture:
     frame=cv2.resize(frame, (800, 600))
     return frame
   
-  def release(self):
-      self.term_q.put(True)
+  def close(self):
+      self.term.set()
       self.cap.release()
-    #   self.output_video.release()
+      self.proc.join()
 
 
 def transf_DH_modified(alpha, a, theta, d):
@@ -631,9 +618,10 @@ class VisPlayer(nn.Module):
         self.count=0
 
         self._thread = threading.Thread(target=self._get_image_worker)
-        self._thread.start()
+
         self._image_queue = queue.Queue(maxsize=1)
-        self._term_queue = queue.Queue()
+        self._term = threading.Event()
+        self._thread.start()
 
         time.sleep(1)
 
@@ -664,20 +652,8 @@ class VisPlayer(nn.Module):
         return deepcopy(data)
 
     def _get_image_worker(self):
-        while True:
+        while not self._term.is_set():
             self._update_image()
-            print("update.....")
-            try:
-                is_break = self._term_queue.get(block=False)
-                print("breaking!!!")
-                if is_break:
-                    print("vvv")
-                    break
-            except:
-                print("a")
-                continue
-            # except Exception as e:
-            #     print(e)
         
         print("exit stereo worker")
 
@@ -711,17 +687,13 @@ class VisPlayer(nn.Module):
 
     def close(self):
         print("call stereo delelte")
-        for i in range(10):
-            print("putting....")
-            self._term_queue.put(True)
-        time.sleep(5)
+        self._term.set()
         self._thread.join()
         print("thread join")
-        self.cap_0.release()
+        self.cap_0.close()
         print("cap 1 close")
-        self.cap_2.release()
+        self.cap_2.close()
         print("cap 2 close")
-        del self._thread
 
 
     def run_step(self):
@@ -880,39 +852,3 @@ class VisPlayer(nn.Module):
 
 # import threading
 
-if __name__=="__main__":
-    #lock = threading.Lock()
-    
-    player=VisPlayer()
-    player.init_run()
-    finished=False
-    while not finished:
-        #player.record_video
-        finished=player.run_step()
-
-
-    # closing all open windows
-    # cv2.destroyAllWindows()
-    time.sleep(1.0)
-    player.cap_0.release()
-    player.cap_2.release()
-    time.sleep(1.0)
-
-    path = './test_record/frame1_1.png'
-
-    # Reading an image in default mode
-    image = cv2.imread(path)
-
-    # Window name in which image is displayed
-    window_name = 'image'
-
-    # Using cv2.imshow() method
-    # Displaying the image
-    cv2.imshow(window_name, image)
-
-    # waits for user to press any key
-    # (this is necessary to avoid Python kernel form crashing)
-    cv2.waitKey(0)
-
-    # closing all open windows
-    cv2.destroyAllWindows()

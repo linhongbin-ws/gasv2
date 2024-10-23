@@ -1,5 +1,5 @@
 import gym
-from gym_ras.env.embodied.dvrk.rgbd_csr import RGBD_CAM
+from gym_ras.env.embodied.dvrk.rgbd_dvrk import RGBD_CAM
 # from gym_ras.env.embodied.dvrk.oracle_input import OracleInput
 from gym_ras.tool.config import load_yaml
 import numpy as np
@@ -64,7 +64,7 @@ class GraspAny(gym.Env):
                 if dvrk_cal_file != '':
                     add_args = load_yaml(dvrk_cal_file)
                     psm_args.update(add_args)
-                from gym_ras.env.embodied.dvrk.psm_csr import SinglePSM
+                from gym_ras.env.embodied.dvrk.psm_dvrk import SinglePSM
                 self._arms[name] = SinglePSM(
                     **psm_args
                 )

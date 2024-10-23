@@ -1,8 +1,8 @@
 ####################################
 ## modify to your setting
-ANACONDA_PATH="$HOME/miniconda3"
+ANACONDA_PATH="$HOME/ssd/miniconda3"
 ENV_NAME=gasv2_dvrk
-ROS_DISTRO=melodic # modify to noetic if you are using it
+ROS_DISTRO=noetic
 ######################
 
 
