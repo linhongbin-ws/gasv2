@@ -77,9 +77,26 @@
     catkin build --summary
     popd
     ```
+- DualShock
+    ```sh
+    source ./init_dvrk.sh
+    pushd ./ext/
+    git clone https://github.com/naoki-mizuno/ds4drv --branch devel
+    cd ./ds4drv
+    python -m pip install -e .
+    sudo cp udev/50-ds4drv.rules /etc/udev/rules.d/
+    sudo udevadm control --reload-rules
+    sudo udevadm trigger
+    popd
+    pushd ./ext/ros_ws/src
+    git clone https://github.com/naoki-mizuno/ds4_driver.git -b noetic-devel # Do not need to modify for melodic user, use noetic branch to support python3
+    catkin build
+    popd
+    ```
 
 - Install package 
     ```sh
     pip install timm==0.5.4 easydict opt-einsum
+    conda install -c conda-forge  python-orocos-kdl -y
     python -m pip install -e . # install gym_ras
     ``````

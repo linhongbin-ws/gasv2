@@ -45,7 +45,7 @@ while not is_quit:
     is_quit = visualizer.cv_show(img)
 time.sleep(1.0)
 engine.close()
-del visualizer
+
 
 time.sleep(1.0)
 

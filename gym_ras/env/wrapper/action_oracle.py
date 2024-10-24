@@ -21,7 +21,7 @@ class ActionOracle(BaseWrapper):
         super().__init__(env)
         self._device_type = device
         if device == "ds4":
-            from gym_ras.tool.ds_util import DS_Controller
+            from test.ds_util import DS_Controller
             self._device = DS_Controller()
         elif device in ['keyboard', 'script']:
             from gym_ras.tool.keyboard import Keyboard

@@ -155,7 +155,8 @@ default:
         oracle_rot_thres: 0.5
         max_grasp_trial: 2
     dVRKEnv:
-      grasp_any:
+      robot_type: 'dvrk'
+      grasp_any_v2:
         arm_names: ["PSM1"]
         rgbd_device: "rs435"
         oracle_device: "ds4"
@@ -279,7 +280,6 @@ action_noise_on:
 ###############
 
 
-
 gasv2_surrol:
   task_name: grasp_any_v2
   embodied.SurrolEnv.cam_target_noise: 1e-2
@@ -326,46 +326,38 @@ gasv2_surrol:
   wrapper.VirtualClutch.start: 6
   wrapper.DiscreteAction.rot_action_scale: 1
 
-csr:
-  # dvrk_real_dsa
+gasv2_dvrk:
+  task_name: grasp_any_v2
   embodied_name: dVRKEnv
-  embodied.dVRKEnv.grasp_any.dvrk_cal_file: "./data/dvrk_cal/dvrk_cal.yaml"
+  embodied.dVRKEnv.robot_type: "dvrk"
+  embodied.dVRKEnv.grasp_any_v2.dvrk_cal_file: "./data/dvrk_cal/dvrk_cal.yaml"
   # embodied.dVRKEnv.grasp_any.cam_cal_file: "./data/dvrk_cal/cam_cal.yaml"
   # embodied.dVRKEnv.grasp_any.done_cal_file: "./data/dvrk_cal/done_cal.yaml"
-  wrapper.DepthProcess.eval: true
-  # color_seg
-  embodied.dVRKEnv.grasp_any.cam_segment_tool: "track_any"
-  embodied.dVRKEnv.grasp_any.cam_segment_model_dir: "./data/dvrk_cal/color_seg_cal.yaml"
-  # wrapper to eval
+  embodied.dVRKEnv.grasp_any_v2.cam_segment_tool: "track_any"
+  embodied.dVRKEnv.grasp_any_v2.cam_segment_model_dir: "./data/dvrk_cal/color_seg_cal.yaml"
+  embodied.dVRKEnv.grasp_any_v2.rgbd_device: "stereo"
+  embodied.dVRKEnv.grasp_any_v2.psm_init_pose_low_gripper: [-0.8, -0.8, 0.3, 0.8]
+  embodied.dVRKEnv.grasp_any_v2.psm_init_pose_high_gripper: [0.8, 0.8, 0.3, 0.8]
+  embodied.dVRKEnv.grasp_any_v2.psm_max_step_pos: 0.014
+  embodied.dVRKEnv.grasp_any_v2.psm_max_step_rot: 40.0
+  wrapper.DSA.zoom_box_fix_length_ratio: 0.3
+  wrapper.DSA.encode_type: occup
+  wrapper.ImageNoise.cutout_all_amount_range: [0.8, 1.0]
+  wrapper.ImageNoise.cutout_depth_amount_range: [1.0, 1.0]
+  wrapper.ImageNoise.cutout_line_num_low: 0
+  wrapper.ImageNoise.cutout_line_num_high: 0
+  wrapper.FSM.dsa_out_zoom_anamaly: true
+  wrapper.TimeLimit: { max_timestep: 80 }
+  wrapper.DepthProcess.skip: false
+  wrapper.DepthProcess.uncert_scale: 1.5
+  wrapper.OBS.vector_obs_key: ["gripper_state", "fsm_state", "controller_state"]
+  wrapper.OBS.vector2image_type: row
+  wrapper.VirtualClutch.start: 6
+  wrapper.DiscreteAction.rot_action_scale: 1
   wrapper.ImageNoise.skip: true
   wrapper.ActionNoise.noise_scale: 0.0
   wrapper.TimeLimit.max_timestep: 300
-  embodied.dVRKEnv.grasp_any.rgbd_device: "stereo"
-  embodied.dVRKEnv.grasp_any.psm_init_pose_low_gripper: [-0.8, -0.8, 0.3, 0.8]
-  embodied.dVRKEnv.grasp_any.psm_init_pose_high_gripper: [0.8, 0.8, 0.3, 0.8]
-  embodied.dVRKEnv.grasp_any.psm_max_step_pos: 0.014
-  embodied.dVRKEnv.grasp_any.psm_max_step_rot: 40.0
-
-dvrk:
-  # dvrk_real_dsa
-  embodied_name: dVRKEnv
-  embodied.dVRKEnv.grasp_any.dvrk_cal_file: "./data/dvrk_cal/dvrk_cal.yaml"
-  # embodied.dVRKEnv.grasp_any.cam_cal_file: "./data/dvrk_cal/cam_cal.yaml"
-  # embodied.dVRKEnv.grasp_any.done_cal_file: "./data/dvrk_cal/done_cal.yaml"
   wrapper.DepthProcess.eval: true
-  # color_seg
-  embodied.dVRKEnv.grasp_any.cam_segment_tool: "track_any"
-  embodied.dVRKEnv.grasp_any.cam_segment_model_dir: "./data/dvrk_cal/color_seg_cal.yaml"
-  # wrapper to eval
-  wrapper.ImageNoise.skip: true
-  wrapper.ActionNoise.noise_scale: 0.0
-  wrapper.TimeLimit.max_timestep: 300
-  embodied.dVRKEnv.grasp_any.rgbd_device: "stereo"
-  embodied.dVRKEnv.grasp_any.psm_init_pose_low_gripper: [-0.8, -0.8, 0.3, 0.8]
-  embodied.dVRKEnv.grasp_any.psm_init_pose_high_gripper: [0.8, 0.8, 0.3, 0.8]
-  embodied.dVRKEnv.grasp_any.psm_max_step_pos: 0.014
-  embodied.dVRKEnv.grasp_any.psm_max_step_rot: 40.0
-
 
 dsa1:
     wrapper.DSA.encoding_id_stuff: 200

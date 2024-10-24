@@ -4,7 +4,7 @@ import numpy as np
 from gym_ras.tool.common import TxT, invT, getT, T2Quat, scale_arr, M2Euler, wrapAngle, Euler2M, printT, Quat2M, M2Quat
 from gym_ras.tool.kdl_tool import Frame2T, Quaternion2Frame
 from gym_ras.tool.config import load_yaml
-from gym_ras.env.embodied.dvrk.psm import SinglePSM
+from gym_ras.env.embodied.dvrk.psm_dvrk import SinglePSM
 from time import sleep
 
 
@@ -43,7 +43,7 @@ print(grasp_T)
 arm.moveT_local(T)
 
 arm.open_gripper()
-from gym_ras.tool.ds_util import DS_Controller
+from test.ds_util import DS_Controller
 in_device = DS_Controller()
 in_device.led_on(g=0.8,b=0.8)
 cmd = in_device.get_discrete_cmd()

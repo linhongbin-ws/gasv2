@@ -4,7 +4,7 @@ import numpy as np
 class OracleInput():
     def __init__(self, device="ds4"):
         if device == "ds4":
-            from gym_ras.tool.ds_util import DS_Controller
+            from test.ds_util import DS_Controller
             self._device = DS_Controller()
         else:
             raise NotImplementedError

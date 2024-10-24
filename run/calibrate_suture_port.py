@@ -1,6 +1,6 @@
 import argparse
 import dvrk
-from gym_ras.tool.ds_util import DS_Controller
+from test.ds_util import DS_Controller
 from gym_ras.tool.kdl_tool import Frame2T, T2Frame
 import numpy as np
 import yaml

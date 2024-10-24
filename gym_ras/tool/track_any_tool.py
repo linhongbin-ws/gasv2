@@ -742,7 +742,7 @@ def demo1():
     parser.add_argument('--action',type=str, default="oracle")
     # parser.add_argument('--yaml-dir', type=str, default="./gym_ras/config.yaml")
     # parser.add_argument('--yaml-tag', type=str, nargs='+', default=[])
-    parser.add_argument('--env-tag', type=str, nargs='+', default=['gas_surrol','dvrk_grasp_any'])
+    parser.add_argument('--env-tag', type=str, nargs='+', default=['gasv2_dvrk'])
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--vis-tag', type=str, nargs='+', default=[])
     parser.add_argument('--oracle', type=str, default='keyboard')

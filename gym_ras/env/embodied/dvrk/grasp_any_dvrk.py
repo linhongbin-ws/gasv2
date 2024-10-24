@@ -1,6 +1,6 @@
 import gym
 from gym_ras.env.embodied.dvrk.rgbd_dvrk import RGBD_CAM
-# from gym_ras.env.embodied.dvrk.oracle_input import OracleInput
+from gym_ras.env.embodied.dvrk.oracle import OracleInput
 from gym_ras.tool.config import load_yaml
 import numpy as np
 import yaml
@@ -87,12 +87,15 @@ class GraspAny(gym.Env):
             cam_arg.update(add_args)
         self._cam_device = RGBD_CAM(**cam_arg
                                     )
-
-        # self._done_device = None
+        
+                # self._done_device = None
         from gym_ras.tool.keyboard import Keyboard
         self._done_device = Keyboard(blocking=False)
 
-        # self._oracle_device = OracleInput(device=oracle_device)
+
+        # from gym_ras.tool.ds import DS_Controller
+        # self._done_device = DS_Controller(wait_hz=10, only_press=True)
+
 
     def render(self):
         return self._cam_device.render()
@@ -113,6 +116,7 @@ class GraspAny(gym.Env):
             # _psm.move_gripper_init_pose()
             # time.sleep(0.5)
             # _psm._psm.jaw.move_jp(np.deg2rad(20)).wait()
+
             info = {"fsm": "done_success"}
         else:
             info = {"fsm": "prog_norm"}
@@ -121,11 +125,7 @@ class GraspAny(gym.Env):
     def _fsm_done(self,):
         if self._done_device is not None:
             d = self._done_device.get_char()
-            if d == "s":
-                is_grasp = True
-                self._done_device._char = None
-            else:
-                is_grasp = False
+            is_grasp = d != 0
 
         else:
             if self._done_jaw_thres == -1.0 or self._done_tip_z_thres == -1.0:
@@ -144,7 +144,7 @@ class GraspAny(gym.Env):
         is_lift = z_current - _z_low > self._done_tip_z_thres
         # print(z_current, _z_low, z_current - _z_low)
         # print("Grasp:",is_grasp, " is_lift:" , is_lift)
-        return is_grasp
+        return is_grasp and is_lift
 
     def reset_pose(self):
         _psm = self._arms[self._arm_names[0]]
@@ -152,11 +152,10 @@ class GraspAny(gym.Env):
 
     def reset(self,):
         _psm = self._arms[self._arm_names[0]]
-        _psm._psm.open_gripper(np.deg2rad(45))
         _psm.reset_pose()
         self._cam_device._segment.reset()
-        time.sleep(3)
-        # _psm.move_gripper_init_pose()
+        time.sleep(1)
+        _psm.move_gripper_init_pose()
         return _psm.get_obs()
 
     @property

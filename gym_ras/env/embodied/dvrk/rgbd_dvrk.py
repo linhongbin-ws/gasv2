@@ -1,26 +1,31 @@
 from pathlib import Path
 import numpy as np
-from gym_ras.tool.stereo_csr import VisPlayer
+
 
 class RGBD_CAM():
-
-    def __init__(
-        self,
-        device="stereo",
-        image_height=600,
-        image_width=600,
-        depth_remap_center=None,
-        depth_remap_range=None,
-        segment_tool="",
-        segment_model_dir="",
-        mask_noisy_link=True,
-    ):
+    def __init__(self,
+                 device="rs435",
+                 image_height=600,
+                 image_width=600,
+                 depth_remap_center=None,
+                 depth_remap_range=None,
+                 segment_tool="",
+                 segment_model_dir="",
+                 mask_noisy_link=True,
+                 ):
         self._image_height = image_height
         self._image_width = image_width
         self._depth_remap_center = depth_remap_center
         self._depth_remap_range = depth_remap_range
         self._mask_noisy_link = mask_noisy_link
-        if device == "stereo":
+        if device == "rs435":
+            from gym_ras.tool.rs435 import RS435_ROS_Engine
+            self._device = RS435_ROS_Engine(image_height=image_height,
+                                            image_width=image_width,
+                                            depth_remap_center=depth_remap_center,
+                                            depth_remap_range=depth_remap_range,)
+        elif device == "stereo":
+            from gym_ras.tool.stereo_dvrk import VisPlayer
             self._device = VisPlayer()
             self._device.init_run()
         else:
@@ -109,15 +114,4 @@ class RGBD_CAM():
 
     @property
     def _no_depth_link(self, ):
-        return []
-
-if __name__ == "__main__":
-    from gym_ras.tool.img_tool import CV2_Visualizer
-    cam = RGBD_CAM()
-    imgs = cam.render()
-    visualizer = CV2_Visualizer(keyboard=True, update_hz=4)
-
-    is_quit = False
-    while not is_quit:
-        img = cam.render()
-        is_quit = visualizer.cv_show(img)
+        return ["gripper_tip"]

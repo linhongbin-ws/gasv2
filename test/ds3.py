@@ -1,4 +1,4 @@
-from gym_ras.tool.ds_util import DS_Controller
+from test.ds_util import DS_Controller
 import time
 
 

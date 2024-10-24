@@ -5,14 +5,16 @@ import time
 import os
 
 
+
 class DS_Controller(Controller):
-    def __init__(self, parallel=True, interface="/dev/input/js0", connecting_using_ds4drv=False, event_definition=None, event_format=None):
+    def __init__(self, parallel=True, interface="/dev/input/js0", 
+                 connecting_using_ds4drv=False, event_definition=None, event_format=None):
         super().__init__(interface,connecting_using_ds4drv,event_definition,event_format)
         self._parallel = parallel
         self._thread = Thread(target=self.listen)
         self._stop_event = Event()
         self._thread.start()
-    
+
     
     def listen(self, timeout=30, on_connect=None, on_disconnect=None, on_sequence=None):
         """
@@ -355,3 +357,17 @@ class DS_Controller(Controller):
         print("exit ds thread..")
         self._thread.join()
         print("exit ds thread, done")
+
+
+
+class dVRK_DS(DS_Controller):
+    def on_circle_press(self):
+        self._press = "circle"
+        self._wait = False
+        print("circle press")
+
+    def get_char(self):
+        self._wait = True
+        while self._wait:
+            pass
+        return self._press

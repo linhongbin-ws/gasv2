@@ -96,7 +96,7 @@ class VideoCapture:
     self.cap.set(cv2.CAP_PROP_FPS, 60)
     self.cap.set(3,1280)
     self.cap.set(4,720)
-    self.q = MPQueue(maxsize=3)
+    self.q = MPQueue(maxsize=1)
     self.term = MPEvent()
     self.proc = Process(target=self._reader)
     self.proc.start()
@@ -105,16 +105,17 @@ class VideoCapture:
   # read frames as soon as they are available, keeping only most recent one
   def _reader(self):
     while not self.term.is_set():
+        # print(self.term.is_set())
         ret, frame = self.cap.read()
-        if not ret:
-            break
-    #   self.output_video.write(frame)
-        if not self.q.empty():
-            try:
-                self.q.get_nowait()   # discard previous (unprocessed) frame
-            except queue.Empty:
-                pass
-        self.q.put(frame)
+        if ret:
+            self.q.put(frame)
+    # #   self.output_video.write(frame)
+    #     if not self.q.empty():
+    #         try:
+    #             self.q.get_nowait()   # discard previous (unprocessed) frame
+    #         except queue.Empty:
+    #             pass
+        # self.q.put(frame)
         
 
   def read(self):
@@ -126,8 +127,8 @@ class VideoCapture:
   
   def close(self):
       self.term.set()
+    #   self.proc.join()
       self.cap.release()
-      self.proc.join()
 
 
 def transf_DH_modified(alpha, a, theta, d):
@@ -686,14 +687,16 @@ class VisPlayer(nn.Module):
         self._image_queue.put(img_data)
 
     def close(self):
-        print("call stereo delelte")
-        self._term.set()
-        self._thread.join()
-        print("thread join")
+        print("closing cap0")
         self.cap_0.close()
         print("cap 1 close")
         self.cap_2.close()
         print("cap 2 close")
+        print("call stereo delelte")
+        self._term.set()
+        # self._thread.join()
+        print("thread join")
+
 
 
     def run_step(self):

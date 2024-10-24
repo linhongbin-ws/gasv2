@@ -1,6 +1,6 @@
 import argparse
 import dvrk
-from gym_ras.tool.ds_util import DS_Controller
+from gym_ras.tool.ds import DS_Controller
 import numpy as np
 import yaml
 import pathlib

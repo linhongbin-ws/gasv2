@@ -1,5 +1,5 @@
 import gym
-from gym_ras.env.embodied.dvrk.rgbd_dvrk import RGBD_CAM
+from gym_ras.env.embodied.dvrk.rgbd_rs435_dvrk import RGBD_CAM
 # from gym_ras.env.embodied.dvrk.oracle_input import OracleInput
 from gym_ras.tool.config import load_yaml
 import numpy as np

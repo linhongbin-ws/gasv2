@@ -1,4 +1,4 @@
-from gym_ras.env.embodied.dvrk.psm import SinglePSM
+from gym_ras.env.embodied.dvrk.psm_dvrk import SinglePSM
 from gym_ras.tool.common import TxT, getT
 arm = SinglePSM()
 arm.close_gripper()
