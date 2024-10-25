@@ -37,6 +37,20 @@ default:
             occup_h: 200,
         occup_w: 200,
         occup_d: 200,
+        pc_x_min: -0.5,
+        pc_x_max: 0.5,
+        pc_y_min: -0.5,
+        pc_y_max: 0.5,
+        pc_z_min: -0.5,
+        pc_z_max: 0.5,    
+        cam_offset_x: 0.0,
+        cam_offset_y: 0.0,
+        cam_offset_z: 1.0,
+        cam_offset_rx: 45,
+        cam_offset_ry: 0,
+        cam_offset_rz: 0,     
+        cam_cal_file: '',   
+        cam_fov: 45,  
     }
     PID: {obs_type: occup}
     OBS:
@@ -358,6 +372,25 @@ gasv2_dvrk:
   wrapper.ActionNoise.noise_scale: 0.0
   wrapper.TimeLimit.max_timestep: 300
   wrapper.DepthProcess.eval: true
+  wrapper.Occup: {
+        occup_h: 200,
+        occup_w: 200,
+        occup_d: 200,
+        pc_x_min: -0.3,
+        pc_x_max: 0.3,
+        pc_y_min: -0.3,
+        pc_y_max: 0.3,
+        pc_z_min: -0.3,
+        pc_z_max: 0.3,    
+        cam_offset_x: 0.0,
+        cam_offset_y: 0.0,
+        cam_offset_z: 0.16,
+        cam_offset_rx: 80,
+        cam_offset_ry: 0,
+        cam_offset_rz: 0,     
+        cam_cal_file: '',   
+        cam_fov: 45,  
+  }
 
 dsa1:
     wrapper.DSA.encoding_id_stuff: 200

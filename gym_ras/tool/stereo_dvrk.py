@@ -162,7 +162,7 @@ class VisPlayer(nn.Module):
                  baseline=0.0042591615951678321,
                  focal_length_left= 630,
                  focal_length_right=630,
-                 depth_remap= True,
+                 depth_remap= False,
                  ):
         super().__init__()
         self.device='cuda:0'
@@ -675,9 +675,9 @@ class VisPlayer(nn.Module):
         frame1, frame2 = my_rectify(frame1, frame2, self.fs)
         frame1=cv2.cvtColor(frame1, cv2.COLOR_BGR2RGB)
         frame2=cv2.cvtColor(frame2, cv2.COLOR_BGR2RGB)
-
-        depth=self._get_depth(frame1, frame2)
-        depth=cv2.resize(depth, self.img_size, interpolation=cv2.INTER_NEAREST)
+        img_data = {}
+        orginal_depth=self._get_depth(frame1, frame2)
+        depth=cv2.resize(orginal_depth, self.img_size, interpolation=cv2.INTER_NEAREST)
         frame1=cv2.resize(frame1, self.img_size)
         frame2=cv2.resize(frame2, self.img_size)
 
@@ -689,8 +689,8 @@ class VisPlayer(nn.Module):
         frame1=cv2.resize(frame1, (600,600))
         depth_px=cv2.resize(depth_px, (600,600))
         d = cv2.resize(depth, (600,600))
-        img_data = {}
-        img_data["depReal"] = d.copy()
+
+        img_data["depReal"] = deepcopy(d)
         img_data["rgb"] = frame1
         img_data["depth"] = depth_px
         if self._segmentor is not None:
