@@ -59,7 +59,7 @@ class dVRKEnv(BaseEnv):
         return ""
 
     def render(self, **kwargs):  # ['human', 'rgb_array', 'mask_array']
-        return self.client.render()
+         return self.client.render()
 
     def get_oracle_action(self, **kwargs):
         return self.client.get_oracle_action()

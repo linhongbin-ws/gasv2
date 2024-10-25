@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 import time
 os.environ["XDG_SESSION_TYPE"] = "xcb"
-
+from gym_ras.tool.keyboard import Keyboard
 parser = argparse.ArgumentParser()
 parser.add_argument('--savedir', type=str, default="./data/stream_cam")
 parser.add_argument('--depth-c', type=float, default="0.3")
@@ -15,7 +15,14 @@ parser.add_argument('--vis-tag', type=str, nargs='+', default=[])
 parser.add_argument("--cam", type=str, default="stereo")
 
 args = parser.parse_args()
+kb = Keyboard(blocking=False)
 
+
+if args.cam == "stereo":
+    from gym_ras.tool.stereo_dvrk import VisPlayer
+    engine = VisPlayer()
+    engine.init_run()
+    print("finish init")
 if args.seg:
     from gym_ras.tool.track_any_tool import Tracker
     from gym_ras.tool.seg_tool import TrackAnySegmentor
@@ -24,31 +31,23 @@ if args.seg:
     tracker.update_template()
     segment_engine = TrackAnySegmentor()
     segment_engine.model = tracker
-
-if args.cam == "stereo":
-    from gym_ras.tool.stereo_dvrk import VisPlayer
-    engine = VisPlayer()
-    engine.init_run()
-    print("finish init")
+    engine._segmentor = segment_engine
 visualizer = CV2_Visualizer(
-    update_hz=10, render_dir=args.savedir, vis_tag=args.vis_tag, keyboard=True
+    update_hz=50, render_dir=args.savedir, vis_tag=args.vis_tag, keyboard=False
 )
 
-# img = {"rgb":rgb, "depth": depth}
 is_quit = False
-while not is_quit:
+ch = ''
+while (ch != 'q'):
     img = engine.get_image()
-    if args.seg:
-        masks = segment_engine.predict(img['rgb'])
-        print(masks)
-        img["mask"] = {str(k): v[0] for k,v in masks.items()}
+    if "mask" in img:
+        img["mask"] = {str(k): v[0] for k,v in img["mask"].items()}
+
     is_quit = visualizer.cv_show(img)
-time.sleep(1.0)
+    ch = kb.get_char()
 engine.close()
-
+kb.close()
 
 time.sleep(1.0)
 
 
-
-    # print(results)

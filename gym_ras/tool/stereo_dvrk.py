@@ -91,32 +91,35 @@ from gym_ras.tool.depth_remap import depth_remap
 # bufferless VideoCapture
 class VideoCapture:
 
-  def __init__(self, name):
+  def __init__(self, name, proc_or_thread='proc'):
     self.cap = cv2.VideoCapture(name)
     self.cap.set(cv2.CAP_PROP_FPS, 60)
     self.cap.set(3,1280)
     self.cap.set(4,720)
-    self.q = MPQueue(maxsize=1)
-    self.term = MPEvent()
-    self.proc = Process(target=self._reader)
+    if proc_or_thread == "proc":
+        self.q = MPQueue(maxsize=1)
+        self.term = MPEvent()
+        self.proc = Process(target=self._reader)
+    elif proc_or_thread == "thread":
+        self.q = queue.Queue(maxsize=1)
+        self.term = threading.Event()
+        self.proc = threading.Thread(target=self._reader)
+    self.proc.daemon = True
     self.proc.start()
+    
 
-
-  # read frames as soon as they are available, keeping only most recent one
   def _reader(self):
     while not self.term.is_set():
-        # print(self.term.is_set())
-        ret, frame = self.cap.read()
-        if ret:
-            self.q.put(frame)
-    # #   self.output_video.write(frame)
-    #     if not self.q.empty():
-    #         try:
-    #             self.q.get_nowait()   # discard previous (unprocessed) frame
-    #         except queue.Empty:
-    #             pass
-        # self.q.put(frame)
-        
+      ret, frame = self.cap.read()
+      if not ret:
+        break
+      if not self.q.empty():
+        try:
+          self.q.get_nowait()   # discard previous (unprocessed) frame
+        except queue.Empty:
+          pass
+      self.q.put(frame)
+
 
   def read(self):
     frame = self.q.get()
@@ -127,7 +130,6 @@ class VideoCapture:
   
   def close(self):
       self.term.set()
-    #   self.proc.join()
       self.cap.release()
 
 
@@ -619,10 +621,12 @@ class VisPlayer(nn.Module):
         self.count=0
 
         self._thread = threading.Thread(target=self._get_image_worker)
+        self._thread.daemon = True
 
         self._image_queue = queue.Queue(maxsize=1)
         self._term = threading.Event()
         self._thread.start()
+
 
         time.sleep(1)
 
@@ -644,7 +648,14 @@ class VisPlayer(nn.Module):
         return depth[cx][cy]
 
     def get_image(self):
+        # while self._image_queue.empty():
+        #     pass
+
+        # while not self._image_queue.empty():
+        #     img_data = self._image_queue.get()
         img_data = self._image_queue.get()
+
+        # img_data = self._image_queue.get()
         if self._depth_remap:
             data = {k: depth_remap(v, self.depth_center, 0.3) if k!="mask" else {i: (depth_remap(j[0], self.depth_center, 0.3), 1) for i,j in v.items()} for k,v in img_data.items()}
         else:

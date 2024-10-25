@@ -43,8 +43,13 @@ class RGBD_CAM():
             _dir = Path(segment_model_dir)
             self._segment = ColorObjSegmentor(segment_model_dir)
         elif segment_tool == "track_any":
+            from gym_ras.tool.track_any_tool import Tracker
             from gym_ras.tool.seg_tool import TrackAnySegmentor
+            tracker = Tracker(sam=False, xmem=True)
+            tracker.load_template()
+            tracker.update_template()
             self._segment = TrackAnySegmentor()
+            self._segment.model = tracker
             self._device._segmentor = self._segment
         else:
             raise NotImplementedError()
@@ -71,9 +76,12 @@ class RGBD_CAM():
 
     def render(self,):
         img = self._device.get_image()
-        masks = img['mask']
-        img["mask"] = {}
-        if self._segment is not None:
+        while not ("mask" in img):
+            print("waiting for mask")
+            img = self._device.get_image()
+        if self._segment is not None and "mask" in img:
+            masks = img['mask']
+            img["mask"] = {}
             # masks = self._segment.predict(img['rgb'])
 
             _mask_dict = {}

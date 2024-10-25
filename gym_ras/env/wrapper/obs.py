@@ -31,10 +31,7 @@ class OBS(BaseWrapper):
         self._vector2image_type = vector2image_type
         self._dsa_out_zoom_anamaly = dsa_out_zoom_anamaly
         self._action_insertion_anamaly = action_insertion_anamaly
-
-        obs = self.reset()
-        self._obs_shape = {k: v.shape if isinstance(
-            v, np.ndarray) else None for k, v in obs.items()}
+        self._obs_shape = None
         self._obs_image = None
 
     def reset(self,):
@@ -180,6 +177,10 @@ class OBS(BaseWrapper):
 
     @property
     def observation_space(self):
+        if self._obs_shape is None:
+            obs = self.reset()
+            self._obs_shape = {k: v.shape if isinstance(
+                v, np.ndarray) else None for k, v in obs.items()}
         obs = {}
         for v in self._direct_map_key:
             obs[v] = self.env.observation_space[v]
