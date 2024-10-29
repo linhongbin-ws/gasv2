@@ -58,11 +58,14 @@ class CV2_Visualizer():
             for k, v in imgs.items():
                 if k.find("rgb") >= 0:
                     imgs_dict[k] = v
+                    imgs_dict["rgb_n"] = np.zeros(v.shape,dtype=np.uint8)
                 if k.find("image") >= 0:
                     imgs_dict[k] = v
                 elif k.find("occup") >= 0:
                     for occ_key, occ_v in v.items():
                         for axx in range(len(occ_v)):
+                            if axx != 1:
+                                continue
                             _mat = occ_v[axx]
                             _key = "occup_"+["x","y","z"][axx]+"@"+occ_key
                             color_mat = np.zeros(_mat.shape, dtype=np.uint8)

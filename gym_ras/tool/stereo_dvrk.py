@@ -169,11 +169,6 @@ class VisPlayer(nn.Module):
         self._init_rcm()
         self.img_size=(320,240)
         self.scaling=1. # for peg transfer
-        self.calibration_data = {
-            'baseline':baseline,
-            'focal_length_left':  focal_length_left,
-            'focal_length_right':focal_length_right,
-        }
         self._depth_remap = depth_remap
         # edit for csr camera end
         self.threshold=0.009
@@ -185,6 +180,12 @@ class VisPlayer(nn.Module):
 
         
         self.fs = cv2.FileStorage(cam_cal, cv2.FILE_STORAGE_READ)
+        self.calibration_data = {
+            'baseline': np.abs(self.fs.getNode("T").mat()[0][0]) / 1000,
+            'focal_length_left':  self.fs.getNode("M1").mat()[1][1],
+            'focal_length_right': self.fs.getNode("M1").mat()[1][1],
+        }
+        print("calibration data", self.calibration_data)
 
 
     def _init_rcm(self):
@@ -677,20 +678,25 @@ class VisPlayer(nn.Module):
         frame2=cv2.cvtColor(frame2, cv2.COLOR_BGR2RGB)
         img_data = {}
         orginal_depth=self._get_depth(frame1, frame2)
-        depth=cv2.resize(orginal_depth, self.img_size, interpolation=cv2.INTER_NEAREST)
-        frame1=cv2.resize(frame1, self.img_size)
-        frame2=cv2.resize(frame2, self.img_size)
+        # depth=cv2.resize(orginal_depth, self.img_size, interpolation=cv2.INTER_NEAREST)
+        # frame1=cv2.resize(frame1, self.img_size)
+        # frame2=cv2.resize(frame2, self.img_size)
+        print("orginal_depth", orginal_depth.shape)
+        print("frame1", frame1.shape)
+        depth = orginal_depth[:,100:700]
+        frame1 = frame1[:, 100:700]
+        frame2 = frame2[:, 100:700]
 
         low = self.depth_center - self.depth_range / 2
         high = self.depth_center + self.depth_range / 2
         depth_px = scale_arr(depth, low, high, 0, 255)
         depth_px = np.clip(depth_px, 0 , 255)
         depth_px = np.uint8(depth_px)
-        frame1=cv2.resize(frame1, (600,600))
-        depth_px=cv2.resize(depth_px, (600,600))
-        d = cv2.resize(depth, (600,600))
+        # frame1=cv2.resize(frame1, (600,600))
+        # depth_px=cv2.resize(depth_px, (600,600))
+        # d = cv2.resize(depth, (600,600))
 
-        img_data["depReal"] = deepcopy(d)
+        img_data["depReal"] = deepcopy(depth)
         img_data["rgb"] = frame1
         img_data["depth"] = depth_px
         if self._segmentor is not None:

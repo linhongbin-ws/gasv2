@@ -31,7 +31,7 @@ default:
     ActionNoise: { noise_scale: 0.0 }
     DiscreteAction: { pos_action_scale: 0.2, rot_action_scale:  0.2,}
     TimeLimit: { max_timestep: 200 }
-    DepthProcess: { skip: true, uncert_scale: 1.0, eval: false }
+    DepthProcess: { skip: true, uncert_scale: 1.0, eval: false , erode_kernel: 0}
     FSM: { arg: 0 , ensure_norm_reward: false,  dsa_out_zoom_anamaly: false,}
     Occup: {is_skip: false,
             occup_h: 200,
@@ -364,6 +364,7 @@ gasv2_dvrk:
   wrapper.TimeLimit: { max_timestep: 80 }
   wrapper.DepthProcess.skip: false
   wrapper.DepthProcess.uncert_scale: 1.5
+  wrapper.DepthProcess.erode_kernel: 12
   wrapper.OBS.vector_obs_key: ["gripper_state", "fsm_state", "controller_state"]
   wrapper.OBS.vector2image_type: row
   wrapper.VirtualClutch.start: 6
@@ -385,9 +386,9 @@ gasv2_dvrk:
         cam_offset_x: 0.0,
         cam_offset_y: 0.0,
         cam_offset_z: 0.098953045,
-        cam_offset_rx: 60,
+        cam_offset_rx: 51,
         cam_offset_ry: 0,
-        cam_offset_rz: -10,     
+        cam_offset_rz: -5,     
         cam_cal_file: './config/cam_cal.yaml',   
         cam_fov: 45,  
   }
@@ -420,6 +421,9 @@ grasp_standing_needle:
 
 timelimit_debug:
   wrapper.TimeLimit: { max_timestep: 1}
+
+no_depth_process:
+  wrapper.DepthProcess.skip: True
 
 #########################################
 

@@ -1,13 +1,14 @@
 from gym_ras.env.wrapper.base import BaseWrapper
 import numpy as np
 from gym_ras.tool.common import scale_arr
-
+import cv2
 
 class DepthProcess(BaseWrapper):
 
     def __init__(self, env,
                  skip=True,
                  uncert_scale=1.0,
+                 erode_kernel=0,
                  eval=False,
                  **kwargs,
                  ):
@@ -15,12 +16,30 @@ class DepthProcess(BaseWrapper):
         self._skip = skip
         self._uncert_scale = uncert_scale
         self._eval = eval
+        self._erode_kernel = erode_kernel
 
     def render(self, ):
         imgs = self.env.render()
         if not self._skip:
+            if self._erode_kernel >0 and 'mask' in imgs:
+                imgs['mask'] = self._erode_mask(imgs['mask'])
             imgs = self._no_depth_guess_process(imgs)
         return imgs
+    
+    def _erode_mask(self, masks):
+        new_mask = {}
+        for k,v in masks.items():
+            new_mask[k] = self._erode_func(v)
+        return new_mask
+
+    def _erode_func(self, mask):
+        in_mask = np.zeros(mask.shape, dtype=np.uint8)
+        in_mask[mask] = 255
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (self._erode_kernel,self._erode_kernel))
+        erode = cv2.morphologyEx(in_mask, cv2.MORPH_ERODE, kernel)
+        erode_mask = erode !=0
+        return erode_mask
+        
 
     def _no_depth_guess_process(self, imgs,):
         _depth = imgs["depth"].copy()
