@@ -11,7 +11,7 @@ class GraspAny(gym.Env):
     def __init__(self,
                  arm_names=["PSM1",],
                  rgbd_device="rs435",
-                 oracle_device="ds4",
+                 done_device="",
                  ws_x=[-0.1, 0.1],
                  ws_y=[-0.1, 0.1],
                  ws_z=[-0.24, 0],
@@ -32,10 +32,12 @@ class GraspAny(gym.Env):
                  cam_cal_file='',
                  done_cal_file='',
                  cam_mask_noisy_link=True,
+                 reset_random_pose=True,
                  ):
         self._arm_names = arm_names
         self._arms = {}
         self._seed = 0
+        self._reset_random_pose = reset_random_pose
         if done_cal_file == '':
             self._done_tip_z_thres = -1.0
             self._done_jaw_thres = -1.0
@@ -88,20 +90,27 @@ class GraspAny(gym.Env):
         self._cam_device = RGBD_CAM(**cam_arg
                                     )
         
-                # self._done_device = None
-        from gym_ras.tool.keyboard import Keyboard
-        self._done_device = Keyboard(blocking=False)
 
 
-        # from gym_ras.tool.ds import DS_Controller
-        # self._done_device = DS_Controller(wait_hz=10, only_press=True)
+        self._done_device_name = done_device
+        if done_device == "":
+            self._done_device = None
+        elif done_device == "keyboard":
+            from gym_ras.tool.keyboard import Keyboard
+            self._done_device = Keyboard(blocking=False)
+        elif done_device == "ds":
+            from gym_ras.tool.ds import DS_Controller
+            self._done_device = DS_Controller(wait_hz=10, only_press=True)
+            
+        else:
+            raise NotImplementedError
+
+
 
 
     def render(self):
         return self._cam_device.render()
 
-    # def get_oracle_action(self,):
-    #     return self._oracle_device.get_oracle_action()
 
     def step(self, action, is_out):
         _psm = self._arms[self._arm_names[0]]
@@ -124,8 +133,9 @@ class GraspAny(gym.Env):
 
     def _fsm_done(self,):
         if self._done_device is not None:
-            d = self._done_device.get_char()
-            is_grasp = d != 0
+            if self._done_device_name == "keyboard":
+                ch = self._done_device.get_char()
+                is_grasp = ch == "g"
 
         else:
             if self._done_jaw_thres == -1.0 or self._done_tip_z_thres == -1.0:
@@ -154,8 +164,8 @@ class GraspAny(gym.Env):
         _psm = self._arms[self._arm_names[0]]
         _psm.reset_pose()
         self._cam_device._segment.reset()
-        time.sleep(1)
-        _psm.move_gripper_init_pose()
+        if self._reset_random_pose:
+            _psm.move_gripper_init_pose()
         return _psm.get_obs()
 
     @property

@@ -4,8 +4,7 @@ import threading
 from copy import deepcopy
 
 class Keyboard():
-    def __init__(self, update_hz=3, blocking=True):
-        self._update_time = 1.0 / update_hz
+    def __init__(self, blocking=True):
         self._thread = None
         if not blocking:
             self.is_active = True

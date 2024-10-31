@@ -35,7 +35,7 @@ class ActionOracle(BaseWrapper):
                 ch = self._device.get_char()
                 # print(ch)
                 if ch == 'q':
-                    sys.exit(0)
+                    return 'quit'
                 elif ch in self.KEYBOARD_MAP and self._device_type == "keyboard":
                     return self.KEYBOARD_MAP[ch]
                 elif self._device_type == "script":

@@ -31,7 +31,7 @@ default:
     ActionNoise: { noise_scale: 0.0 }
     DiscreteAction: { pos_action_scale: 0.2, rot_action_scale:  0.2,}
     TimeLimit: { max_timestep: 200 }
-    DepthProcess: { skip: true, uncert_scale: 1.0, eval: false , erode_kernel: 0}
+    DepthProcess: { skip: true, uncert_scale: 1.0, eval: false , erode_kernel: 0, edge_detect_thres: 0.0}
     FSM: { arg: 0 , ensure_norm_reward: false,  dsa_out_zoom_anamaly: false,}
     Occup: {is_skip: false,
             occup_h: 200,
@@ -52,7 +52,13 @@ default:
         cam_cal_file: '',   
         cam_fov: 45,  
     }
-    PID: {obs_type: occup}
+    PID: {
+          obs_type: occup,
+          control_p: 10.0,
+          phase_thres: [0.1,0.1,0.05],
+          err_offset: [0.0,0.0,0.1],  
+          skip: false,
+    }
     OBS:
       {
         image_obs_key: ["dsa"],
@@ -173,7 +179,6 @@ default:
       grasp_any_v2:
         arm_names: ["PSM1"]
         rgbd_device: "rs435"
-        oracle_device: "ds4"
         ws_x: [-0.1, 0.1]
         ws_y: [-0.1, 0.1]
         ws_z: [-0.24, 0.0]
@@ -194,6 +199,8 @@ default:
         cam_cal_file: ""
         done_cal_file: ""
         cam_mask_noisy_link: true
+        done_device: ""
+        reset_random_pose: True
 
 gas_surrol:
   task_name: grasp_any
@@ -345,8 +352,6 @@ gasv2_dvrk:
   embodied_name: dVRKEnv
   embodied.dVRKEnv.robot_type: "dvrk"
   embodied.dVRKEnv.grasp_any_v2.dvrk_cal_file: "./data/dvrk_cal/dvrk_cal.yaml"
-  # embodied.dVRKEnv.grasp_any.cam_cal_file: "./data/dvrk_cal/cam_cal.yaml"
-  # embodied.dVRKEnv.grasp_any.done_cal_file: "./data/dvrk_cal/done_cal.yaml"
   embodied.dVRKEnv.grasp_any_v2.cam_segment_tool: "track_any"
   embodied.dVRKEnv.grasp_any_v2.cam_segment_model_dir: "./data/dvrk_cal/color_seg_cal.yaml"
   embodied.dVRKEnv.grasp_any_v2.rgbd_device: "stereo"
@@ -354,6 +359,9 @@ gasv2_dvrk:
   embodied.dVRKEnv.grasp_any_v2.psm_init_pose_high_gripper: [0.8, 0.8, 0.3, 0.8]
   embodied.dVRKEnv.grasp_any_v2.psm_max_step_pos: 0.014
   embodied.dVRKEnv.grasp_any_v2.psm_max_step_rot: 40.0
+  embodied.dVRKEnv.grasp_any_v2.done_device: "keyboard"
+  embodied.dVRKEnv.grasp_any_v2.arm_names: ["PSM2"]
+  embodied.dVRKEnv.grasp_any_v2.reset_random_pose: false
   wrapper.DSA.zoom_box_fix_length_ratio: 0.3
   wrapper.DSA.encode_type: occup
   wrapper.ImageNoise.cutout_all_amount_range: [0.8, 1.0]
@@ -364,7 +372,7 @@ gasv2_dvrk:
   wrapper.TimeLimit: { max_timestep: 80 }
   wrapper.DepthProcess.skip: false
   wrapper.DepthProcess.uncert_scale: 1.5
-  wrapper.DepthProcess.erode_kernel: 12
+  wrapper.DepthProcess.edge_detect_thres: 0.001
   wrapper.OBS.vector_obs_key: ["gripper_state", "fsm_state", "controller_state"]
   wrapper.OBS.vector2image_type: row
   wrapper.VirtualClutch.start: 6
@@ -392,6 +400,12 @@ gasv2_dvrk:
         cam_cal_file: './config/cam_cal.yaml',   
         cam_fov: 45,  
   }
+  wrapper.PID: {
+          # obs_type: occup,
+          # control_p: 10.0,
+          phase_thres: [0.3,0.3,0.3],
+          err_offset: [0.0,0.0,0.1],  
+    }
 
 dsa1:
     wrapper.DSA.encoding_id_stuff: 200
@@ -427,3 +441,5 @@ no_depth_process:
 
 #########################################
 
+no_pid:
+  wrapper.PID.skip: true

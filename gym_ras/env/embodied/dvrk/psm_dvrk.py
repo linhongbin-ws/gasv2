@@ -91,7 +91,7 @@ class SinglePSM():
         # pos, quat = T2Quat(action_rcm)
         # frame = Quaternion2Frame(*pos, *quat)
 
-        self.moveT_local(action_rcm, interp_num=10)
+        self.moveT_local(action_rcm, interp_num=-1)
         # self._psm.move_cp(frame).wait()
 
     def reset_pose(self):
@@ -194,7 +194,7 @@ class SinglePSM():
         goal = Quaternion2Frame(*pos, *quat)
 
         # self._psm.move_cp(goal).wait()
-        self.moveT_local(Frame2T(goal), interp_num=3)
+        self.moveT_local(Frame2T(goal), interp_num=-1)
 
         # jaw
         if action[4] < 0:

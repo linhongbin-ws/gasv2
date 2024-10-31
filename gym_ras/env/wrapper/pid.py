@@ -12,6 +12,7 @@ class PID(BaseWrapper):
          control_p=10,
          phase_thres = [0.1,0.1,0.05],
          err_offset = [0.0,0.0,0.10],
+         skip=False,
            **kwargs
     ):
         super().__init__(env, **kwargs)
@@ -19,6 +20,7 @@ class PID(BaseWrapper):
         self._control_p = control_p
         self._phase_thres  =phase_thres
         self._err_offset = err_offset
+        self._skip = skip
 
     def reset(self):
         obs = self.env.reset()
@@ -30,7 +32,7 @@ class PID(BaseWrapper):
     def step(self, action):
         obs = self._get_pid_observation()
         pid_phase = False
-        if self._check_pid_phase(obs):
+        if self._check_pid_phase(obs) and (not self._skip):
             action = self._get_pid_action(obs)
             pid_phase =True 
 

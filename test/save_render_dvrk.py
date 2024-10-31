@@ -8,6 +8,7 @@ import cv2
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--vis-tag', type=str, nargs='+', default=[])
+parser.add_argument('--savedir', default="./render.npy")
 args = parser.parse_args()
 env, env_config = make_env(tags=['gasv2_dvrk', 'no_depth_process'], seed=0)
 
@@ -16,7 +17,7 @@ env, env_config = make_env(tags=['gasv2_dvrk', 'no_depth_process'], seed=0)
 
 
 img = env.render()
-np.save("render.npy", img)
+np.save(args.savedir, img)
 
 
 print("exit")

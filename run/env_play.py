@@ -49,6 +49,8 @@ for _ in tqdm(range(args.repeat)):
             action = env.action_space.sample()
         elif args.action == "oracle":
             action = env.get_oracle_action()
+            if action == 'quit':
+                break
         else:
             raise NotImplementedError
         # print("step....")
@@ -82,3 +84,6 @@ for _ in tqdm(range(args.repeat)):
     if not args.no_vis:
         if img_break:
             break
+
+if "gasv2_dvrk" in args.env_tag:
+    env.unwrapped.client._cam_device._device.close()

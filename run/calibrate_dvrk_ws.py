@@ -1,30 +1,33 @@
 import argparse
 import dvrk
-from gym_ras.tool.ds import DS_Controller
 import numpy as np
 import yaml
 import pathlib
 from PyKDL import Rotation
 
 parser = argparse.ArgumentParser()
-# parser.add_argument('--obs', type=str, default='rgb') # [rgb, depth]
 parser.add_argument('--arm', type=str, default='PSM1') 
-
-# parser.add_argument('--origin-x-ratio', type=float, default=0.5) 
-# parser.add_argument('--origin-y-ratio', type=float, default=0.5) 
-# parser.add_argument('--origin-z-ratio', type=float, default=0.8)
-# parser.add_argument('--gripper-initmargin', type=float, default=0.01)
-# parser.add_argument('--needle-initmargin', type=float, default=0.02)
-# parser.add_argument('--needle-z-initratio', type=float, default=0.3) 
+parser.add_argument('--input', type=str, default='keyboard') 
 parser.add_argument('--savedir', type=str, default='./data/dvrk_cal')
 args = parser.parse_args()
-
 assert args.arm in ["PSM1", "PSM2"]
 arm1 = dvrk.psm(args.arm)
-in_device = DS_Controller()
+
+if args.input == 'ds':
+    from gym_ras.tool.ds import DS_Controller
+    in_device = DS_Controller()
+    in_func = in_device.get_discrete_cmd
+if args.input == 'keyboard':
+    from gym_ras.tool.keyboard import Keyboard
+    in_device = Keyboard(blocking=True)
+    in_func = in_device.get_char
+else:
+    raise NotImplementedError
+
+
 
 def get_pose():
-    cmd = in_device.get_discrete_cmd()
+    cmd = in_func()
     # print("pos:",client.T_g_w_msr.p)
     return arm1.measured_cp()
 
@@ -32,8 +35,8 @@ def get_pose():
 
 Ts = {}
 
-
-in_device.led_on(g=0.8,b=0.8)
+if args.input == "ds":
+    in_device.led_on(g=0.8,b=0.8)
 print("move to upward right limit")
 v1 = get_pose()
 print("move to downward right limit")
@@ -47,7 +50,7 @@ else:
 theta += np.deg2rad(90-180) # align with simulation setting
 print(f"delta theta is {theta} rad, {np.rad2deg(theta)} degree")
 # in_device.led_on(b=1)
-in_device.led_off()
+# in_device.led_off()
 
 Ts['world2base_yaw'] = np.rad2deg(theta).tolist()
 
@@ -56,8 +59,8 @@ rot = Rotation.RotZ(theta)
 
 
 
-
-in_device.led_on(g=1)
+if args.input == "ds":
+    in_device.led_on(g=1)
 print("move to left limit")
 v1 = rot*(get_pose().p)
 print("move to right limit")
@@ -68,15 +71,16 @@ print("y:", v1, v2)
 
 print(f"Drag {args.arm} to following position in floating mode....")
 print("move to forward limit")
-in_device.led_on(r=1)
+if args.input == "ds":
+    in_device.led_on(r=1)
 v1 = rot*(get_pose().p)
 print("move to backward limit")
 v2 = rot*(get_pose().p)
 print("x:", v1, v2)
 Ts['ws_x'] = sorted([v1.x(), v2.x()])
 
-
-in_device.led_on(b=1)
+if args.input == "ds":
+    in_device.led_on(b=1)
 print("move to upward limit")
 v1 = get_pose()
 print("move to downward limit")
@@ -85,13 +89,17 @@ Ts['ws_z'] =sorted([v1.p.z(), v2.p.z()])
 
 
 
-
-in_device.led_on(g=0.8,r=0.8)
+if args.input == "ds":
+    in_device.led_on(g=0.8,r=0.8)
 print("move to reset pose")
-cmd = in_device.get_discrete_cmd()
+cmd = in_func()
 qs = arm1.measured_jp()
-Ts['reset_q'] = qs[:7].tolist()
-in_device.led_off()
+Ts['reset_q'] = np.rad2deg(qs)
+Ts['reset_q'][2] = qs[2]
+Ts['reset_q'] = Ts['reset_q'].tolist()
+
+if args.input == "ds":
+    in_device.led_off()
 
 # ratio_func = lambda x,y, rate: x*(1-rate)+y*rate
 # print("=======get results==========")
