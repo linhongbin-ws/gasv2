@@ -3,10 +3,10 @@ from matplotlib.pyplot import imshow, subplot, axis, cm, show
 import matplotlib.pyplot as plt
 import numpy as np
 
-d2=np.load("render.npy", allow_pickle=True)
+d2=np.load("render2.npy", allow_pickle=True)
 keys=['rgb', 'depReal', 'mask']
 img = {k: d2.item().get(k) for k in keys}
-def erode_mask(mask, kernel_size=7):
+def erode_mask(mask, kernel_size=3):
     in_mask = np.zeros(mask.shape, dtype=np.uint8)
     in_mask[v] = 255
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size,kernel_size))
@@ -15,7 +15,7 @@ def erode_mask(mask, kernel_size=7):
     return erode_mask
 
 
-def edge_detection(depth, segmask, depth_thres=0.001):
+def edge_detection(depth, segmask, depth_thres=0.003):
     seg_depth = depth.copy()
     seg_depth[np.logical_not(segmask)] = 0
     idx_mat = np.stack([np.arange(seg_depth.shape[1])]*seg_depth.shape[0], axis=0)
@@ -28,6 +28,15 @@ def edge_detection(depth, segmask, depth_thres=0.001):
             c = idx_mat[i][segmask[i]].mean()
             c = np.int(c)
         center_idxs.append(c)
+    
+    convex_rows = []
+    for i in range(segmask.shape[0]):
+        cvx_cnt = 0
+        for j in range(segmask.shape[1]-1):
+            if (segmask[i][j+1]) and (not segmask[i][j]):
+                cvx_cnt+=1
+        convex_rows.append(cvx_cnt==1)
+            
     # center_idxs[np.logical_not(segmask)] = 0 
     # center_idx = np.int(center_idxs[segmask].mean())
     left_arr1 = depth[:,1:]
@@ -62,7 +71,7 @@ def edge_detection(depth, segmask, depth_thres=0.001):
         arr = idx_mat[i][segmask[i]]
         if arr.shape[0] == 0:
             continue
-        if boundary[i] >=0:
+        if boundary[i] >=0 and convex_rows[i]:
             out_mask_left[i, boundary[i]:] = True
         else:
             out_mask_left[i,:] = segmask[i]
@@ -91,13 +100,13 @@ def edge_detection(depth, segmask, depth_thres=0.001):
     # show()
     right_mask = err > depth_thres
 
-    plt.subplot(1,2, 1)
-    imshow(right_mask)
-    plt.colorbar()
-    plt.subplot(1,2, 2)
-    imshow(seg_depth)
-    plt.colorbar()
-    show()
+    # plt.subplot(1,2, 1)
+    # imshow(right_mask)
+    # plt.colorbar()
+    # plt.subplot(1,2, 2)
+    # imshow(seg_depth)
+    # plt.colorbar()
+    # show()
 
     idx_mat1 = idx_mat[:,:-1].copy()
     s = idx_mat1.shape[1]
@@ -108,7 +117,7 @@ def edge_detection(depth, segmask, depth_thres=0.001):
         arr = idx_mat[i][segmask[i]]
         if arr.shape[0] == 0:
             continue
-        if boundary[i] <s:
+        if boundary[i] <s and convex_rows[i]:
             out_mask_right[i, : boundary[i]] = True
         else:
             out_mask_right[i,:] = segmask[i]
@@ -147,7 +156,7 @@ for k,v in img['mask'].items():
     seg_depth.append(t)
 
     # t1 = img['depReal'].copy()
-    # v1 = erode_mask(v)
+    v = erode_mask(v)
     # t1[np.logical_not(v1)] = 0
     # seg_depth.append(t1)
 

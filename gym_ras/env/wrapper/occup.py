@@ -79,6 +79,15 @@ class Occup(BaseWrapper):
             encode_mask[m] = m_id + 1
         scale = 1
 
+        if self._cam_offset_z < 0 :
+            s = imgs["depReal"].shape
+            cx = s[0] // 2
+            cy = s[1] // 2
+            cam_offset_z = imgs["depReal"][cx][cy]
+
+        else:
+            cam_offset_z = self._cam_offset_z
+        print(cam_offset_z, "cam_offset_z")
 
         if self._K is None:
             self._K = get_intrinsic_matrix(depth.shape[0], depth.shape[1], fov=self._cam_fov)
@@ -89,7 +98,7 @@ class Occup(BaseWrapper):
         )
         T1 = getT([-self._cam_offset_x,
                    -self._cam_offset_y,
-                   -self._cam_offset_z,], [0,0,0], rot_type="euler")
+                   -cam_offset_z,], [0,0,0], rot_type="euler")
         T2 = getT([0, 0, 0],
                    [-self._cam_offset_rx,
                    -self._cam_offset_ry,

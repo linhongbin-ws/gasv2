@@ -393,7 +393,7 @@ gasv2_dvrk:
         pc_z_max: 0.05,    
         cam_offset_x: 0.0,
         cam_offset_y: 0.0,
-        cam_offset_z: 0.098953045,
+        cam_offset_z: -1.0, 
         cam_offset_rx: 51,
         cam_offset_ry: 0,
         cam_offset_rz: -5,     

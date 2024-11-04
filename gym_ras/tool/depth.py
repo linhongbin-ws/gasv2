@@ -6,6 +6,12 @@ from tqdm import tqdm
 from gym_ras.tool.common import scale_arr
 import time
 
+
+from matplotlib.pyplot import imshow, subplot, axis, cm, show
+import matplotlib.pyplot as plt
+
+
+
 def write_point_cloud(ply_filename, points):
     formatted_points = []
     for point in points:
@@ -127,64 +133,138 @@ def pointclouds2occupancy(pc_mat, occup_h, occup_w, occup_d,
 
     return occ_proj_x, occ_proj_y, occ_proj_z
 
-if __name__ == '__main__':
-    # dataset_folder = Path("dataset")
-    # scene = Path("hololens")
-    # # 如果view_ply_in_world_coordinate为True,那么点云的坐标就是在world坐标系下的坐标，否则就是在当前帧下的坐标
-    # view_ply_in_world_coordinate = False
-    # # 深度图对应的尺度因子，即深度图中存储的值与真实深度（单位为m）的比例, depth_map_value / real depth = scale_factor
-    # # 不同数据集对应的尺度因子不同，比如TUM的scale_factor为5000， hololens的数据的scale_factor为1000, Apollo Scape数据的scale_factor为200
-    # scale_factor = 1000.0
-    # build_point_cloud(os.path.join(dataset_folder, scene), scale_factor, view_ply_in_world_coordinate)
-    from gym_ras.api import make_env
-    from pathlib import Path
-    env, env_config = make_env(tags=['gasv2_surrol'], seed=0)
-    imgs = env.render()
-    print(imgs.keys())
-    print(imgs['mask'].keys())
-    rgb = imgs["rgb"]
-    depth = imgs["depReal"]
-    encode_mask = np.zeros(depth.shape, dtype=np.uint8)
-    masks = [imgs["mask"]["psm1"], imgs["mask"]["stuff"]]
-    for i in range(len(masks)):
-        encode_mask[masks[i]] = i
-    scale = 1
-    K = get_intrinsic_matrix(depth.shape[0],depth.shape[1],fov=45) 
-    pose = np.eye(4)
-    points = depth_image_to_point_cloud(
-        rgb, depth, scale, K, pose, encode_mask=encode_mask
-    )
 
-    save_ply_name = "test_pc.ply"
-    save_ply_path = Path('./data/test_pc') 
-    save_ply_path.mkdir(parents=True, exist_ok=True)
-    write_point_cloud(str(save_ply_path / save_ply_name), points)
-    import matplotlib.pyplot as plt
-    from matplotlib.pyplot import imshow, subplot, axis, cm, show
-    from gym_ras.tool.common import getT, invT, TxT
-    points = np.array(points)
-    points = points[points[:,6]==1] # mask out
-    T1 = getT([0,0,-0.2*5], [0,0,0], rot_type='euler')
-    T2 = getT([0,0,0], [-45,0,0], rot_type='euler', euler_Degrees=True)
-    ones = np.ones((points.shape[0],1))
-    P = np.concatenate((points[:,:3], ones), axis=1)
-    points[:,:3] = np.matmul(P, np.transpose(TxT([T2, T1,])))[:,:3]
-    print(points[:,:3])
-    occ_proj_x, occ_proj_y, occ_proj_z = pointclouds2occupancy(
-        points,
-        occup_h=200,
-        occup_w=200,
-        occup_d=200,
-        pc_x_min=-0.1 * 5,
-        pc_x_max=0.1 * 5,
-        pc_y_min=-0.1 * 5,
-        pc_y_max=0.1 * 5,
-        pc_z_min=-0.1 * 5,
-        pc_z_max=0.1 * 5,
-    )
-    im = [occ_proj_x, occ_proj_y, occ_proj_z]
-    for k in range(len(im)):
-        subplot(1, len(im), k + 1)
-        axis("off")
-        plt.imshow(im[k], cmap="gray")
-    plt.show()  
+
+
+
+def edge_detection(depth, segmask, depth_thres=0.003):
+    seg_depth = depth.copy()
+    seg_depth[np.logical_not(segmask)] = 0
+    idx_mat = np.stack([np.arange(seg_depth.shape[1])]*seg_depth.shape[0], axis=0)
+    center_idxs = []
+    for i in range(segmask.shape[0]):
+        arr = idx_mat[i][segmask[i]]
+        if arr.shape[0] == 0:
+            c = -1
+        else:
+            c = idx_mat[i][segmask[i]].mean()
+            c = np.int(c)
+        center_idxs.append(c)
+    
+    convex_rows = []
+    for i in range(segmask.shape[0]):
+        cvx_cnt = 0
+        for j in range(segmask.shape[1]-1):
+            if (segmask[i][j+1]) and (not segmask[i][j]):
+                cvx_cnt+=1
+        convex_rows.append(cvx_cnt==1)
+            
+    # center_idxs[np.logical_not(segmask)] = 0 
+    # center_idx = np.int(center_idxs[segmask].mean())
+    left_arr1 = depth[:,1:]
+    left_arr2 = depth[:,:-1]
+    err = np.abs(left_arr1 - left_arr2)
+    # imshow(err)
+    # plt.colorbar()
+    # show()
+    for i, c in enumerate(center_idxs):
+        if c == -1:
+            err[i][:] = 0
+        else:
+            err[i][c:] = 0
+    # imshow(err)
+    # plt.colorbar()
+    # show()
+    left_mask = err > depth_thres
+
+    # plt.subplot(1,2, 1)
+    # imshow(left_mask)
+    # plt.colorbar()
+    # plt.subplot(1,2, 2)
+    # imshow(seg_depth)
+    # plt.colorbar()
+    # show()
+
+    idx_mat1 = idx_mat[:,1:].copy()
+    idx_mat1[np.logical_not(left_mask)] = -1
+    boundary = np.max(idx_mat1, axis=1)
+    out_mask_left = np.zeros(segmask.shape, dtype=bool)
+    for i in range(boundary.shape[0]):
+        arr = idx_mat[i][segmask[i]]
+        if arr.shape[0] == 0:
+            continue
+        if boundary[i] >=0 and convex_rows[i]:
+            out_mask_left[i, boundary[i]:] = True
+        else:
+            out_mask_left[i,:] = segmask[i]
+    
+    # plt.subplot(1,2, 1)
+    # imshow(out_mask_left)
+    # plt.colorbar()
+    # plt.subplot(1,2, 2)
+    # imshow(seg_depth)
+    # plt.colorbar()
+    # show()
+            
+    right_arr1 = depth[:,:-1]
+    right_arr2 = depth[:,1: ]
+    err = np.abs(right_arr1 - right_arr2)
+    # imshow(err)
+    # plt.colorbar()
+    # show()
+    for i, c in enumerate(center_idxs):
+        if c == -1:
+            err[i][:] = 0
+        else:
+            err[i][:c+1] = 0
+    # imshow(err)
+    # plt.colorbar()
+    # show()
+    right_mask = err > depth_thres
+
+    # plt.subplot(1,2, 1)
+    # imshow(right_mask)
+    # plt.colorbar()
+    # plt.subplot(1,2, 2)
+    # imshow(seg_depth)
+    # plt.colorbar()
+    # show()
+
+    idx_mat1 = idx_mat[:,:-1].copy()
+    s = idx_mat1.shape[1]
+    idx_mat1[np.logical_not(right_mask)] = s
+    boundary = np.min(idx_mat1, axis=1)
+    out_mask_right = np.zeros(segmask.shape, dtype=bool)
+    for i in range(boundary.shape[0]):
+        arr = idx_mat[i][segmask[i]]
+        if arr.shape[0] == 0:
+            continue
+        if boundary[i] <s and convex_rows[i]:
+            out_mask_right[i, : boundary[i]] = True
+        else:
+            out_mask_right[i,:] = segmask[i]
+    
+    out_mask = np.logical_and(out_mask_left, out_mask_right)
+
+    seg_depth_out = seg_depth.copy()
+    seg_depth_out[np.logical_not(out_mask)] = 0
+
+    plt.subplot(1,5, 1)
+    imshow(out_mask_left)
+    plt.colorbar()
+    plt.subplot(1,5, 2)
+    imshow(out_mask_right)
+    plt.colorbar()
+    plt.subplot(1,5, 3)
+    imshow(out_mask)
+    plt.colorbar()
+    plt.subplot(1,5, 4)
+    imshow(seg_depth)
+    plt.colorbar()
+    plt.subplot(1,5, 5)
+    imshow(seg_depth_out)
+    plt.colorbar()
+    show()
+
+        
+    return out_mask
