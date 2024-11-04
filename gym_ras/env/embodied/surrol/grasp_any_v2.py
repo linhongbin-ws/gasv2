@@ -542,7 +542,7 @@ class GraspAnyV2(PsmEnv):
         self,
     ):
         return {
-            "psm1": [4,5, 6, 7],
+            "psm1": [3, 4,5, 6, 7],
             "psm1_except_gripper": [3, 4, 5],
             "stuff": [-1],
         }

@@ -362,7 +362,7 @@ gasv2_dvrk:
   embodied.dVRKEnv.grasp_any_v2.done_device: "keyboard"
   embodied.dVRKEnv.grasp_any_v2.arm_names: ["PSM2"]
   embodied.dVRKEnv.grasp_any_v2.reset_random_pose: false
-  wrapper.DSA.zoom_box_fix_length_ratio: 0.3
+  wrapper.DSA.zoom_box_fix_length_ratio: 0.6
   wrapper.DSA.encode_type: occup
   wrapper.ImageNoise.cutout_all_amount_range: [0.8, 1.0]
   wrapper.ImageNoise.cutout_depth_amount_range: [1.0, 1.0]
