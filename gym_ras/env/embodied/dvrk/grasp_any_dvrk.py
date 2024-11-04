@@ -114,8 +114,8 @@ class GraspAny(gym.Env):
 
     def step(self, action, is_out):
         _psm = self._arms[self._arm_names[0]]
-        if not is_out:
-            _psm.step(action)
+        # if not is_out: 
+        _psm.step(action)
         obs = _psm.get_obs()
         reward = 0
         done = self._fsm_done()

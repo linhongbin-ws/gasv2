@@ -32,8 +32,9 @@ class PID(BaseWrapper):
     def step(self, action):
         obs = self._get_pid_observation()
         pid_phase = False
-        if self._check_pid_phase(obs) and (not self._skip):
-            action = self._get_pid_action(obs)
+        check_phase, x_phase, y_phase, z_phase = self._check_pid_phase(obs)
+        if check_phase and (not self._skip):
+            action = self._get_pid_action(obs, x_phase, y_phase, z_phase)
             pid_phase =True 
 
         obs, reward, done, info = self.env.step(action)
@@ -65,7 +66,8 @@ class PID(BaseWrapper):
             # print("y", y1, y2, y_err)
             # print("z", z1, z2, z_err)
             obs = {}
-            obs['err'] = [ x_err, y_err, z_err]
+            xs, ys, zs = self.env.occup_pc_range
+            obs['err'] = [ x_err*xs, y_err*ys, z_err*zs]
         return  obs
 
     def _check_pid_phase(self, obs):
@@ -77,13 +79,13 @@ class PID(BaseWrapper):
         y_phase = phase(1)
         z_phase = phase(2)
         # print("phase", x_phase,y_phase,z_phase)
-        return x_phase or y_phase or z_phase
+        return x_phase or y_phase or z_phase, x_phase, y_phase, z_phase
 
-    def _get_pid_action(self, obs):
+    def _get_pid_action(self, obs,x_phase, y_phase, z_phase):
         x_err, y_err, z_err = obs['err'][0], obs['err'][1], obs['err'][2]
-        action = np.array([-self._control_p*(y_err+self._err_offset[1]),
-                                -self._control_p*(x_err+self._err_offset[0]),
-                                self._control_p*(z_err+self._err_offset[2]),
+        action = np.array([-self._control_p*(y_err+self._err_offset[1])  if y_phase else 0,
+                                -self._control_p*(x_err+self._err_offset[0]) if x_phase else 0,
+                                self._control_p*(z_err+self._err_offset[2])  if z_phase else 0,
                      0,
                      1,])
         # action = np.array([0,0,2,0,0])

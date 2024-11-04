@@ -63,7 +63,12 @@ class Occup(BaseWrapper):
             self._K = fn_M1
         else:
             self._K = None
-        
+    
+    @property
+    def occup_pc_range(self):
+        return np.abs(self._pc_x_max - self._pc_x_min), \
+                np.abs(self._pc_y_max - self._pc_y_min), \
+                np.abs(self._pc_z_max - self._pc_z_min)
 
     def render(
         self,

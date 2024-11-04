@@ -7,8 +7,6 @@ from gym_ras.tool.common import scale_arr
 import time
 
 
-from matplotlib.pyplot import imshow, subplot, axis, cm, show
-import matplotlib.pyplot as plt
 
 
 
@@ -137,7 +135,7 @@ def pointclouds2occupancy(pc_mat, occup_h, occup_w, occup_d,
 
 
 
-def edge_detection(depth, segmask, depth_thres=0.003):
+def edge_detection(depth, segmask, depth_thres=0.003, debug=False):
     seg_depth = depth.copy()
     seg_depth[np.logical_not(segmask)] = 0
     idx_mat = np.stack([np.arange(seg_depth.shape[1])]*seg_depth.shape[0], axis=0)
@@ -197,6 +195,7 @@ def edge_detection(depth, segmask, depth_thres=0.003):
             out_mask_left[i, boundary[i]:] = True
         else:
             out_mask_left[i,:] = segmask[i]
+    out_mask_left[np.logical_not(segmask)] = False
     
     # plt.subplot(1,2, 1)
     # imshow(out_mask_left)
@@ -243,28 +242,32 @@ def edge_detection(depth, segmask, depth_thres=0.003):
             out_mask_right[i, : boundary[i]] = True
         else:
             out_mask_right[i,:] = segmask[i]
+    out_mask_right[np.logical_not(segmask)] = False
     
     out_mask = np.logical_and(out_mask_left, out_mask_right)
 
     seg_depth_out = seg_depth.copy()
     seg_depth_out[np.logical_not(out_mask)] = 0
 
-    plt.subplot(1,5, 1)
-    imshow(out_mask_left)
-    plt.colorbar()
-    plt.subplot(1,5, 2)
-    imshow(out_mask_right)
-    plt.colorbar()
-    plt.subplot(1,5, 3)
-    imshow(out_mask)
-    plt.colorbar()
-    plt.subplot(1,5, 4)
-    imshow(seg_depth)
-    plt.colorbar()
-    plt.subplot(1,5, 5)
-    imshow(seg_depth_out)
-    plt.colorbar()
-    show()
+    if debug:
+        from matplotlib.pyplot import imshow, subplot, axis, cm, show
+        import matplotlib.pyplot as plt
+        plt.subplot(1,5, 1)
+        imshow(out_mask_left)
+        plt.colorbar()
+        plt.subplot(1,5, 2)
+        imshow(out_mask_right)
+        plt.colorbar()
+        plt.subplot(1,5, 3)
+        imshow(out_mask)
+        plt.colorbar()
+        plt.subplot(1,5, 4)
+        imshow(seg_depth)
+        plt.colorbar()
+        plt.subplot(1,5, 5)
+        imshow(seg_depth_out)
+        plt.colorbar()
+        show()
 
         
     return out_mask

@@ -402,9 +402,9 @@ gasv2_dvrk:
   }
   wrapper.PID: {
           # obs_type: occup,
-          # control_p: 10.0,
-          phase_thres: [0.3,0.3,0.3],
-          err_offset: [0.0,0.0,0.1],  
+          control_p: 20.0,
+          phase_thres: [0.02, 0.02, 0.0],
+          err_offset: [0.0,  0.0, 0.02],  
     }
 
 dsa1:
