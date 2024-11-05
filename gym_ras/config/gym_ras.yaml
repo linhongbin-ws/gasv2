@@ -45,7 +45,7 @@ default:
         pc_z_max: 0.5,    
         cam_offset_x: 0.0,
         cam_offset_y: 0.0,
-        cam_offset_z: 1.0,
+        cam_offset_z: -1,
         cam_offset_rx: 45,
         cam_offset_ry: 0,
         cam_offset_rz: 0,     
@@ -74,8 +74,10 @@ default:
     ImageNoise:
       {
         skip: true,
-        pns_noise_amount: 0.05,
+        pns_noise_amount: 0.1,
         pns_noise_balance: 0.5,
+        pns_noise_value: 0.1,
+        uniform_noise_amount: 0.0,
         gaussian_blur_kernel: 3,
         gaussian_blur_sigma: 0.8,
         cutout_all_amount_range: [0.6, 1.0],
@@ -202,104 +204,6 @@ default:
         done_device: ""
         reset_random_pose: True
 
-gas_surrol:
-  task_name: grasp_any
-  embodied.SurrolEnv.cam_target_noise: 1e-2
-  embodied.SurrolEnv.cam_distance_noise: 5e-2
-  embodied.SurrolEnv.cam_pitch_noise: 10e0
-  embodied.SurrolEnv.cam_roll_noise: 10e0
-  embodied.SurrolEnv.cam_up_axis_noise: 5e0
-  embodied.SurrolEnv.depth_remap_range_noise: 1e-2
-  embodied.SurrolEnv.depth_remap_center_noise: 1e-2
-  embodied.SurrolEnv.no_depth_link: true
-  embodied.SurrolEnv.needle_pick.init_pose_ratio_low_gripper: [-0.9, -0.9, -0.8, -0.9]
-  embodied.SurrolEnv.needle_pick.init_pose_ratio_high_gripper: [0.9, 0.9, 0.9, 0.9]
-  embodied.SurrolEnv.needle_pick.init_pose_ratio_low_needle: [-0.5, -0.7, 0.1, -0.99]
-  embodied.SurrolEnv.needle_pick.init_pose_ratio_high_needle: [0.5, 0.7, 0.5, 0.99]
-  embodied.SurrolEnv.reward_prog_abnorm_1: -0.01
-  embodied.SurrolEnv.reward_prog_abnorm_2: -0.01 # sliding
-  embodied.SurrolEnv.reward_prog_abnorm_3: -0.005 # gripper toggling | dsa out
-  embodied.SurrolEnv.reward_done_fail: -0.1
-  embodied.SurrolEnv.reward_prog_norm: -0.001
-  embodied.SurrolEnv.reward_done_success: 1
-  embodied.SurrolEnv.grasp_any.init_pose_ratio_low_gripper: [-0.9, -0.9, -0.8, -0.9]
-  embodied.SurrolEnv.grasp_any.init_pose_ratio_high_gripper: [0.9, 0.9, 0.9, 0.9]
-  embodied.SurrolEnv.grasp_any.init_pose_ratio_low_stuff: [-0.8, -0.8, 0.1, -0.99,-0.99,-0.99]
-  embodied.SurrolEnv.grasp_any.init_pose_ratio_high_stuff: [0.8, 0.8, 0.5, 0.99, 0.99, 0.99]
-  embodied.SurrolEnv.disturbance_scale: 0.01
-  embodied.SurrolEnv.grasp_any.stuff_name: "any"
-  embodied.SurrolEnv.cam_dynamic_noise_scale: 0.1
-  wrapper.DSA.zoom_box_fix_length_ratio: 0.3
-  wrapper.DSA.encode_type: general_simple3
-  wrapper.ImageNoise.skip: false
-  wrapper.ImageNoise.cutout_all_amount_range: [0.54, 1.0]
-  wrapper.ImageNoise.cutout_depth_amount_range: [1.0, 1.0]
-  wrapper.ImageNoise.cutout_line_num_low: 0
-  wrapper.ImageNoise.cutout_line_num_high: 0
-  wrapper.FSM.dsa_out_zoom_anamaly: true
-  wrapper.TimeLimit: { max_timestep: 300 }
-  wrapper.ActionNoise.noise_scale: 0.04
-  wrapper.OBS.vector2image_type: "square"
-  wrapper.DepthProcess.skip: false
-  wrapper.DepthProcess.uncert_scale: 1.5
-  wrapper.pipeline:
-    [
-      "ActionSmooth",
-      "ImageNoise",
-      "DepthProcess",
-      "DSA",
-      "VirtualClutch",
-      "ActionNoise",
-      "DiscreteAction",
-      "TimeLimit",
-      "FSM",
-      "OBS",
-    ]
-
-# dvrk:
-#   embodied_name: dVRKEnv
-#   embodied.dVRKEnv.grasp_any.dvrk_cal_file: "./data/dvrk_cal/dvrk_cal.yaml"
-#   embodied.dVRKEnv.grasp_any.cam_segment_tool: "track_any"
-#   embodied.dVRKEnv.grasp_any.cam_segment_model_dir: "./data/dvrk_cal/color_seg_cal.yaml"
-#   wrapper.DepthProcess.eval: true
-#   wrapper.ImageNoise.skip: true
-#   wrapper.ActionNoise.noise_scale: 0.0
-#   wrapper.TimeLimit.max_timestep: 300
-
-########## other baselines##################33
-raw:
-  wrapper.DSA.encode_type: raw
-no_depth_estimation:
-  wrapper.DepthProcess.skip: true
-
-no_clutch:
-  wrapper.VirtualClutch.start: 0
-
-no_dm: # no domain randomization
-  embodied.SurrolEnv.cam_target_noise: 0.0
-  embodied.SurrolEnv.cam_distance_noise: 0.0
-  embodied.SurrolEnv.cam_pitch_noise: 0.0
-  embodied.SurrolEnv.cam_roll_noise: 0.0
-  embodied.SurrolEnv.cam_up_axis_noise: 0.0
-  embodied.SurrolEnv.depth_remap_range_noise: 0.0
-  embodied.SurrolEnv.depth_remap_center_noise: 0.0
-  wrapper.ImageNoise.skip: true
-  embodied.SurrolEnv.disturbance_scale: 0.00
-  wrapper.ActionNoise.noise_scale: 0.00
-
-no_dr:
-  embodied.SurrolEnv.dr_scale_train: 0
-
-no_cam_noisy_mask:
-  embodied.dVRKEnv.grasp_any.cam_mask_noisy_link: False
-
-image_noise_on:
-  wrapper.ImageNoise.skip: false
-
-action_noise_on:
-  wrapper.ActionNoise.noise_scale: 0.04
-###############
-
 
 gasv2_surrol:
   task_name: grasp_any_v2
@@ -310,7 +214,6 @@ gasv2_surrol:
   embodied.SurrolEnv.cam_up_axis_noise: 2e0
   embodied.SurrolEnv.depth_remap_range_noise: 1e-2
   embodied.SurrolEnv.depth_remap_center_noise: 1e-2
-  embodied.SurrolEnv.no_depth_link: true
   embodied.SurrolEnv.needle_pick.init_pose_ratio_low_gripper: [-0.9, -0.9, -0.8, -0.9]
   embodied.SurrolEnv.needle_pick.init_pose_ratio_high_gripper: [0.9, 0.9, 0.9, 0.9]
   embodied.SurrolEnv.needle_pick.init_pose_ratio_low_needle: [-0.5, -0.7, 0.1, -0.99]
@@ -332,11 +235,19 @@ gasv2_surrol:
   embodied.SurrolEnv.cam_dynamic_noise_scale: 0.0
   wrapper.DSA.zoom_box_fix_length_ratio: 0.3
   wrapper.DSA.encode_type: occup
-  wrapper.ImageNoise.skip: false
-  wrapper.ImageNoise.cutout_all_amount_range: [0.8, 1.0]
-  wrapper.ImageNoise.cutout_depth_amount_range: [1.0, 1.0]
-  wrapper.ImageNoise.cutout_line_num_low: 0
-  wrapper.ImageNoise.cutout_line_num_high: 0
+  wrapper.ImageNoise: {
+          skip: false,
+        pns_noise_amount: 0.3,
+        pns_noise_balance: 0.5,
+        pns_noise_value: 0.01,
+        uniform_noise_amount: 0.00,
+        gaussian_blur_kernel: 3,
+        gaussian_blur_sigma: 0.8,
+        cutout_all_amount_range: [1.0, 1.0],
+        cutout_depth_amount_range: [1.0, 1.0],
+        cutout_line_num_low: 0,
+        cutout_line_num_high: 0,
+  }
   wrapper.FSM.dsa_out_zoom_anamaly: true
   wrapper.TimeLimit: { max_timestep: 80 }
   wrapper.ActionNoise.noise_scale: 0.01
@@ -382,9 +293,9 @@ gasv2_dvrk:
   wrapper.TimeLimit.max_timestep: 300
   wrapper.DepthProcess.eval: true
   wrapper.Occup: {
-        occup_h: 500,
-        occup_w: 500,
-        occup_d: 500,
+        # occup_h: 500,
+        # occup_w: 500,
+        # occup_d: 500,
         pc_x_min: -0.05,
         pc_x_max: 0.05,
         pc_y_min: -0.05,

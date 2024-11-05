@@ -3,6 +3,7 @@ refer to domain randomization tech: https://arxiv.org/pdf/2208.04171.pdf
 """
 
 from gym_ras.env.wrapper.base import BaseWrapper
+from gym_ras.tool.common import scale_arr
 import numpy as np
 import gym
 import cv2
@@ -12,9 +13,10 @@ from copy import deepcopy
 class ImageNoise(BaseWrapper):
     def __init__(self, env,
                  skip=True,
-                 uniform_noise_range=3,
+                 uniform_noise_amount=3,
                  pns_noise_amount=0.05,
                  pns_noise_balance=0.5,
+                 pns_noise_value=1,
                  gaussian_blur_kernel=3,
                  gaussian_blur_sigma=0.8,
                  cutout_circle_r_low=0.01,
@@ -42,6 +44,7 @@ class ImageNoise(BaseWrapper):
         self._skip = skip
         self._pns_noise_amount = pns_noise_amount
         self._pns_noise_balance = pns_noise_balance
+        self._pns_noise_value = pns_noise_value
         self._gaussian_blur_kernel = gaussian_blur_kernel
         self._gaussian_blur_sigma = gaussian_blur_sigma
         self._image_noise_rng = np.random.RandomState(0)
@@ -61,7 +64,7 @@ class ImageNoise(BaseWrapper):
         self._cutout_depth_amount_range = cutout_depth_amount_range
         self._max_loop = max_loop
 
-        self._uniform_noise_range = uniform_noise_range
+        self._uniform_noise_amount = uniform_noise_amount
         self._image_key = image_key
 
     def render(self,):
@@ -72,13 +75,11 @@ class ImageNoise(BaseWrapper):
         return img
 
     def _post_process(self, img):
-        for k in self._image_key:
-            img[k] = self._add_pepper_and_salt_nosie(img[k])
-        for k in self._image_key:
-            img[k] = self._add_uniform_noise(img[k], self._uniform_noise_range)
-
-        for k in self._image_key:
-            img[k] = self._add_gaussian_blur(img[k])
+        img['depth'] = self._add_pepper_and_salt_nosie(img['depth'], pixel=True, noise_value=self._pns_noise_value*255)
+        img['depth'] = self._add_uniform_noise(img['depth'] )
+        img['depth'] = self._add_gaussian_blur(img['depth'])
+        
+        img['depReal'] = self._add_pepper_and_salt_nosie(img['depReal'], pixel=False, noise_value=self._pns_noise_value)
 
         if self._cutout_all_amount_range[0] < 1:
             img = self._cutout_protocol(
@@ -128,36 +129,43 @@ class ImageNoise(BaseWrapper):
 
         return return_img
 
-    def _add_uniform_noise(self, img, range_px):
-        _range_px = range_px // 2
+    def _add_uniform_noise(self, img):
+        _range_px = self._uniform_noise_amount * 255 / 2
         noise = np.random.uniform(-_range_px, _range_px, img.shape)
-        img = np.clip(img+noise, 0, 255)
-        return np.uint8(img)
+        img = np.clip(img+noise, 0, 255).astype(np.uint8)
+        return img
 
     def _add_gaussian_blur(self, img):
         img = deepcopy(img)
         return cv2.GaussianBlur(img, (self._gaussian_blur_kernel, self._gaussian_blur_kernel), self._gaussian_blur_sigma, self._gaussian_blur_sigma)
 
-    def _add_pepper_and_salt_nosie(self, image):
+    def _add_pepper_and_salt_nosie(self, image, noise_value, pixel=True, ):
         image = deepcopy(image)
         s_vs_p = self._pns_noise_balance
         amount = self._pns_noise_amount
         out = np.copy(image)
+
+
         # Salt mode
         num_salt = np.ceil(amount * image.size * s_vs_p)
         _out = out.reshape(-1)
         # coords = [np.random.randint(0, i - 1, int(2)).tolist() for i in image.shape]
         coords = np.random.randint(0, int(image.size) - 1, int(num_salt))
-        _out[coords] = 1
-        out = _out.reshape(image.shape)
+        _out[coords] = _out[coords] + np.random.uniform(low=0,
+                                                        high=noise_value,
+                                                        size=_out[coords].shape)
 
         # Pepper mode
         num_pepper = np.ceil(amount * image.size * (1. - s_vs_p))
         _out = out.reshape(-1)
         # coords = [np.random.randint(0, i - 1, int(2)).tolist() for i in image.shape]
         coords = np.random.randint(0, int(image.size) - 1, int(num_pepper))
-        _out[coords] = 0
+        _out[coords] = _out[coords] - np.random.uniform(low=0,
+                                                        high=noise_value,
+                                                        size=_out[coords].shape)
         out = _out.reshape(image.shape)
+        if pixel:
+            out = np.clip(out, 0,255).astype(np.uint8)
         return out
 
     def _draw_rec(self, image, cx, cy, width, height, angle, rgb_list):
