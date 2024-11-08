@@ -5,7 +5,7 @@ from gym_ras.tool.config import load_yaml
 import numpy as np
 import yaml
 import time
-
+import time
 
 class GraspAny(gym.Env):
     def __init__(self,
@@ -116,6 +116,7 @@ class GraspAny(gym.Env):
         _psm = self._arms[self._arm_names[0]]
         # if not is_out: 
         _psm.step(action)
+        time.sleep(1) # render lagging
         obs = _psm.get_obs()
         reward = 0
         done = self._fsm_done()

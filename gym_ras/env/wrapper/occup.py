@@ -59,7 +59,7 @@ class Occup(BaseWrapper):
             fn_M1= fs.getNode("M1").mat()
             fn_M1[0][0] = fn_M1[1][1]
             fn_M1[0][2] = fn_M1[1][2]
-            print("instrinsic matrisxx: ", fn_M1)
+            # print("instrinsic matrisxx: ", fn_M1)
             self._K = fn_M1
         else:
             self._K = None
@@ -92,12 +92,12 @@ class Occup(BaseWrapper):
 
         else:
             cam_offset_z = self._cam_offset_z
-        print(cam_offset_z, "cam_offset_z")
+        # print(cam_offset_z, "cam_offset_z")
 
         if self._K is None:
             self._K = get_intrinsic_matrix(depth.shape[0], depth.shape[1], fov=self._cam_fov)
         pose = np.eye(4)
-        print(self._K)
+        # print(self._K)
         points = depth_image_to_point_cloud(
             rgb, depth, scale, self._K, pose, encode_mask=encode_mask, tolist=False
         )

@@ -91,7 +91,7 @@ from gym_ras.tool.depth_remap import depth_remap
 # bufferless VideoCapture
 class VideoCapture:
 
-  def __init__(self, name, proc_or_thread='proc'):
+  def __init__(self, name, proc_or_thread='thread'):
     self.cap = cv2.VideoCapture(name)
     self.cap.set(cv2.CAP_PROP_FPS, 60)
     self.cap.set(3,1280)
@@ -104,25 +104,35 @@ class VideoCapture:
         self.q = queue.Queue(maxsize=1)
         self.term = threading.Event()
         self.proc = threading.Thread(target=self._reader)
+        self.lock = threading.Lock()
     self.proc.daemon = True
     self.proc.start()
+    self.frame = None
     
 
   def _reader(self):
     while not self.term.is_set():
-      ret, frame = self.cap.read()
-      if not ret:
-        break
-      if not self.q.empty():
-        try:
-          self.q.get_nowait()   # discard previous (unprocessed) frame
-        except queue.Empty:
-          pass
-      self.q.put(frame)
+        with self.lock:
+            ret, frame = self.cap.read()
+            if not ret:
+                break
+            self.frame = frame
+        # # while not self.q.empty():
+        # #     try:
+        # #         self.q.get_nowait()   # discard previous (unprocessed) frame
+        # #     except queue.Empty:
+        # #         pass
+        # try:
+        #     self.q.put_nowait(frame)
+        # except queue.Full:
+        #     pass
 
+        
 
   def read(self):
-    frame = self.q.get()
+    while self.frame is None:
+        pass
+    frame = self.frame
     frame = frame[:,160:1120]
     frame = frame[::-1]
     frame=cv2.resize(frame, (800, 600))
@@ -621,6 +631,8 @@ class VisPlayer(nn.Module):
 
         self.count=0
 
+        self.img_data  = None
+        self.lock = threading.Lock()
         self._thread = threading.Thread(target=self._get_image_worker)
         self._thread.daemon = True
 
@@ -651,10 +663,13 @@ class VisPlayer(nn.Module):
     def get_image(self):
         # while self._image_queue.empty():
         #     pass
-
-        # while not self._image_queue.empty():
+        # img_data = None
+        # while not self._image_queue.empty() and img_data is None:
         #     img_data = self._image_queue.get()
-        img_data = self._image_queue.get()
+        while self.img_data is None:
+            pass
+
+        img_data = deepcopy(self.img_data)
 
         # img_data = self._image_queue.get()
         if self._depth_remap:
@@ -671,6 +686,7 @@ class VisPlayer(nn.Module):
         print("exit stereo worker")
 
     def _update_image(self):
+
         frame1 = self.cap_0.read()
         frame2 = self.cap_2.read()
         frame1, frame2 = my_rectify(frame1, frame2, self.fs)
@@ -701,7 +717,14 @@ class VisPlayer(nn.Module):
         img_data["depth"] = depth_px
         if self._segmentor is not None:
             img_data["mask"] = self._segmentor.predict(img_data['rgb'])
-        self._image_queue.put(img_data)
+        
+        with self.lock:        
+            self.img_data = img_data
+        # try:
+        #     self._image_queue.put_nowait(img_data)
+        # except queue.Full:
+        #     pass
+        
 
     def close(self):
         print("closing cap0")

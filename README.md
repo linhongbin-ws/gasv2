@@ -100,3 +100,12 @@
     conda install -c conda-forge  python-orocos-kdl -y
     python -m pip install -e . # install gym_ras
     ``````
+
+
+# Run
+
+## Evaluate on dVRK
+
+```sh
+python ./run/dvrk_eval.py --reload-dir ./log/2024_11_05-18_00_40@ras-gasv2_surrol-dsa1@dreamerv2-gasv2-train_every1-no_oracle@seed0/ --reload-envtag gasv2_dvrk --online-eval --visualize --vis-tag obs rgb depth mask --online-eps 20 --save-prefix xxx
+```
