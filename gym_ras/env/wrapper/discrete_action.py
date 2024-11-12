@@ -21,7 +21,7 @@ class DiscreteAction(BaseWrapper):
         # create map
         for i in range(4):
             _action = np.zeros(self._action_dim)
-            _action[i] = -pos_action_scale if i!=3 else rot_action_scale
+            _action[i] = -pos_action_scale if i!=3 else -rot_action_scale
             self._action_prim[self._action_strs[2*i]] = _action
             _action = np.zeros(self._action_dim)
             _action[i] = pos_action_scale if i!=3 else rot_action_scale
@@ -41,6 +41,7 @@ class DiscreteAction(BaseWrapper):
         self._is_gripper_close = False
 
     def step(self, action):
+        
         _action = self._action_prim[self._action_strs[self._action_idx[action]]]
         if self._action_strs[self._action_idx[action]] == 'gripper_toggle':
             self._is_gripper_close = not self._is_gripper_close
@@ -49,15 +50,17 @@ class DiscreteAction(BaseWrapper):
             _action[-1] = -1
         else:
             _action[-1] = 1
-
+        
+        print(self.env.timestep, ": ", action, _action)
         # print(_action, self._is_gripper_close)
+        # print("input action", action, _action, self._action_idx[action], self._action_strs[self._action_idx[action]],self._action_prim[self._action_strs[self._action_idx[action]]])
         obs, reward, done, info = self.env.step(_action)
 
         return obs, reward, done, info
 
     def get_oracle_action(self):
         action = self.env.get_oracle_action()
-        # print(action)
+        
         ref = np.zeros(action.shape)
         if self._is_gripper_close:
             ref[-1] = -1

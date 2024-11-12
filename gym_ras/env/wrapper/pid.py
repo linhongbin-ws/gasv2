@@ -36,10 +36,11 @@ class PID(BaseWrapper):
         if check_phase and (not self._skip):
             action = self._get_pid_action(obs, x_phase, y_phase, z_phase)
             pid_phase =True 
-
+        
         obs, reward, done, info = self.env.step(action)
         obs["controller_state"] = 1  if pid_phase else 0
         info["controller_state"] = obs["controller_state"]
+        print("pid state", obs["controller_state"])
         return obs, reward, done, info
 
     def _get_pid_observation(self):

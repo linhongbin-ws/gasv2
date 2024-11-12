@@ -697,8 +697,8 @@ class VisPlayer(nn.Module):
         # depth=cv2.resize(orginal_depth, self.img_size, interpolation=cv2.INTER_NEAREST)
         # frame1=cv2.resize(frame1, self.img_size)
         # frame2=cv2.resize(frame2, self.img_size)
-        print("orginal_depth", orginal_depth.shape)
-        print("frame1", frame1.shape)
+        # print("orginal_depth", orginal_depth.shape)
+        # print("frame1", frame1.shape)
         depth = orginal_depth[:,100:700]
         frame1 = frame1[:, 100:700]
         frame2 = frame2[:, 100:700]

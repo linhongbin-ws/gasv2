@@ -85,11 +85,17 @@ def Quat2Euler(in_list, convension="xyz", degrees=True):
     return r.as_euler(convension, degrees)
 
 
-def wrapAngle(_in, degrees=True, angle_range=180.0):
+def wrapAngle(_in, angle_range=180.0):
     '''wrap to angle -180 to 180'''
     # scale = angle_range if degrees else angle_range/180 * np.pi
     return (_in + angle_range) % (2 * angle_range) - angle_range
 
+def wrapAngleRange(_in, range_min, range_max):
+    '''wrap to angle -180 to 180'''
+    # scale = angle_range if degrees else angle_range/180 * np.pi
+    range = range_max - range_min
+    # print(range, (_in-range_min),  (_in-range_min) % range)
+    return range_min + (_in-range_min) % range
 
 def printT(T, prefix_string=None):
     pos, rpy = T2Euler(T, convension="xyz", degrees=True)

@@ -269,7 +269,7 @@ gasv2_dvrk:
   embodied.dVRKEnv.grasp_any_v2.psm_init_pose_low_gripper: [-0.8, -0.8, 0.3, 0.8]
   embodied.dVRKEnv.grasp_any_v2.psm_init_pose_high_gripper: [0.8, 0.8, 0.3, 0.8]
   embodied.dVRKEnv.grasp_any_v2.psm_max_step_pos: 0.014
-  embodied.dVRKEnv.grasp_any_v2.psm_max_step_rot: 40.0
+  embodied.dVRKEnv.grasp_any_v2.psm_max_step_rot: 45.0
   embodied.dVRKEnv.grasp_any_v2.done_device: "keyboard"
   embodied.dVRKEnv.grasp_any_v2.arm_names: ["PSM2"]
   embodied.dVRKEnv.grasp_any_v2.reset_random_pose: false
@@ -287,6 +287,7 @@ gasv2_dvrk:
   wrapper.OBS.vector_obs_key: ["gripper_state", "fsm_state", "controller_state"]
   wrapper.OBS.vector2image_type: row
   wrapper.VirtualClutch.start: 6
+  wrapper.DiscreteAction.pos_action_scale: 0.4
   wrapper.DiscreteAction.rot_action_scale: 1
   wrapper.ImageNoise.skip: true
   wrapper.ActionNoise.noise_scale: 0.0
@@ -313,9 +314,9 @@ gasv2_dvrk:
   }
   wrapper.PID: {
           # obs_type: occup,
-          control_p: 20.0,
+          control_p: 40.0,
           phase_thres: [0.02, 0.02, 0.0],
-          err_offset: [0.0,  0.0, 0.02],  
+          err_offset: [0.0,  0.0, 0.03],  
     }
 
 dsa1:

@@ -107,5 +107,5 @@
 ## Evaluate on dVRK
 
 ```sh
-python ./run/dvrk_eval.py --reload-dir ./log/2024_11_05-18_00_40@ras-gasv2_surrol-dsa1@dreamerv2-gasv2-train_every1-no_oracle@seed0/ --reload-envtag gasv2_dvrk --online-eval --visualize --vis-tag obs rgb depth mask --online-eps 20 --save-prefix xxx
+python ./run/dvrk_eval.py --reload-dir ./log/2024_10_09-15_53_49@ras-gasv2_surrol-dsa1@dreamerv2-gasv2-train_every1-no_oracle-inf_step@seed0/ --reload-envtag gasv2_dvrk --online-eval --visualize --vis-tag obs rgb dsa mask --online-eps 20 --save-prefix xxx
 ```

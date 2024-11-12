@@ -1,6 +1,6 @@
 
 from dvrk import psm
-from gym_ras.tool.common import TxT, invT, getT, T2Quat, scale_arr, M2Euler, wrapAngle, Euler2M, printT, Quat2M, M2Quat
+from gym_ras.tool.common import TxT, invT, getT, T2Quat, scale_arr, M2Euler, wrapAngleRange, Euler2M, printT, Quat2M, M2Quat
 from gym_ras.tool.kdl_tool import Frame2T, Quaternion2Frame, gen_interpolate_frames, T2Frame
 import numpy as np
 import gym
@@ -58,7 +58,7 @@ class SinglePSM():
         T_local = TxT([invT(self._world2base), T])
         self.moveT_local(T_local, interp_num)
 
-    def moveT_local(self, T, interp_num=-1):
+    def moveT_local(self, T, interp_num=-1, block=True):
         T_origin = self.tip_pose_local
         frame1 = T2Frame(T_origin)
         frame2 = T2Frame(T)
@@ -67,7 +67,7 @@ class SinglePSM():
             for i, f in enumerate(frames):
                 self._psm.move_cp(f).wait()
         else:
-            self._psm.move_cp(frame2).wait()
+            self._psm.move_cp(frame2).wait() if block else self._psm.move_cp(frame2)
         
     def move_gripper_init_pose(self):
         pos_rel = self._gripper_pose_rng.uniform(
@@ -164,7 +164,7 @@ class SinglePSM():
         assert len(
             action) == self.ACTION_SIZE, "The action should have the save dim with the ACTION_SIZE"
         action = action.copy()  # ensure that we don't change the action outside of this scope
-
+        print("step action", action)
         # position, limit maximum change in position
         action[:3] *= self._max_step_pos
         pose_world = self.tip_pose
@@ -173,19 +173,25 @@ class SinglePSM():
         rot = M2Euler(pose_world[:3, :3], convension="xyz", degrees=False)
         if self._action_mode == 'yaw':
             # yaw, limit maximum change in rotation
+            
             action[3] *= np.deg2rad(self._max_step_rot)
-            rot[2] = wrapAngle(rot[2] + action[3], degrees=False,
-                               angle_range=180)  # only change yaw
+
+            # print("before wrap", np.rad2deg(rot[2] + action[3]))
+            rot[2] = rot[2] + action[3]
+            # print("after wrap",np.rad2deg(rot[2]))
             # print(np.rad2deg(rot[2]))
         elif self._action_mode == 'pitch':
-            # action[3] *= np.deg2rad(self._max_step_rot)  # pitch, limit maximum change in rotation
-            # pitch = np.clip(wrapAngle(rot[1] + action[3]), np.deg2rad(-90), np.deg2rad(90))
-            # rot = (self.psm1_eul[0], pitch, self.psm1_eul[2])  # only change pitch
             raise NotImplementedError
         else:
             raise NotImplementedError
         pose_world[:3, :3] = Euler2M(rot, convension="xyz", degrees=False)
         action_rcm = TxT([invT(self._world2base), pose_world])
+        # print("global rot", np.rad2deg(rot))
+        rot = M2Euler(action_rcm[:3, :3], convension="xyz", degrees=True)
+        # print("local rot", rot)
+        rot[2] = wrapAngleRange(rot[2], -270, -90)
+        # print("local rot after wrap", rot)
+        action_rcm[:3, :3] = Euler2M(rot, convension="xyz", degrees=True)
         # time1 = time.time()
         # printT(action_rcm, "moveT")
         pos, quat = T2Quat(action_rcm)
@@ -194,7 +200,7 @@ class SinglePSM():
         goal = Quaternion2Frame(*pos, *quat)
 
         # self._psm.move_cp(goal).wait()
-        self.moveT_local(Frame2T(goal), interp_num=-1)
+        self.moveT_local(Frame2T(goal), interp_num=-1, block=False)
 
         # jaw
         if action[4] < 0:

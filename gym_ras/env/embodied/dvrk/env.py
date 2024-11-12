@@ -32,13 +32,15 @@ class dVRKEnv(BaseEnv):
 
     def step(self, action):
         self.timestep += 1
+        _action = action.copy()
         if self.timestep % 20 == 0:
             print("Step:", self.timestep)
         if (not self.skip) or (self.step_func_prv is None):
             _prio, _ = self._get_prio_obs()
             _is_out, action_clip = self._check_new_action(_prio, action[:3])
-            _action = action.copy()
-            _action[:3] = action_clip
+           
+            # _action[:3] = action_clip
+            print("clip action", action_clip)
             obs, reward, done, info = self.client.step(_action, _is_out)
             obs["robot_prio"], obs["gripper_state"] = self._get_prio_obs()
             gripper_toggle = np.abs(
