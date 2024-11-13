@@ -35,7 +35,7 @@ class DepthProcess(BaseWrapper):
         
         if self._edge_detect_thres > 0 and 'mask' in imgs:
             for k, v in imgs['mask'].items():
-                imgs['mask'][k] = self._edge_detection_proc(imgs['depReal'], v)
+                imgs['depReal'], imgs['mask'][k] = self._edge_detection_proc(imgs['depReal'], v)
 
 
         # imgs = self._no_depth_guess_process(imgs)

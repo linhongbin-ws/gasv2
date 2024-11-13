@@ -136,6 +136,7 @@ def pointclouds2occupancy(pc_mat, occup_h, occup_w, occup_d,
 
 
 def edge_detection(depth, segmask, depth_thres=0.003, debug=False):
+    _depth = depth.copy()
     seg_depth = depth.copy()
     seg_depth[np.logical_not(segmask)] = 0
     idx_mat = np.stack([np.arange(seg_depth.shape[1])]*seg_depth.shape[0], axis=0)
@@ -150,13 +151,21 @@ def edge_detection(depth, segmask, depth_thres=0.003, debug=False):
         center_idxs.append(c)
     
     convex_rows = []
+    seg_rows = []
     for i in range(segmask.shape[0]):
         cvx_cnt = 0
         for j in range(segmask.shape[1]-1):
             if (segmask[i][j+1]) and (not segmask[i][j]):
                 cvx_cnt+=1
         convex_rows.append(cvx_cnt==1)
-            
+        seg_rows.append(cvx_cnt>=1)
+
+    for i in range(segmask.shape[0]):
+        if seg_rows[i]:
+            _depth[i][segmask[i]] = np.min(_depth[i][segmask[i]])
+
+
+    return _depth, segmask
     # center_idxs[np.logical_not(segmask)] = 0 
     # center_idx = np.int(center_idxs[segmask].mean())
     left_arr1 = depth[:,1:]
@@ -268,6 +277,9 @@ def edge_detection(depth, segmask, depth_thres=0.003, debug=False):
         imshow(seg_depth_out)
         plt.colorbar()
         show()
+    
+
+    
 
         
-    return out_mask
+    return _depth, out_mask

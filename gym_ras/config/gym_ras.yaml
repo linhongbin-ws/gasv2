@@ -283,7 +283,8 @@ gasv2_dvrk:
   wrapper.TimeLimit: { max_timestep: 80 }
   wrapper.DepthProcess.skip: false
   wrapper.DepthProcess.uncert_scale: 1.5
-  wrapper.DepthProcess.edge_detect_thres: 0.001
+  wrapper.DepthProcess.edge_detect_thres: 0.002
+  # wrapper.DepthProcess.erode_kernel: 0
   wrapper.OBS.vector_obs_key: ["gripper_state", "fsm_state", "controller_state"]
   wrapper.OBS.vector2image_type: row
   wrapper.VirtualClutch.start: 6
@@ -294,9 +295,9 @@ gasv2_dvrk:
   wrapper.TimeLimit.max_timestep: 300
   wrapper.DepthProcess.eval: true
   wrapper.Occup: {
-        # occup_h: 500,
-        # occup_w: 500,
-        # occup_d: 500,
+        occup_h: 150,
+        occup_w: 150,
+        occup_d: 150,
         pc_x_min: -0.05,
         pc_x_max: 0.05,
         pc_y_min: -0.05,
@@ -315,8 +316,8 @@ gasv2_dvrk:
   wrapper.PID: {
           # obs_type: occup,
           control_p: 40.0,
-          phase_thres: [0.02, 0.02, 0.0],
-          err_offset: [0.0,  0.0, 0.03],  
+          phase_thres: [0.02, 0.02, 0.01],
+          err_offset: [0.0,  0.0, 0.01],  
     }
 
 dsa1:
