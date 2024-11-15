@@ -13,6 +13,7 @@ class DepthProcess(BaseWrapper):
                  eval=False,
                 #  edge_dectection=True,
                  edge_detect_thres=0.0,
+                 depth_image_range = 0.1,
                  **kwargs,
                  ):
         super().__init__(env)
@@ -21,6 +22,7 @@ class DepthProcess(BaseWrapper):
         self._eval = eval
         self._erode_kernel = erode_kernel
         self._edge_detect_thres = edge_detect_thres
+        self._depth_image_range = depth_image_range
 
 
     def render(self, ):
@@ -30,12 +32,25 @@ class DepthProcess(BaseWrapper):
         return imgs
 
     def _process(self, imgs):
+
+
+
         if self._erode_kernel >0 and 'mask' in imgs:
             imgs['mask'] = self._erode_mask(imgs['mask'])
         
         if self._edge_detect_thres > 0 and 'mask' in imgs:
             for k, v in imgs['mask'].items():
                 imgs['depReal'], imgs['mask'][k] = self._edge_detection_proc(imgs['depReal'], v)
+
+        if "depReal" in imgs and "mask" in imgs:
+            # print(imgs['mask'])
+            depth_c = np.median(imgs['depReal'][imgs['mask']['psm1']])
+            depth_r = self._depth_image_range / 2
+
+            imgs['depth'] = np.uint8(np.clip(scale_arr(
+                    imgs['depReal'], 
+                    depth_c - depth_r,
+                    depth_c + depth_r, 0, 255), 0, 255))
 
 
         # imgs = self._no_depth_guess_process(imgs)

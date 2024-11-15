@@ -490,7 +490,7 @@ class GraspAnyV2(PsmEnv):
                 self._create_waypoint()
                 return self.get_oracle_action(obs)
             delta_pos = (waypoint[:3] - obs["observation"][:3]) / 0.01 / self.SCALING
-            delta_yaw = wrapAngle((waypoint[3] - obs["observation"][5]), degrees=False, angle_range=np.pi/2)
+            delta_yaw = wrapAngle((waypoint[3] - obs["observation"][5]), angle_range=np.pi/2)
             if np.abs(delta_pos).max() > 1:
                 delta_pos /= np.abs(delta_pos).max()
             scale_factor = 0.4

@@ -17,6 +17,7 @@ from surrol.const import ROOT_DIR_PATH, ASSET_DIR_PATH
 # only for demo
 import time
 import pandas as pd
+from gym_ras.tool.common import wrapAngleRange
 
 
 def goal_distance(goal_a, goal_b):
@@ -213,7 +214,7 @@ class PsmEnv(SurRoLGoalEnv):
         rot = get_euler_from_matrix(pose_world[:3, :3])
         if self.ACTION_MODE == 'yaw':
             action[3] *= np.deg2rad(45)  # yaw, limit maximum change in rotation
-            rot = (self.psm1_eul[0], self.psm1_eul[1], wrap_angle(rot[2] + action[3]))  # only change yaw
+            rot = (self.psm1_eul[0], self.psm1_eul[1], wrapAngleRange(rot[2] + action[3], -np.pi/2, np.pi/2))  # only change yaw
         elif self.ACTION_MODE == 'pitch':
             action[3] *= np.deg2rad(15)  # pitch, limit maximum change in rotation
             pitch = np.clip(wrap_angle(rot[1] + action[3]), np.deg2rad(-90), np.deg2rad(90))
@@ -462,148 +463,3 @@ class PsmEnv(SurRoLGoalEnv):
         raise NotImplementedError
 
 
-class PsmsEnv(PsmEnv):
-    """
-    Dual arm env using PSM1 and PSM2
-    """
-    ACTION_SIZE = 5 * 2  # (dx, dy, dz, dyaw/dpitch, open/close) * 2
-    ACTION_MODE = 'yaw'
-    DISTANCE_THRESHOLD = 0.005
-    POSE_PSM1 = ((0.05, 0.24, 0.8524), (0, 0, -(90 + 20) / 180 * np.pi))
-    QPOS_PSM1 = (0, 0, 0.10, 0, 0, 0)
-    POSE_PSM2 = ((0.05, -0.24, 0.8524), (0, 0, -(90 - 20) / 180 * np.pi))
-    QPOS_PSM2 = (0, 0, 0.10, 0, 0, 0)
-    POSE_TABLE = ((0.5, 0, 0.001), (0, 0, 0))
-    WORKSPACE_LIMITS1 = ((0.50, 0.60), (-0., 0.05), (0.675, 0.745))
-    WORKSPACE_LIMITS2 = ((0.50, 0.60), (-0.05, 0.), (0.675, 0.745))
-    SCALING = 1.
-
-    def __init__(self,
-                 render_mode=None, cid = -1):
-        # workspace
-        workspace_limits = np.asarray(self.WORKSPACE_LIMITS2) \
-                           + np.array([0., 0., 0.0102]).reshape((3, 1))  # tip-eef offset with collision margin
-        workspace_limits *= self.SCALING
-        self.workspace_limits2 = workspace_limits
-
-        super(PsmsEnv, self).__init__(render_mode, cid)
-
-    def _env_setup(self):
-        super(PsmsEnv, self)._env_setup()
-
-        # robot
-        self.psm2 = Psm2(self.POSE_PSM2[0], p.getQuaternionFromEuler(self.POSE_PSM2[1]),
-                         scaling=self.SCALING)
-        self.psm2_eul = np.array(p.getEulerFromQuaternion(
-            self.psm2.pose_rcm2world(self.psm2.get_current_position(), 'tuple')[1]))
-        if self.ACTION_MODE == 'yaw':
-            self.psm2_eul = np.array([np.deg2rad(-90), 0., self.psm2_eul[2]])
-        elif self.ACTION_MODE == 'pitch':
-            self.psm2_eul = np.array([np.deg2rad(-180), self.psm2_eul[1], np.deg2rad(90)])
-        else:
-            raise NotImplementedError
-        self._contact_constraint2 = None
-
-        pass  # need to implement based on every task
-        # self.obj_ids
-
-    def _get_obs(self) -> dict:
-        psm1_state = self._get_robot_state(0)
-        psm2_state = self._get_robot_state(1)
-        robot_state = np.concatenate([psm1_state, psm2_state])
-        # may need to modify
-        if self.has_object:
-            pos, _ = get_link_pose(self.obj_id, -1)
-            object_pos = np.array(pos)
-            # waypoint1
-            pos, orn = get_link_pose(self.obj_id, self.obj_link1)
-            waypoint_pos1 = np.array(pos)
-            waypoint_rot1 = np.array(p.getEulerFromQuaternion(orn))
-            # waypoint2
-            pos, orn = get_link_pose(self.obj_id, self.obj_link2)
-            waypoint_pos2 = np.array(pos)
-            waypoint_rot2 = np.array(p.getEulerFromQuaternion(orn))
-            # gripper state
-            object_rel_pos1 = object_pos - robot_state[0: 3]
-            object_rel_pos2 = object_pos - robot_state[7: 10]
-        else:
-            object_pos = waypoint_pos1 = waypoint_rot1 = waypoint_pos2 = waypoint_rot2 = \
-                object_rel_pos1 = object_rel_pos2 = np.zeros(0)
-
-        if self.has_object:
-            achieved_goal = object_pos.copy() if not self._waypoint_goal else waypoint_pos1.copy()
-        else:
-            # tip position
-            pos1 = np.array(get_link_pose(self.psm1.body, self.psm1.TIP_LINK_INDEX)[0])
-            pos2 = np.array(get_link_pose(self.psm2.body, self.psm2.TIP_LINK_INDEX)[0])
-            achieved_goal = np.concatenate([pos1, pos2])
-
-        observation = np.concatenate([
-            robot_state, object_pos.ravel(), object_rel_pos1.ravel(), object_rel_pos2.ravel(),
-            waypoint_pos1.ravel(), waypoint_rot1.ravel(),
-            waypoint_pos2.ravel(), waypoint_rot2.ravel()  # achieved_goal.copy(),
-        ])
-        obs = {
-            'observation': observation.copy(),
-            'achieved_goal': achieved_goal.copy(),
-            'desired_goal': self.goal.copy()
-        }
-        return obs
-
-    def _set_action(self, action: np.ndarray):
-        """
-        delta_position (3), delta_theta (1) and open/ close the gripper (1); in world coordinate
-        *2 for PSM1 [0: 5] and PSM2 [5: 10]
-        """
-        assert len(action) == self.ACTION_SIZE
-        action = action.copy()  # ensure that we don't change the action outside of this scope
-        action[0: 3] *= 0.01 * self.SCALING  # position, limit maximum change in position
-        action[5: 8] *= 0.01 * self.SCALING
-        for i, psm in enumerate((self.psm1, self.psm2)):
-            # set the action for PSM1 and PSM2
-            pose_world = psm.pose_rcm2world(psm.get_current_position())
-            idx = i * 5
-            workspace_limits = self.workspace_limits1 if i == 0 else self.workspace_limits2
-            pose_world[:3, 3] = np.clip(pose_world[:3, 3] + action[idx: idx + 3],
-                                        workspace_limits[:, 0] - [0.02, 0.02, 0.],
-                                        workspace_limits[:, 1] + [0.02, 0.02, 0.08])  # clip to ensure convergence
-            rot = get_euler_from_matrix(pose_world[:3, :3])
-            psm_eul = self.psm1_eul if i == 0 else self.psm2_eul
-            if self.ACTION_MODE == 'yaw':
-                action[idx + 3] *= np.deg2rad(40)  # limit maximum change in rotation
-                rot = (psm_eul[0], psm_eul[1], wrap_angle(rot[2] + action[idx + 3]))  # only change yaw
-            elif self.ACTION_MODE == 'pitch':
-                action[idx + 3] *= np.deg2rad(15)  # limit maximum change in rotation
-                pitch = np.clip(wrap_angle(rot[1] + action[idx + 3]), np.deg2rad(-90), np.deg2rad(90))
-                rot = (psm_eul[0], pitch, psm_eul[2])  # only change pitch
-            else:
-                raise NotImplementedError
-            pose_world[:3, :3] = get_matrix_from_euler(rot)
-            action_rcm = psm.pose_world2rcm(pose_world)
-            psm.move(action_rcm)
-
-            # jaw
-            if self.block_gripper:
-                action[idx + 4] = -1
-            if action[idx + 4] < 0:
-                psm.close_jaw()
-                self._activate(i)
-            else:
-                psm.move_jaw(np.deg2rad(40))
-                self._release(i)
-
-        # if self.block_gripper:
-        #     action[4] = action[9] = -1
-        # if action[4] < 0:
-        #     self.psm1.close_jaw()
-        #     self._activate(0)
-        # else:
-        #     self.psm1.move_jaw(np.deg2rad(40))
-        #     self._release(0)
-        #
-        # if action[9] < 0:
-        #     self.psm2.close_jaw()
-        #     self._activate(1)
-        # else:
-        #     self.psm2.move_jaw(np.deg2rad(40))
-        #     self._release(1)

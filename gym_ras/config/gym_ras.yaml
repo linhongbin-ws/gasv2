@@ -214,10 +214,6 @@ gasv2_surrol:
   embodied.SurrolEnv.cam_up_axis_noise: 2e0
   embodied.SurrolEnv.depth_remap_range_noise: 1e-2
   embodied.SurrolEnv.depth_remap_center_noise: 1e-2
-  embodied.SurrolEnv.needle_pick.init_pose_ratio_low_gripper: [-0.9, -0.9, -0.8, -0.9]
-  embodied.SurrolEnv.needle_pick.init_pose_ratio_high_gripper: [0.9, 0.9, 0.9, 0.9]
-  embodied.SurrolEnv.needle_pick.init_pose_ratio_low_needle: [-0.5, -0.7, 0.1, -0.99]
-  embodied.SurrolEnv.needle_pick.init_pose_ratio_high_needle: [0.5, 0.7, 0.5, 0.99]
   embodied.SurrolEnv.reward_prog_abnorm_1: -0.01
   embodied.SurrolEnv.reward_prog_abnorm_2: -0.01 # sliding
   embodied.SurrolEnv.reward_prog_abnorm_3: -0.005 # gripper toggling | dsa out
@@ -234,7 +230,7 @@ gasv2_surrol:
   embodied.SurrolEnv.disturbance_scale: 0.01
   embodied.SurrolEnv.cam_dynamic_noise_scale: 0.0
   wrapper.DSA.zoom_box_fix_length_ratio: 0.3
-  wrapper.DSA.encode_type: occup
+  wrapper.DSA.encode_type: general_simple3
   wrapper.ImageNoise: {
           skip: false,
         pns_noise_amount: 0.3,
