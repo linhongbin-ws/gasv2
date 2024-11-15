@@ -51,7 +51,7 @@ class DiscreteAction(BaseWrapper):
         else:
             _action[-1] = 1
         
-        print(self.env.timestep, ": ", action, _action)
+        # print(self.env.timestep, ": ", action, _action)
         # print(_action, self._is_gripper_close)
         # print("input action", action, _action, self._action_idx[action], self._action_strs[self._action_idx[action]],self._action_prim[self._action_strs[self._action_idx[action]]])
         obs, reward, done, info = self.env.step(_action)
