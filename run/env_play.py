@@ -31,6 +31,8 @@ if not args.no_vis:
 
 if args.eval:
     env.to_eval()
+print("action space: ", env.action_space)
+print("observation space: ", env.observation_space)
 for _ in tqdm(range(args.repeat)):
     done = False
     obs = env.reset()

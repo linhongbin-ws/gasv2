@@ -31,7 +31,7 @@ default:
     ActionNoise: { noise_scale: 0.0 }
     DiscreteAction: { pos_action_scale: 0.2, rot_action_scale:  0.2,}
     TimeLimit: { max_timestep: 200 }
-    DepthProcess: { skip: true, uncert_scale: 1.0, eval: false , erode_kernel: 0, edge_detect_thres: 0.0}
+    DepthProcess: { skip: false, uncert_scale: 1.0, eval: false , erode_kernel: 0, edge_detect_thres: 0.0, depth_image_range: 0.05}
     FSM: { arg: 0 , ensure_norm_reward: false,  dsa_out_zoom_anamaly: false,}
     Occup: {is_skip: false,
             occup_h: 200,
@@ -249,6 +249,7 @@ gasv2_surrol:
   wrapper.ActionNoise.noise_scale: 0.01
   wrapper.DepthProcess.skip: false
   wrapper.DepthProcess.uncert_scale: 1.5
+  wrapper.DepthProcess.depth_image_range: 0.25
   wrapper.OBS.vector_obs_key: ["gripper_state", "fsm_state", "controller_state"]
   wrapper.OBS.vector2image_type: row
   wrapper.VirtualClutch.start: 6
@@ -352,3 +353,19 @@ no_depth_process:
 
 no_pid:
   wrapper.PID.skip: true
+
+action_continuous:
+  wrapper:
+    pipeline: [
+        "ActionNoise",
+        "ImageNoise",
+        "TimeLimit",
+        "VirtualClutch",
+        "DepthProcess",
+        'Occup',
+        'PID',
+        "DSA",
+        # "DiscreteAction",
+        "FSM",
+        "OBS",
+      ]

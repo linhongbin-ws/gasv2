@@ -13,7 +13,7 @@ class DepthProcess(BaseWrapper):
                  eval=False,
                 #  edge_dectection=True,
                  edge_detect_thres=0.0,
-                 depth_image_range = 0.1,
+                 depth_image_range = 0.05,
                  **kwargs,
                  ):
         super().__init__(env)
