@@ -34,9 +34,9 @@ default:
     DepthProcess: { skip: false, uncert_scale: 1.0, eval: false , erode_kernel: 0, edge_detect_thres: 0.0, depth_image_range: 0.05}
     FSM: { arg: 0 , ensure_norm_reward: false,  dsa_out_zoom_anamaly: false,}
     Occup: {is_skip: false,
-            occup_h: 200,
-        occup_w: 200,
-        occup_d: 200,
+            occup_h: 60,
+        occup_w: 60,
+        occup_d: 60,
         pc_x_min: -0.5,
         pc_x_max: 0.5,
         pc_y_min: -0.5,
@@ -230,7 +230,9 @@ gasv2_surrol:
   embodied.SurrolEnv.disturbance_scale: 0.01
   embodied.SurrolEnv.cam_dynamic_noise_scale: 0.0
   wrapper.DSA.zoom_box_fix_length_ratio: 0.3
-  wrapper.DSA.encode_type: general_simple3
+  wrapper.DSA.encode_type: general_simple4
+  wrapper.DSA.encoding_id_stuff: 200
+  wrapper.DSA.encoding_id_psm1: 150
   wrapper.ImageNoise: {
           skip: false,
         pns_noise_amount: 0.3,
@@ -249,8 +251,7 @@ gasv2_surrol:
   wrapper.ActionNoise.noise_scale: 0.01
   wrapper.DepthProcess.skip: false
   wrapper.DepthProcess.uncert_scale: 1.5
-  wrapper.DepthProcess.depth_image_range: 0.25
-  wrapper.OBS.vector_obs_key: ["gripper_state", "fsm_state", "controller_state"]
+  wrapper.OBS.vector_obs_key: ["gripper_state"]
   wrapper.OBS.vector2image_type: row
   wrapper.VirtualClutch.start: 6
   wrapper.DiscreteAction.rot_action_scale: 1

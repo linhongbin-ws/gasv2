@@ -235,13 +235,14 @@ gasv2:
   video_every: 3e5
   # high_oracle:
   prefill: { random: 1e4}
-  steps: 1820000
+  steps: 1e8
   dataset: { batch: 100, length: 6 }
   replay: {
       capacity: 5e5, # limit ram usage
-      minlen: 6,
-      maxlen: 6,
+      minlen: 8,
+      maxlen: 8,
     }
+  train_every: 2
 
 mlp:
   encoder: { mlp_keys: "vector", cnn_keys: "image" }

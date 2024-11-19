@@ -157,7 +157,7 @@ class DSA(BaseWrapper):
 
             im_pre = np.stack([layer1, layer2, layer3], axis=2)
             img_dsa = im_pre
-        elif self._encode_type in ["general_simple", "general_simple2", "general_simple3"]:
+        elif self._encode_type in ["general_simple", "general_simple2", "general_simple3","general_simple4"]:
             zoom_box_length = self._zoom_box_fix_length_ratio * \
                 min(zoom_mask.shape[0], zoom_mask.shape[1])
             # zoom_x_min, zoom_x_max = self._get_legal_min_max_continuous(zoom_box_x[0],zoom_box_x[1], zoom_box_length, zoom_mask.shape[0])
@@ -169,7 +169,7 @@ class DSA(BaseWrapper):
             for k, v in img["mask"+pfix].items():
                 if k in self._dsa_key:
                     _box_r, _box_c, _, _ = self._get_box_from_masks(v)
-                    if self._encode_type == 'general_simple3':
+                    if self._encode_type in ['general_simple3','general_simple4']:
                         _ratio = 0.5
                         _l = int(zoom_box_length * _ratio)
                         # print("length", zoom_box_length, _l)
@@ -192,9 +192,12 @@ class DSA(BaseWrapper):
             if self._encode_type == 'general_simple':
                 layer1[zoom_x_min:zoom_x_max+1, zoom_y_min:zoom_y_max +
                        1] += self._image_encode_id["zoom_box"]
-            elif self._encode_type in ['general_simple2', 'general_simple3',]:
+            elif self._encode_type in ['general_simple2', 'general_simple3']:
                 layer1[zoom_x_min:zoom_x_max+1, zoom_y_min:zoom_y_max +
                        1] = self._image_encode_id["zoom_box"]
+            else:
+                layer1 = np.zeros(img["rgb"+pfix].shape[0:2], dtype=np.uint8)
+
             if "depth" in img:
                 depth_seg_mat = self._segment(img["depth"+pfix], _union_mask)
                 layer2 = self._zoom_legal(
