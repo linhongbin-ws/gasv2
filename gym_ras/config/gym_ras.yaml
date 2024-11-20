@@ -321,6 +321,11 @@ gasv2_dvrk:
 dsa1:
     wrapper.DSA.encoding_id_stuff: 200
     wrapper.DSA.encoding_id_psm1: 150
+    wrapper.DSA.encode_type: occup
+    wrapper.Occup.occup_h: 200
+    wrapper.Occup.occup_w: 200
+    wrapper.Occup.occup_d: 200
+
 occup1:
   wrapper.Occup.occup_h: 100
   wrapper.Occup.occup_w: 100
