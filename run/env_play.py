@@ -83,6 +83,8 @@ for _ in tqdm(range(args.repeat)):
             img_break = env.cv_show(imgs=img)
             if img_break:
                 break
+    if img_break or  action == 'quit':
+        break
     if not args.no_vis:
         if img_break:
             break

@@ -234,7 +234,8 @@ gasv2:
   log_keys_video: ["image", "rgb"]
   video_every: 3e5
   # high_oracle:
-  prefill: { random: 1e4}
+  # prefill: { random: 1e4}
+  prefill: { random: 7e3, oracle: 3e3 }
   steps: 1e8
   dataset: { batch: 100, length: 6 }
   replay: {

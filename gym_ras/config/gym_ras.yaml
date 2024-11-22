@@ -251,10 +251,21 @@ gasv2_surrol:
   wrapper.ActionNoise.noise_scale: 0.01
   wrapper.DepthProcess.skip: false
   wrapper.DepthProcess.uncert_scale: 1.5
+  wrapper.DepthProcess.depth_image_range: 0.25
   wrapper.OBS.vector_obs_key: ["gripper_state"]
   wrapper.OBS.vector2image_type: row
   wrapper.VirtualClutch.start: 6
   wrapper.DiscreteAction.rot_action_scale: 1
+  wrapper.PID: {
+          # obs_type: occup,
+          control_p: 10.0,
+          phase_thres: [0.1, 0.1, 0.05],
+          err_offset: [0.0,  0.0, 0.1],  
+    }
+  wrapper.Occup.occup_h: 32
+  wrapper.Occup.occup_w: 32
+  wrapper.Occup.occup_d: 32
+
 
 gasv2_dvrk:
   task_name: grasp_any_v2
@@ -319,8 +330,8 @@ gasv2_dvrk:
     }
 
 dsa1:
-    wrapper.DSA.encoding_id_stuff: 200
-    wrapper.DSA.encoding_id_psm1: 150
+    # wrapper.DSA.encoding_id_stuff: 200
+    # wrapper.DSA.encoding_id_psm1: 150
     wrapper.DSA.encode_type: occup
     wrapper.Occup.occup_h: 200
     wrapper.Occup.occup_w: 200
