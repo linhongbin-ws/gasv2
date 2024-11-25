@@ -227,6 +227,8 @@ gasv2_surrol:
   embodied.SurrolEnv.grasp_any_v2.stuff_name: "needle"
   embodied.SurrolEnv.grasp_any_v2.on_plane: false
   embodied.SurrolEnv.grasp_any_v2.max_grasp_trial: 1
+  embodied.SurrolEnv.grasp_any_v2.oracle_pos_thres: 0.003
+  embodied.SurrolEnv.grasp_any_v2.oracle_rot_thres: 0.5
   embodied.SurrolEnv.disturbance_scale: 0.01
   embodied.SurrolEnv.cam_dynamic_noise_scale: 0.0
   wrapper.DSA.zoom_box_fix_length_ratio: 0.3
@@ -255,6 +257,7 @@ gasv2_surrol:
   wrapper.OBS.vector_obs_key: ["gripper_state"]
   wrapper.OBS.vector2image_type: row
   wrapper.VirtualClutch.start: 6
+  wrapper.DiscreteAction.pos_action_scale: 0.4
   wrapper.DiscreteAction.rot_action_scale: 1
   wrapper.PID: {
           # obs_type: occup,
