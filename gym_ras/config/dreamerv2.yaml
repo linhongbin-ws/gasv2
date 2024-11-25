@@ -240,8 +240,8 @@ gasv2:
   dataset: { batch: 100, length: 6 }
   replay: {
       capacity: 5e5, # limit ram usage
-      minlen: 9,
-      maxlen: 9,
+      minlen: 6,
+      maxlen: 6,
     }
   train_every: 2
 
