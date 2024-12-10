@@ -61,7 +61,11 @@ class CV2_Visualizer():
                     imgs_dict["rgb_n"] = np.zeros(v.shape,dtype=np.uint8)
                 if k.find("image") >= 0:
                     imgs_dict[k] = v
-                elif k.find("occup") >= 0:
+                elif k in ['occup_zimage']:
+                    for _k, _d in v.items():
+                        imgs_dict[k+"@"+_k] = np.stack(
+                            [_d[0]]*3, axis=2) if len(v.shape) == 2 else v
+                elif k == "occup":
                     for occ_key, occ_v in v.items():
                         for axx in range(len(occ_v)):
                             # if axx != 1:

@@ -19,6 +19,8 @@ parser.add_argument('--vis-tag', type=str, nargs='+', default=[])
 parser.add_argument('--oracle', type=str, default='keyboard')
 parser.add_argument('--no-vis', action="store_true")
 parser.add_argument('--eval', action="store_true")
+parser.add_argument('--vis-occup', action="store_true")
+
 
 args = parser.parse_args()
 
@@ -29,6 +31,12 @@ if not args.no_vis:
     env = Visualizer(env, update_hz=100 if args.action in [
                      'oracle'] else -1, vis_tag=args.vis_tag, keyboard=not args.action in ['oracle'])
 
+if args.vis_occup:
+    from gym_ras.tool.o3d import convert_occup_mat_o3dvoxels, O3DVis
+    x_c = (env_config.wrapper.Occup.pc_x_min + env_config.wrapper.Occup.pc_x_max) / 2
+    y_c = (env_config.wrapper.Occup.pc_y_min + env_config.wrapper.Occup.pc_y_max) / 2
+    z_c = (env_config.wrapper.Occup.pc_z_min + env_config.wrapper.Occup.pc_z_max) / 2
+    vis_occup = O3DVis(center_list=[x_c, y_c, z_c])
 if args.eval:
     env.to_eval()
 print("action space: ", env.action_space)
@@ -79,6 +87,19 @@ for _ in tqdm(range(args.repeat)):
         # # print(action)
         # if len(args.vis_tag) != 0:
         #     img = {k:v for k,v in img.items() if k in args.vis_tag}
+            
+        if args.vis_occup:
+            vx_grids = convert_occup_mat_o3dvoxels(
+                occ_mat_dict=img['occup_mat'],
+                pc_x_min=env_config.wrapper.Occup.pc_x_min,
+                pc_x_max=env_config.wrapper.Occup.pc_x_max,
+                pc_y_min=env_config.wrapper.Occup.pc_y_min,
+                pc_y_max=env_config.wrapper.Occup.pc_y_max,
+                pc_z_min=env_config.wrapper.Occup.pc_z_min,
+                pc_z_max=env_config.wrapper.Occup.pc_z_max,
+                voxel_size=env.occup_grid_size
+            )
+            vis_occup.draw([v for _, v in vx_grids.items()])
         if not args.no_vis:
             img_break = env.cv_show(imgs=img)
             if img_break:

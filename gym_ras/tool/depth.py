@@ -9,29 +9,6 @@ import time
 
 
 
-
-def write_point_cloud(ply_filename, points):
-    formatted_points = []
-    for point in points:
-        formatted_points.append("%f %f %f %d %d %d 0\n" % (point[0], point[1], point[2], point[3], point[4], point[5]))
-
-    out_file = open(ply_filename, "w")
-    out_file.write('''ply
-    format ascii 1.0
-    element vertex %d
-    property float x
-    property float y
-    property float z
-    property uchar blue
-    property uchar green
-    property uchar red
-    property uchar alpha
-    end_header
-    %s
-    ''' % (len(points), "".join(formatted_points)))
-    out_file.close()
-
-
 def depth_image_to_point_cloud(rgb, depth, scale, K, pose, encode_mask=None, tolist=True):
     start = time.time()
 
@@ -66,39 +43,6 @@ def depth_image_to_point_cloud(rgb, depth, scale, K, pose, encode_mask=None, tol
     return points
 
 
-# image_files: XXXXXX.png (RGB, 24-bit, PNG)
-# depth_files: XXXXXX.png (16-bit, PNG)
-# poses: camera-to-world, 4×4 matrix in homogeneous coordinates
-def build_point_cloud(dataset_path, scale, view_ply_in_world_coordinate):
-    K = np.fromfile(os.path.join(dataset_path, "K.txt"), dtype=float, sep="\n ")
-    K = np.reshape(K, newshape=(3, 3))
-    image_files = sorted(Path(os.path.join(dataset_path, "images")).files('*.png'))
-    depth_files = sorted(Path(os.path.join(dataset_path, "depth_maps")).files('*.png'))
-
-    if view_ply_in_world_coordinate:
-        poses = np.fromfile(os.path.join(dataset_path, "poses.txt"), dtype=float, sep="\n ")
-        poses = np.reshape(poses, newshape=(-1, 4, 4))
-    else:
-        poses = np.eye(4)
-
-    for i in tqdm(range(0, len(image_files))):
-        image_file = image_files[i]
-        depth_file = depth_files[i]
-
-        rgb = cv2.imread(image_file)
-        depth = cv2.imread(depth_file, -1).astype(np.uint16)
-
-        if view_ply_in_world_coordinate:
-            current_points_3D = depth_image_to_point_cloud(rgb, depth, scale=scale, K=K, pose=poses[i])
-        else:
-            current_points_3D = depth_image_to_point_cloud(rgb, depth, scale=scale, K=K, pose=poses)
-        save_ply_name = os.path.basename(os.path.splitext(image_files[i])[0]) + ".ply"
-        save_ply_path = os.path.join(dataset_path, "point_clouds")
-
-        if not os.path.exists(save_ply_path):  # 判断是否存在文件夹如果不存在则创建为文件夹
-            os.mkdir(save_ply_path)
-        write_point_cloud(os.path.join(save_ply_path, save_ply_name), current_points_3D)
-
 def get_intrinsic_matrix(width, height, fov):
     """ Calculate the camera intrinsic matrix.
     """
@@ -132,8 +76,59 @@ def pointclouds2occupancy(pc_mat, occup_h, occup_w, occup_d,
     return occ_proj_x, occ_proj_y, occ_proj_z
 
 
+def projection_matrix_to_K(p, image_size):
+    K = np.zeros((3,3))
+    K[0][0] = p[0][0] * image_size /2
+    K[1][1] = p[1][1] * image_size /2
+    K[0][2] =image_size /2
+    K[1][2] =image_size /2
+    K[2][2] = 1
+    return K
 
+def scale_K(K, width_scale, height_scale):
+    _K = K.copy()
+    _K[0,0] = _K[0,0]* width_scale
+    _K[0,2] = _K[0,2] * width_scale
+    _K[1,1] = _K[1,1] * height_scale
+    _K[1,2] = _K[1,2] * height_scale
+    return _K
 
+def occup2image(occ_mat, image_type='projection', background_encoding=255
+                ):
+    if image_type=="projection":
+        occ_proj_y = np.sum(occ_mat, axis=0) !=0
+        occ_proj_z = np.flip(np.transpose(np.sum(occ_mat, axis=1) != 0), 0)
+        occ_proj_x = np.transpose(np.sum(occ_mat, axis=2) != 0)
+        return occ_proj_x, occ_proj_y, occ_proj_z
+    elif image_type=="depth_xyz":
+        s = occ_mat.shape
+        index_arr = np.tile(np.arange(s[0]).reshape(-1,1,1,), (1,s[1],s[2]))
+        index_arr[np.logical_not(occ_mat)] = s[0]
+        x = np.min(index_arr, axis=0)
+        x[x== s[0]] = 0 
+        x = np.clip(scale_arr(x, 0, s[0]-1, 0, 255),0,255).astype(np.uint8)
+        index_arr = np.tile(np.arange(s[1]).reshape(1,-1,1,), (s[0],1,s[2]))
+        index_arr[np.logical_not(occ_mat)] = s[1]
+        y = np.min(index_arr, axis=1)
+        y[y== s[1]] = 0 
+        y = np.clip(scale_arr(y, 0, s[1]-1, 0, 255),0,255).astype(np.uint8)
+        index_arr = np.tile(np.arange(s[2]).reshape(1,1,-1,), (s[0],s[1],1))
+        index_arr[np.logical_not(occ_mat)] = s[2]
+        z = np.min(index_arr, axis=2)
+        z[z== s[2]] = 0 
+        z = np.clip(scale_arr(z, 0, s[2]-1, 0, 255),0,255).astype(np.uint8)
+        z = np.transpose(z)
+    elif image_type=="depth":
+        s = occ_mat.shape
+        index_arr = np.tile(np.arange(s[2]).reshape(1,1,-1,), (s[0],s[1],1))
+        index_arr[np.logical_not(occ_mat)] = s[2]
+        z = np.min(index_arr, axis=2)
+        z[z== s[2]] = background_encoding 
+        z = np.clip(scale_arr(z, 0, s[2]-1, 0, 255),0,255).astype(np.uint8)
+        z = np.transpose(z)
+        return z, z!= background_encoding
+    else:
+        raise NotImplementedError
 
 def edge_detection(depth, segmask, depth_thres=0.003, debug=False):
     _depth = depth.copy()

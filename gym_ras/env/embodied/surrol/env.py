@@ -6,7 +6,7 @@ import numpy as np
 from gym_ras.tool.common import *
 from pathlib import Path
 import colorsys
-from gym_ras.tool.depth import get_intrinsic_matrix, depth_image_to_point_cloud, pointclouds2occupancy
+from gym_ras.tool.depth import projection_matrix_to_K
 
 class SurrolEnv(BaseEnv):
     def __init__(self,
@@ -522,6 +522,19 @@ class SurrolEnv(BaseEnv):
     @property
     def mode(self,):
         return self._mode
+
+    @property
+    def instrinsic_K(self):
+        prj = self._proj_matrix[0]
+        if prj is None:
+            prj = p.computeProjectionMatrixFOV(fov=self._project["fov"],
+                                                                 aspect=float(
+                                                                     self._cam_width) / self._cam_height,
+                                                                 nearVal=self._project["nearVal"],
+                                                                 farVal=self._project["farVal"])
+        proj = np.array(list(prj)).reshape(4,4)
+        K = projection_matrix_to_K(proj, image_size=self._cam_width)
+        return K
 
 
 if __name__ == "__main__":

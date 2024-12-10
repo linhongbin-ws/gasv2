@@ -312,6 +312,28 @@ class DSA(BaseWrapper):
 
             im_pre = np.stack(layers, axis=2)
             img_dsa = im_pre
+        elif self._encode_type in ["occup_depth"]:
+            layers = [
+                np.zeros(img["rgb" + pfix].shape[0:2], dtype=np.uint8) for i in range(3)
+            ]
+
+
+            zoom_mask = img["occup_zimage"]["psm1"][1]
+            zoom_box_x, zoom_box_y, _, _ = self._get_box_from_masks(zoom_mask)
+            zoom_box_length = self._zoom_box_fix_length_ratio * min(
+                zoom_mask.shape[0], zoom_mask.shape[1]
+            )
+            zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max = self._get_zoom_coordinate(
+                zoom_box_x, zoom_box_y, zoom_box_length, zoom_mask.shape
+            )
+
+            layers[1] = img["occup_zimage"]["psm1"][0]
+            layers[1] = self._zoom_legal(
+                layers[1], zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max
+            )
+
+            im_pre = np.stack(layers, axis=2)
+            img_dsa = im_pre            
 
         if self._timestep_prv != self.env.timestep:
             self._zoom_coordinate_prv = (

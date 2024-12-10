@@ -207,11 +207,11 @@ default:
 
 gasv2_surrol:
   task_name: grasp_any_v2
-  embodied.SurrolEnv.cam_target_noise: 1e-2
-  embodied.SurrolEnv.cam_distance_noise: 5e-2
-  embodied.SurrolEnv.cam_pitch_noise: 10e0
-  embodied.SurrolEnv.cam_roll_noise: 11e0
-  embodied.SurrolEnv.cam_up_axis_noise: 2e0
+  embodied.SurrolEnv.cam_target_noise: 0
+  embodied.SurrolEnv.cam_distance_noise: 0.01
+  embodied.SurrolEnv.cam_pitch_noise: 0
+  embodied.SurrolEnv.cam_roll_noise: 0
+  embodied.SurrolEnv.cam_up_axis_noise: 0
   embodied.SurrolEnv.depth_remap_range_noise: 1e-2
   embodied.SurrolEnv.depth_remap_center_noise: 1e-2
   embodied.SurrolEnv.reward_prog_abnorm_1: -0.01
@@ -261,14 +261,29 @@ gasv2_surrol:
   wrapper.DiscreteAction.rot_action_scale: 1
   wrapper.PID: {
           # obs_type: occup,
-          control_p: 10.0,
-          phase_thres: [0.1, 0.1, 0.05],
-          err_offset: [0.0,  0.0, 0.1],  
+          control_p: 5.0,
+          phase_thres: [0.1, 0.1, 0.1],
+          err_offset: [0.0,  0.0, -0.1],  
     }
-  wrapper.Occup.occup_h: 32
-  wrapper.Occup.occup_w: 32
-  wrapper.Occup.occup_d: 32
-
+  wrapper.Occup: {
+        occup_h: 150,
+        occup_w: 150,
+        occup_d: 150,
+        pc_x_min: -0.5,
+        pc_x_max: 0.5,
+        pc_y_min: -0.5,
+        pc_y_max: 0.5,
+        pc_z_min: -0.5,
+        pc_z_max: 0.5,    
+        cam_offset_x: 0.0,
+        cam_offset_y: 0.0,
+        cam_offset_z: -1.0, 
+        cam_offset_rx: 135.0,
+        cam_offset_ry: 0.0,
+        cam_offset_rz: -90.0,     
+        cam_cal_file: './config/cam_cal.yaml',   
+        cam_fov: 45,  
+  }
 
 gasv2_dvrk:
   task_name: grasp_any_v2
@@ -340,6 +355,14 @@ dsa1:
     wrapper.Occup.occup_w: 200
     wrapper.Occup.occup_d: 200
 
+dsa2:
+    # wrapper.DSA.encoding_id_stuff: 200
+    # wrapper.DSA.encoding_id_psm1: 150
+    wrapper.DSA.encode_type: occup_depth
+    wrapper.Occup.occup_h: 200
+    wrapper.Occup.occup_w: 200
+    wrapper.Occup.occup_d: 200
+
 occup1:
   wrapper.Occup.occup_h: 100
   wrapper.Occup.occup_w: 100
@@ -374,6 +397,10 @@ no_depth_process:
 no_pid:
   wrapper.PID.skip: true
 
+no_clutch:
+  wrapper.VirtualClutch.start: 0
+
+
 action_continuous:
   wrapper:
     pipeline: [
@@ -389,3 +416,4 @@ action_continuous:
         "FSM",
         "OBS",
       ]
+  
