@@ -10,7 +10,6 @@ import time
 
 
 def depth_image_to_point_cloud(rgb, depth, scale, K, pose, encode_mask=None, tolist=True):
-    start = time.time()
 
     u = range(0, rgb.shape[1])
     v = range(0, rgb.shape[0])
@@ -23,7 +22,7 @@ def depth_image_to_point_cloud(rgb, depth, scale, K, pose, encode_mask=None, tol
     X = np.ravel(X)
     Y = np.ravel(Y)
     Z = np.ravel(Z)
-    valid = Z > 0
+    valid = Z > -10000
     X = X[valid]
     Y = Y[valid]
     Z = Z[valid]
@@ -54,9 +53,9 @@ def get_intrinsic_matrix(width, height, fov):
     return mat
 
 def pointclouds2occupancy(pc_mat, occup_h, occup_w, occup_d, 
-                          pc_x_min,pc_x_max,
-                          pc_y_min,pc_y_max,
-                          pc_z_min,pc_z_max,
+                          pc_x_min=None,pc_x_max=None,
+                          pc_y_min=None,pc_y_max=None,
+                          pc_z_min=None,pc_z_max=None,
                           ):
     _pc_mat = pc_mat.copy()
     # print(_pc_mat[:,0],  pc_x_min, pc_x_max, 0, occup_h-1,)
@@ -64,16 +63,19 @@ def pointclouds2occupancy(pc_mat, occup_h, occup_w, occup_d,
     # idx_x = scale_arr(_pc_mat[:,0],  pc_x_min, pc_x_max, 0, occup_h-1,)
     # idx_y = scale_arr(_pc_mat[:,1],  pc_y_min, pc_y_max, 0, occup_w-1,)
     # idx_z = scale_arr(_pc_mat[:,2],  pc_z_min, pc_z_max, 0, occup_d-1,)
+    # print(_pc_mat.shape)
+    if pc_x_min is None: pc_x_min=np.min(_pc_mat[:,0])
+    if pc_x_max is None: pc_x_max=np.max(_pc_mat[:,0])
+    if pc_y_min is None: pc_y_min=np.min(_pc_mat[:,1])
+    if pc_y_max is None: pc_y_max=np.max(_pc_mat[:,1])
+    if pc_z_min is None: pc_z_min=np.min(_pc_mat[:,2])
+    if pc_z_max is None: pc_z_max=np.max(_pc_mat[:,2])
     idx_x = get_idx(_pc_mat[:,0],  pc_x_min, pc_x_max,occup_h)
     idx_y = get_idx(_pc_mat[:,1],  pc_y_min, pc_y_max,occup_w)
     idx_z = get_idx(_pc_mat[:,2],  pc_z_min, pc_z_max,occup_d)
     occ_mat = np.zeros((occup_h, occup_w, occup_d), dtype=bool)
     occ_mat[idx_x,idx_y,idx_z] = True
-    occ_proj_y = np.sum(occ_mat, axis=0) !=0
-    occ_proj_z = np.flip(np.transpose(np.sum(occ_mat, axis=1) != 0), 0)
-    occ_proj_x = np.transpose(np.sum(occ_mat, axis=2) != 0)
-
-    return occ_proj_x, occ_proj_y, occ_proj_z
+    return occ_mat
 
 
 def projection_matrix_to_K(p, image_size):

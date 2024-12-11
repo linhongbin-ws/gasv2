@@ -46,6 +46,7 @@ class SurrolEnv(BaseEnv):
                  dr_scale_train=1,
                  dr_scale_eval=1,
                  stuff_dist=False,
+                 support_o3d = False,
                  **kwargs,
                  ):
         self._cam_width = cam_width
@@ -82,6 +83,13 @@ class SurrolEnv(BaseEnv):
             raise Exception("Not support")
 
         super().__init__(client)
+        if not support_o3d:
+            import socket
+            import pkgutil
+            if socket.gethostname().startswith('pc') or True:
+                # TODO: not able to run on remote server
+                egl = pkgutil.get_loader('eglRenderer')
+                plugin = p.loadPlugin(egl.get_filename(), "_eglRendererPlugin")
         self._cam_dynamic_noise_scale = cam_dynamic_noise_scale
         self._disturbance_scale = disturbance_scale
         self._random_obj_vis = random_obj_vis
