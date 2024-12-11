@@ -34,7 +34,7 @@ class PsmEnv(SurRoLGoalEnv):
     https://github.com/google-research/ravens/blob/master/ravens/environments/environment.py
     """
     ACTION_SIZE = 5  # (dx, dy, dz, dyaw/dpitch, open/close)
-    ACTION_MODE = 'yaw'
+    ACTION_MODE = 'yaw_tilt'
     DISTANCE_THRESHOLD = 0.005
     POSE_PSM1 = ((0.05, 0.24, 0.8524), (0, 0, -(90 + 20) / 180 * np.pi))
     # POSE_PSM1 = ((0.96, 0.1, 0.38), ((90 - 25) / 180 * np.pi, 0, 1/2 * np.pi))
@@ -46,6 +46,7 @@ class PsmEnv(SurRoLGoalEnv):
     # modified limits for peg_board
     # WORKSPACE_LIMITS1 = ((0.50, 0.60), (-0.05, 0.05), (0.675, 0.785))
     SCALING = 1.
+    tilt_angle = -45
 
     def __init__(self,
                  render_mode=None, cid = -1):
@@ -114,7 +115,7 @@ class PsmEnv(SurRoLGoalEnv):
                          scaling=self.SCALING)
         self.psm1_eul = np.array(p.getEulerFromQuaternion(
             self.psm1.pose_rcm2world(self.psm1.get_current_position(), 'tuple')[1]))  # in the world frame
-        if self.ACTION_MODE == 'yaw':
+        if self.ACTION_MODE in ['yaw', 'yaw_tilt']:
             self.psm1_eul = np.array([np.deg2rad(-90), 0., self.psm1_eul[2]])
         elif self.ACTION_MODE == 'pitch':
             self.psm1_eul = np.array([np.deg2rad(0), self.psm1_eul[1], np.deg2rad(-90)])
@@ -212,9 +213,11 @@ class PsmEnv(SurRoLGoalEnv):
                                     workspace_limits[:, 0] - [0.00, 0.00, 0.],
                                     workspace_limits[:, 1] + [0.00, 0.00, 0.08])  # clip to ensure convergence
         rot = get_euler_from_matrix(pose_world[:3, :3])
-        if self.ACTION_MODE == 'yaw':
+        if self.ACTION_MODE in ['yaw', 'yaw_tilt']:
             action[3] *= np.deg2rad(45)  # yaw, limit maximum change in rotation
             rot = (self.psm1_eul[0], self.psm1_eul[1], wrapAngleRange(rot[2] + action[3], -np.pi/2, np.pi/2))  # only change yaw
+
+
         elif self.ACTION_MODE == 'pitch':
             action[3] *= np.deg2rad(15)  # pitch, limit maximum change in rotation
             pitch = np.clip(wrap_angle(rot[1] + action[3]), np.deg2rad(-90), np.deg2rad(90))
@@ -222,6 +225,10 @@ class PsmEnv(SurRoLGoalEnv):
         else:
             raise NotImplementedError
         pose_world[:3, :3] = get_matrix_from_euler(rot)
+        if self.ACTION_MODE == 'yaw_tilt':
+            tilt_mat = np.eye(4)
+            tilt_mat[:3, :3] = get_matrix_from_euler((np.deg2rad(self.tilt_angle),0,0,))
+            pose_world = np.matmul(pose_world, tilt_mat)
         action_rcm = self.psm1.pose_world2rcm(pose_world)
         # time1 = time.time()
         self.psm1.move(action_rcm)

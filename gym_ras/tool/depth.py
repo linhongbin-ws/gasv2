@@ -125,7 +125,7 @@ def occup2image(occ_mat, image_type='projection', background_encoding=255
         z = np.min(index_arr, axis=2)
         z[z== s[2]] = background_encoding 
         z = np.clip(scale_arr(z, 0, s[2]-1, 0, 255),0,255).astype(np.uint8)
-        z = np.transpose(z)
+        # z = np.transpose(z)
         return z, z!= background_encoding
     else:
         raise NotImplementedError

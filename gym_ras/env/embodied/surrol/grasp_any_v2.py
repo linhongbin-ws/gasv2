@@ -55,7 +55,7 @@ class GraspAnyV2(PsmEnv):
         needle_scaling_high=0.5 * 1.25,
         on_plane=False,
         max_grasp_trial=3,
-        stuff_free_rot = True,
+        horizontal_stuff=False,
         **kwargs,
     ):
 
@@ -73,14 +73,14 @@ class GraspAnyV2(PsmEnv):
         self._on_plane = on_plane
         self._max_grasp_trial = max_grasp_trial
         self._fix_goal = fix_goal
-        self._stuff_free_rot = stuff_free_rot
         self._oracle_discrete = oracle_discrete
+        self._horizontal_stuff = horizontal_stuff
 
         super().__init__(render_mode, cid)
         self._view_param = {
             "distance": depth_distance * self.SCALING,
             "yaw": 180,
-            "pitch": -45,
+            "pitch": -20,
             "roll": 0,
         }
         self._view_matrix = p.computeViewMatrixFromYawPitchRoll(
@@ -108,7 +108,7 @@ class GraspAnyV2(PsmEnv):
                          scaling=self.SCALING)
         self.psm1_eul = np.array(p.getEulerFromQuaternion(
             self.psm1.pose_rcm2world(self.psm1.get_current_position(), 'tuple')[1]))  # in the world frame
-        if self.ACTION_MODE == 'yaw':
+        if self.ACTION_MODE in ['yaw', 'yaw_tilt']:
             self.psm1_eul = np.array([np.deg2rad(-90), 0., self.psm1_eul[2]])
         elif self.ACTION_MODE == 'pitch':
             self.psm1_eul = np.array([np.deg2rad(0), self.psm1_eul[1], np.deg2rad(-90)])
@@ -195,27 +195,6 @@ class GraspAnyV2(PsmEnv):
                          workspace_limits[2][1] - 0.04 * self.SCALING])
         return goal.copy()
 
-    # def _sample_goal_callback(self):
-    #     """ Define waypoints
-    #     """
-    #     super()._sample_goal_callback()
-    #     self._waypoints = [None, None, None, None]  # four waypoints
-    #     pos_obj, orn_obj = get_link_pose(self.obj_id, self.obj_link1)
-    #     self._waypoint_z_init = pos_obj[2]
-    #     orn = p.getEulerFromQuaternion(orn_obj)
-    #     orn_eef = get_link_pose(self.psm1.body, self.psm1.EEF_LINK_INDEX)[1]
-    #     orn_eef = p.getEulerFromQuaternion(orn_eef)
-    #     yaw = orn[2] if abs(wrap_angle(orn[2] - orn_eef[2])) < abs(wrap_angle(orn[2] + np.pi - orn_eef[2])) \
-    #         else wrap_angle(orn[2] + np.pi)  # minimize the delta yaw
-
-    #     self._waypoints[0] = np.array([pos_obj[0], pos_obj[1],
-    #                                    pos_obj[2] + (-0.0007 + 0.0102 + 0.005) * self.SCALING, yaw, 0.5])  # approach
-    #     self._waypoints[1] = np.array([pos_obj[0], pos_obj[1],
-    #                                    pos_obj[2] + (-0.0007 + 0.0102) * self.SCALING, yaw, 0.5])  # approach
-    #     self._waypoints[2] = np.array([pos_obj[0], pos_obj[1],
-    #                                    pos_obj[2] + (-0.0007 + 0.0102) * self.SCALING, yaw, -0.5])  # grasp
-    #     self._waypoints[3] = np.array([self.goal[0], self.goal[1],
-    #                                    self.goal[2] + 0.0102 * self.SCALING, yaw, -0.5])  # lift up
 
     def _meet_contact_constraint_requirement(self):
         # add a contact constraint to the grasped block to make it stable
@@ -224,33 +203,6 @@ class GraspAnyV2(PsmEnv):
         else:
             pose = get_link_pose(self.obj_id, self.obj_link1)
             return pose[0][2] > self._waypoint_z_init + 0.005 * self.SCALING
-
-    # def get_oracle_action(self, obs) -> np.ndarray:
-    #     """
-    #     Define a human expert strategy
-    #     """
-    #     # four waypoints executed in sequential order
-    #     action = np.zeros(5)
-    #     action[4] = -0.5
-    #     for i, waypoint in enumerate(self._waypoints):
-    #         print("waypoint:", i)
-    #         if waypoint is None:
-    #             continue
-    #         delta_pos = (waypoint[:3] - obs['observation']
-    #                      [:3]) / 0.01 / self.SCALING
-    #         delta_yaw = (waypoint[3] - obs['observation'][5]).clip(-0.4, 0.4)
-    #         if np.abs(delta_pos).max() > 1:
-    #             delta_pos /= np.abs(delta_pos).max()
-    #         scale_factor = 0.4
-    #         delta_pos *= scale_factor
-    #         action = np.array([delta_pos[0], delta_pos[1],
-    #                           delta_pos[2], delta_yaw, waypoint[4]])
-    #         print("dddd", delta_pos)
-    #         if np.linalg.norm(delta_pos) * 0.01 / scale_factor < 1e-4 and np.abs(delta_yaw) < 1e-2:
-    #             self._waypoints[i] = None
-    #         break
-
-    #     return action
 
     def _env_setup(self):
         asset_path = (
@@ -333,7 +285,7 @@ class GraspAnyV2(PsmEnv):
         if self._on_plane:
             M1 = Euler2M([0, 0, pose[5]], convension="xyz", degrees=True)
         else:
-            if self._stuff_free_rot:
+            if not self._horizontal_stuff:
                 _m1 = Euler2M([pose[3], 0, 0], convension="xyz", degrees=True)
                 _m2 = Euler2M([0, pose[4], 0], convension="xyz", degrees=True)
                 _m3 = Euler2M([0, 0, pose[5]], convension="xyz", degrees=True)
@@ -399,16 +351,16 @@ class GraspAnyV2(PsmEnv):
             [
                 pos_obj[0],
                 pos_obj[1],
-                pos_obj[2] + 0.01 * self.SCALING,
+                pos_obj[2] + 0.01 * self.SCALING if self.tilt_angle==0 else pos_obj[2] + 0.002 * self.SCALING,
                 yaw,
                 1,
             ]
-        )  # approach
+        )  # approachc
         self._WAYPOINTS[1] = np.array(
             [
                 pos_obj[0],
                 pos_obj[1],
-                pos_obj[2] - 0.002 * self.SCALING,
+                pos_obj[2] - 0.002 * self.SCALING if self.tilt_angle==0 else pos_obj[2] - 0.006 * self.SCALING,
                 yaw,
                 1,
             ]
@@ -530,8 +482,6 @@ class GraspAnyV2(PsmEnv):
     def keyobj_ids(
         self,
     ):
-        # from gym_ras.tool.pybullet_tool import get_obj_links
-        # print(get_obj_links(self.psm1.body))
         return {
             "psm1": self.psm1.body,
             "stuff": self.obj_id,

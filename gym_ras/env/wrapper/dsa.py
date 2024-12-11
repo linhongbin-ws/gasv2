@@ -1,4 +1,5 @@
 from gym_ras.env.wrapper.base import BaseWrapper
+from gym_ras.tool.common import scale_arr
 import numpy as np
 import cv2
 
@@ -327,7 +328,25 @@ class DSA(BaseWrapper):
                 zoom_box_x, zoom_box_y, zoom_box_length, zoom_mask.shape
             )
 
-            layers[1] = img["occup_zimage"]["psm1"][0]
+            dimgs = []
+            for _k, _v in img["occup_zimage"].items():
+                a = _v[0].copy()
+                a = a.astype(int)
+                a[np.logical_not(_v[1])] = 256
+                dimgs.append(a)
+            layers[1] = np.minimum(*dimgs)
+            layers[1][layers[1]==256] = 0
+            layers[1] = layers[1].astype(np.uint8)
+            ct = np.median(img["occup_zimage"]["psm1"][0][img["occup_zimage"]["psm1"][1]])
+            lb = ct-255/2*self._zoom_box_fix_length_ratio
+            hb = ct+255/2*self._zoom_box_fix_length_ratio
+
+            layers[1] = scale_arr(layers[1], 
+                                  lb,
+                                 hb,
+                                 0,255)
+            layers[1] = np.clip(layers[1], 0,255).astype(np.uint8)
+            
             layers[1] = self._zoom_legal(
                 layers[1], zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max
             )
@@ -389,12 +408,6 @@ class DSA(BaseWrapper):
     def is_out_dsa_zoom(self,):
         return self._out_zoom
 
-    @staticmethod
-    def _scale_arr(_input, old_min, old_max, new_min, new_max):
-        _in = _input
-        _in = np.divide(_input-old_min, old_max-old_min)
-        _in = np.multiply(_in, new_max-new_min) + new_min
-        return _in
 
     def _zoom_legal(self, in_mat, x_min, x_max, y_min, y_max):
         zoom_mat = in_mat[x_min:x_max+1,

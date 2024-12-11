@@ -117,50 +117,6 @@ default:
       cam_dynamic_noise_scale: 0.0
       dr_scale_train: 1
       dr_scale_eval: 1
-      needle_pick:
-        fix_goal: true
-        noise_scale: 1.0
-        done_z_thres: 0.2
-        init_pose_ratio_low_gripper: [-0.5, -0.5, -0.5, -0.9]
-        init_pose_ratio_high_gripper: [0.5, 0.5, 0.5, 0.9]
-        init_pose_ratio_low_needle: [-0.5, -0.5, 0.1, -0.99]
-        init_pose_ratio_high_needle: [0.5, 0.5, 0.5, 0.99]
-        random_obj_vis: false
-        depth_distance: 0.3
-      gauze_retrieve:
-        fix_goal: true
-        noise_scale: 1.0
-        done_z_thres: 0.2
-        init_pose_ratio_low_gripper: [-0.5, -0.5, -0.5, -0.9]
-        init_pose_ratio_high_gripper: [0.5, 0.5, 0.5, 0.9]
-        init_pose_ratio_low_stuff: [-0.5, -0.5, 0.1, -0.99, -0.99, -0.99]
-        init_pose_ratio_high_stuff: [0.5, 0.5, 0.5, 0.99, 0.99, 0.99]
-        random_obj_vis: false
-        depth_distance: 0.3
-      peg_transfer:
-        fix_goal: true
-        noise_scale: 1.0
-        done_z_thres: 0.2
-        init_pose_ratio_low_gripper: [-0.5, -0.5, -0.5, -0.9]
-        init_pose_ratio_high_gripper: [0.5, 0.5, 0.5, 0.9]
-        init_pose_ratio_low_stuff: [-0.5, -0.5, 0.1, -0.99]
-        init_pose_ratio_high_stuff: [0.5, 0.5, 0.5, 0.99]
-        random_obj_vis: false
-        depth_distance: 0.3
-      grasp_any:
-        stuff_name: needle
-        fix_goal: true
-        noise_scale: 1.0
-        done_z_thres: 0.2
-        init_pose_ratio_low_gripper: [-0.5, -0.5, -0.5, -0.9]
-        init_pose_ratio_high_gripper: [0.5, 0.5, 0.5, 0.9]
-        init_pose_ratio_low_stuff: [-0.5, -0.5, 0.1, -0.99]
-        init_pose_ratio_high_stuff: [0.5, 0.5, 0.5, 0.99]
-        random_obj_vis: false
-        depth_distance: 0.3
-        on_plane: true
-        oracle_pos_thres: 1e-3
-        oracle_rot_thres: 3e-1
       grasp_any_v2:
         stuff_name: needle
         fix_goal: true
@@ -176,6 +132,7 @@ default:
         oracle_pos_thres: 15e-4
         oracle_rot_thres: 0.5
         max_grasp_trial: 2
+        horizontal_stuff: False
     dVRKEnv:
       robot_type: 'dvrk'
       grasp_any_v2:
@@ -278,7 +235,7 @@ gasv2_surrol:
         cam_offset_x: 0.0,
         cam_offset_y: 0.0,
         cam_offset_z: -1.0, 
-        cam_offset_rx: 135.0,
+        cam_offset_rx: 160.0,
         cam_offset_ry: 0.0,
         cam_offset_rz: -90.0,     
         cam_cal_file: './config/cam_cal.yaml',   
@@ -399,6 +356,9 @@ no_pid:
 
 no_clutch:
   wrapper.VirtualClutch.start: 0
+
+horizontal_stuff:
+  embodied.SurrolEnv.grasp_any_v2.horizontal_stuff: true
 
 
 action_continuous:
