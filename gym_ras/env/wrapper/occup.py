@@ -65,11 +65,12 @@ class Occup(BaseWrapper):
 
     def render(
         self,
+        debug=False,
     ):
         import time
         start = time.time()
         imgs = self.env.render()
-        print(f"bottom render {time.time() - start}")
+        if debug: print(f"bottom render {time.time() - start}")
         rgb = imgs["rgb"]
         depth = imgs["depReal"]
 
@@ -85,7 +86,7 @@ class Occup(BaseWrapper):
         points = depth_image_to_point_cloud(
             rgb, depth, scale, self._K, pose, encode_mask=encode_mask, tolist=False
         )
-        print(f"to point clouds {time.time() - start}")
+        if debug: print(f"to point clouds {time.time() - start}")
 
         # transform point clouds
         if self._cam_offset_z < 0:
@@ -117,7 +118,7 @@ class Occup(BaseWrapper):
                 )
             ),
         )[:, :3]
-        print(f"before occup {time.time() - start}")
+        if debug: print(f"before occup {time.time() - start}")
 
         # point clouds to occupancy and images
         occup_imgs = {}
@@ -136,11 +137,11 @@ class Occup(BaseWrapper):
                 pc_z_min=self._pc_z_min,
                 pc_z_max=self._pc_z_max,
             )
-            print(f" occup {m_id} {time.time() - start}")
+            if debug: print(f" occup {m_id} {time.time() - start}")
             occup_mats[self._mask_key[m_id]] = occ_mat
             z, z_mask = occup2image(occ_mat, image_type="depth",
                                     background_encoding=255)
-            print(f" occup {m_id} image {time.time() - start}")
+            if debug: print(f" occup {m_id} image {time.time() - start}")
             z = np.uint8(255 - z)
             size = imgs["rgb"].shape[0]
             z = cv2.resize(z, (size,size), interpolation=cv2.INTER_AREA)
@@ -150,7 +151,7 @@ class Occup(BaseWrapper):
         imgs["occup_zimage"] = occup_imgs
         imgs["occup_mat"] = occup_mats
         self._occup_mat = occup_mats
-        print(f"occup render time {time.time() - start}")
+        if debug: print(f"occup render time {time.time() - start}")
         return imgs
 
     def _resize_bool(self, im, size):

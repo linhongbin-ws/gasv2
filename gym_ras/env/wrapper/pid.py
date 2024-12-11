@@ -49,11 +49,11 @@ class PID(BaseWrapper):
                 gs = self.env.occup_grid_size
                 centroids[k] = [
                     np.mean(xs)*gs, np.mean(ys)*gs, np.mean(zs)*gs]
-                print(f"{k} centroid: {centroids[k]}")
+                # print(f"{k} centroid: {centroids[k]}")
             x_err = centroids['psm1'][0]-centroids['stuff'][0] + self._err_offset[0]
             y_err = centroids['psm1'][1]-centroids['stuff'][1] + self._err_offset[1]
             z_err = centroids['psm1'][2]-centroids['stuff'][2] + self._err_offset[2]
-            print(f"Centroid error: {x_err} {y_err} {z_err}")
+            # print(f"Centroid error: {x_err} {y_err} {z_err}")
             obs = {}
             obs['err'] = [x_err, y_err, z_err]
         return obs
@@ -64,7 +64,7 @@ class PID(BaseWrapper):
         x_phase = phase(0)
         y_phase = phase(1)
         z_phase = phase(2)
-        print("phase:", x_phase,y_phase,z_phase)
+        # print("phase:", x_phase,y_phase,z_phase)
         return x_phase or y_phase or z_phase, x_phase, y_phase, z_phase
 
     def _get_pid_action(self, obs, x_phase, y_phase, z_phase):
