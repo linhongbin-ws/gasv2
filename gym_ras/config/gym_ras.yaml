@@ -45,10 +45,10 @@ default:
         pc_z_max: 0.5,    
         cam_offset_x: 0.0,
         cam_offset_y: 0.0,
-        cam_offset_z: -1,
-        cam_offset_rx: 45,
-        cam_offset_ry: 0,
-        cam_offset_rz: 0,     
+        cam_offset_z: -1.0,
+        cam_offset_rx: 45.0,
+        cam_offset_ry: 0.0,
+        cam_offset_rz: 0.0,     
         cam_cal_file: '',   
         cam_fov: 45,  
     }
@@ -253,56 +253,56 @@ gasv2_dvrk:
   embodied.dVRKEnv.grasp_any_v2.psm_init_pose_low_gripper: [-0.8, -0.8, 0.3, 0.8]
   embodied.dVRKEnv.grasp_any_v2.psm_init_pose_high_gripper: [0.8, 0.8, 0.3, 0.8]
   embodied.dVRKEnv.grasp_any_v2.psm_max_step_pos: 0.014
-  embodied.dVRKEnv.grasp_any_v2.psm_max_step_rot: 45.0
+  embodied.dVRKEnv.grasp_any_v2.psm_max_step_rot: 5.0
   embodied.dVRKEnv.grasp_any_v2.done_device: "keyboard"
   embodied.dVRKEnv.grasp_any_v2.arm_names: ["PSM2"]
   embodied.dVRKEnv.grasp_any_v2.reset_random_pose: false
-  wrapper.DSA.zoom_box_fix_length_ratio: 0.6
-  wrapper.DSA.encode_type: occup
-  wrapper.ImageNoise.cutout_all_amount_range: [0.8, 1.0]
-  wrapper.ImageNoise.cutout_depth_amount_range: [1.0, 1.0]
-  wrapper.ImageNoise.cutout_line_num_low: 0
-  wrapper.ImageNoise.cutout_line_num_high: 0
-  wrapper.FSM.dsa_out_zoom_anamaly: true
-  wrapper.TimeLimit: { max_timestep: 80 }
-  wrapper.DepthProcess.skip: false
-  wrapper.DepthProcess.uncert_scale: 1.5
-  wrapper.DepthProcess.edge_detect_thres: 0.002
+  # wrapper.DSA.zoom_box_fix_length_ratio: 0.6
+  # wrapper.DSA.encode_type: occup
+  # wrapper.ImageNoise.cutout_all_amount_range: [0.8, 1.0]
+  # wrapper.ImageNoise.cutout_depth_amount_range: [1.0, 1.0]
+  # wrapper.ImageNoise.cutout_line_num_low: 0
+  # wrapper.ImageNoise.cutout_line_num_high: 0
+  # wrapper.FSM.dsa_out_zoom_anamaly: true
+  # wrapper.TimeLimit: { max_timestep: 80 }
+  # wrapper.DepthProcess.skip: false
+  # wrapper.DepthProcess.uncert_scale: 1.5
+  # wrapper.DepthProcess.edge_detect_thres: 0.002
   # wrapper.DepthProcess.erode_kernel: 0
-  wrapper.OBS.vector_obs_key: ["gripper_state", "fsm_state", "controller_state"]
-  wrapper.OBS.vector2image_type: row
-  wrapper.VirtualClutch.start: 6
+  # wrapper.OBS.vector_obs_key: ["gripper_state", "fsm_state", "controller_state"]
+  # wrapper.OBS.vector2image_type: row
+  # wrapper.VirtualClutch.start: 6
   wrapper.DiscreteAction.pos_action_scale: 0.4
   wrapper.DiscreteAction.rot_action_scale: 1
   wrapper.ImageNoise.skip: true
   wrapper.ActionNoise.noise_scale: 0.0
-  wrapper.TimeLimit.max_timestep: 300
+  # wrapper.TimeLimit.max_timestep: 300
   wrapper.DepthProcess.eval: true
   wrapper.Occup: {
-        occup_h: 150,
-        occup_w: 150,
-        occup_d: 150,
-        pc_x_min: -0.05,
-        pc_x_max: 0.05,
-        pc_y_min: -0.05,
-        pc_y_max: 0.05,
-        pc_z_min: -0.05,
-        pc_z_max: 0.05,    
-        cam_offset_x: 0.0,
-        cam_offset_y: 0.0,
-        cam_offset_z: -1.0, 
-        cam_offset_rx: 51,
-        cam_offset_ry: 0,
-        cam_offset_rz: -5,     
+        # occup_h: 150,
+        # occup_w: 150,
+        # occup_d: 150,
+        pc_x_min: -0.1,
+        pc_x_max: 0.1,
+        pc_y_min: -0.1,
+        pc_y_max: 0.1,
+        pc_z_min: -0.1,
+        pc_z_max: 0.1,    
+        # cam_offset_x: 0.0,
+        # cam_offset_y: 0.0,
+        cam_offset_z: -0.138, 
+        # cam_offset_rx: 160.0,
+        # cam_offset_ry: 0.0,
+        # cam_offset_rz: -90.0,     
         cam_cal_file: './config/cam_cal.yaml',   
-        cam_fov: 45,  
+        # cam_fov: 45,  
   }
-  wrapper.PID: {
-          # obs_type: occup,
-          control_p: 40.0,
-          phase_thres: [0.02, 0.02, 0.01],
-          err_offset: [0.0,  0.0, 0.01],  
-    }
+  # wrapper.PID: {
+  #         # obs_type: occup,
+  #         control_p: 40.0,
+  #         phase_thres: [0.02, 0.02, 0.01],
+  #         err_offset: [0.0,  0.0, 0.01],  
+  #   }
 
 dsa1:
     # wrapper.DSA.encoding_id_stuff: 200

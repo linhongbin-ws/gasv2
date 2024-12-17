@@ -53,7 +53,7 @@ class GraspAny(gym.Env):
                     "ws_x": ws_x,
                     "ws_y": ws_y,
                     "ws_z": ws_z,
-                    "action_mode": 'yaw',
+                    # "action_mode": 'yaw',
                     "reset_q": psm_reset_q,
                     "open_gripper_deg": psm_open_gripper_deg,
                     "init_gripper_quat": psm_init_gripper_quat,
@@ -160,6 +160,7 @@ class GraspAny(gym.Env):
     def reset_pose(self):
         _psm = self._arms[self._arm_names[0]]
         _psm.reset_pose()
+        _psm.move_gripper_init_pose()
 
     def reset(self,):
         _psm = self._arms[self._arm_names[0]]

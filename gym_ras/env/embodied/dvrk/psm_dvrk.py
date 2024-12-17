@@ -1,6 +1,6 @@
 
 from dvrk import psm
-from gym_ras.tool.common import TxT, invT, getT, T2Quat, scale_arr, M2Euler, wrapAngleRange, Euler2M, printT, Quat2M, M2Quat
+from gym_ras.tool.common import TxT, invT, getT, T2Quat, scale_arr, M2Euler, wrapAngleRange, Euler2M, printT, Quat2M, M2Quat, T2Euler
 from gym_ras.tool.kdl_tool import Frame2T, Quaternion2Frame, gen_interpolate_frames, T2Frame
 import numpy as np
 import gym
@@ -8,9 +8,10 @@ import gym
 
 class SinglePSM():
     ACTION_SIZE = 5
+    tilt_angle = -45
 
     def __init__(self,
-                 action_mode='yaw',
+                 action_mode='yaw_tilt',
                  arm_name='PSM1',
                  max_step_pos=0.02,
                  max_step_rot=20,
@@ -40,7 +41,11 @@ class SinglePSM():
         self._init_pose_low_gripper = init_pose_low_gripper
         self._init_pose_high_gripper = init_pose_high_gripper
         self.seed = 0
-
+        self._tip_pose_local = None
+        if self._action_mode == 'yaw_tilt':
+            tilt_mat1 = getT([0,0,0], [self.tilt_angle,0, 0], rot_type="euler", euler_Degrees=True)
+            tilt_mat2 = getT([0,0,0], [0, 0, 0], rot_type="euler", euler_Degrees=True)
+            self.tilt_mat = np.matmul(tilt_mat1, tilt_mat2)
     @property
     def seed(self):
         return self._seed
@@ -69,6 +74,8 @@ class SinglePSM():
         else:
             self._psm.move_cp(frame2).wait() if block else self._psm.move_cp(frame2)
         
+        self.tip_pose_local = T
+        
     def move_gripper_init_pose(self):
         pos_rel = self._gripper_pose_rng.uniform(
             self._init_pose_low_gripper, self._init_pose_high_gripper)
@@ -79,20 +86,21 @@ class SinglePSM():
 
         pose = scale_arr(pos_rel, -np.ones(pos_rel.shape),
                          np.ones(pos_rel.shape), new_low, new_high)
-        # print("pose,", pose)
         M = Quat2M(self._init_gripper_quat)
-
         M1 = Euler2M([0, 0, pose[3]], convension="xyz", degrees=True)
         M2 = np.matmul(M1, M)
+        print("++++++++++++++++++++++++++++++++++++")
+        print(f"init euler: {M2Euler(M2, degrees=True)}")
+        if self._action_mode == 'yaw_tilt':
+            _T = np.eye(4)
+            _T[:3,:3] = M2
+            M2 = TxT([_T, self.tilt_mat])[:3,:3]
         quat = M2Quat(M2)
         pos = pose[:3]
         T = getT(pos_list=pos, rot_list=quat,)
         action_rcm = TxT([invT(self._world2base), T])
-        # pos, quat = T2Quat(action_rcm)
-        # frame = Quaternion2Frame(*pos, *quat)
-
         self.moveT_local(action_rcm, interp_num=-1)
-        # self._psm.move_cp(frame).wait()
+
 
     def reset_pose(self):
         self._psm.jaw.move_jp(np.deg2rad(self._open_gripper_deg)).wait()
@@ -152,9 +160,14 @@ class SinglePSM():
 
     @property
     def tip_pose_local(self):
-        T = Frame2T(self._psm.setpoint_cp())
-        # printT(T, prefix_string="tip_pose_local")
-        return T
+        if self._tip_pose_local is None:
+            self._tip_pose_local = Frame2T(self._psm.setpoint_cp())
+        
+        return self._tip_pose_local
+    
+    @tip_pose_local.setter
+    def tip_pose_local(self, T):
+        self._tip_pose_local = T
     
     def _set_action(self, action: np.ndarray):
         """
@@ -164,36 +177,42 @@ class SinglePSM():
         assert len(
             action) == self.ACTION_SIZE, "The action should have the save dim with the ACTION_SIZE"
         action = action.copy()  # ensure that we don't change the action outside of this scope
-        print("step action", action)
+        # print("step action", action)
         # position, limit maximum change in position
-        action[:3] *= self._max_step_pos
-        pose_world = self.tip_pose
-        pose_world[:3, 3] = np.clip(
-            pose_world[:3, 3] + action[:3], self.workspace_limit[:, 0], self.workspace_limit[:, 1])
-        rot = M2Euler(pose_world[:3, :3], convension="xyz", degrees=False)
-        if self._action_mode == 'yaw':
-            # yaw, limit maximum change in rotation
-            
-            action[3] *= np.deg2rad(self._max_step_rot)
 
-            # print("before wrap", np.rad2deg(rot[2] + action[3]))
-            rot[2] = rot[2] + action[3]
-            # print("after wrap",np.rad2deg(rot[2]))
-            # print(np.rad2deg(rot[2]))
+        if self._action_mode in ['yaw', 'yaw_tilt']:
+            tip_pos = self.tip_pose[:3, 3]
+            if self._action_mode == 'yaw_tilt':
+                tip_rot = M2Euler(TxT([self.tip_pose, invT(self.tilt_mat)])[:3, :3], convension="xyz", degrees=True)
+                tip_rot = np.array(tip_rot)
+                tip_rot_init = M2Euler(Quat2M(self._init_gripper_quat), degrees=True)
+                print(f"tip_rot: {tip_rot}, tip_rot_init: {tip_rot_init}")
+            else:
+                tip_rot = M2Euler(self.tip_pose[:3, :3], convension="xyz", degrees=True)
+                tip_rot = np.array(tip_rot)
+
+            pose_world = np.eye(4)
+            pose_world[:3, 3] = np.clip(
+                                tip_pos + action[:3]*self._max_step_pos, 
+                                self.workspace_limit[:, 0], 
+                                self.workspace_limit[:, 1])
+            
+            # rot = M2Euler(pose_world[:3, :3], convension="xyz", degrees=False)
+            # euler = M2Euler(Quat2M(self._init_gripper_quat), degrees=True)
+            tip_rot[2] = tip_rot[2] + action[3]*self._max_step_rot
+            pose_world[:3, :3] = Euler2M(tip_rot, convension="xyz", degrees=True)
+            if self._action_mode == 'yaw_tilt':
+                pose_world[:3, :3] = TxT([pose_world, self.tilt_mat])[:3, :3]
+
         elif self._action_mode == 'pitch':
             raise NotImplementedError
         else:
             raise NotImplementedError
-        pose_world[:3, :3] = Euler2M(rot, convension="xyz", degrees=False)
+
         action_rcm = TxT([invT(self._world2base), pose_world])
-        # print("global rot", np.rad2deg(rot))
         rot = M2Euler(action_rcm[:3, :3], convension="xyz", degrees=True)
-        # print("local rot", rot)
         rot[2] = wrapAngleRange(rot[2], -270, -90)
-        # print("local rot after wrap", rot)
         action_rcm[:3, :3] = Euler2M(rot, convension="xyz", degrees=True)
-        # time1 = time.time()
-        # printT(action_rcm, "moveT")
         pos, quat = T2Quat(action_rcm)
         pos = np.array(pos)
         pos = pos.tolist()
