@@ -250,10 +250,12 @@ gasv2_dvrk:
   embodied.dVRKEnv.grasp_any_v2.cam_segment_tool: "track_any"
   embodied.dVRKEnv.grasp_any_v2.cam_segment_model_dir: "./data/dvrk_cal/color_seg_cal.yaml"
   embodied.dVRKEnv.grasp_any_v2.rgbd_device: "stereo"
-  embodied.dVRKEnv.grasp_any_v2.psm_init_pose_low_gripper: [-0.8, -0.8, 0.3, 0.8]
-  embodied.dVRKEnv.grasp_any_v2.psm_init_pose_high_gripper: [0.8, 0.8, 0.3, 0.8]
-  embodied.dVRKEnv.grasp_any_v2.psm_max_step_pos: 0.014
-  embodied.dVRKEnv.grasp_any_v2.psm_max_step_rot: 5.0
+  # embodied.dVRKEnv.grasp_any_v2.psm_init_pose_low_gripper: [-0.8, -0.8, 0.3, 0.8]
+  # embodied.dVRKEnv.grasp_any_v2.psm_init_pose_high_gripper: [0.8, 0.8, 0.3, 0.8]
+  embodied.dVRKEnv.grasp_any_v2.psm_init_pose_low_gripper: [0.0, 0.0, 0.0, 0.0]
+  embodied.dVRKEnv.grasp_any_v2.psm_init_pose_high_gripper: [0.0, 0.0, 0.0, 0.0]
+  embodied.dVRKEnv.grasp_any_v2.psm_max_step_pos: 0.01
+  embodied.dVRKEnv.grasp_any_v2.psm_max_step_rot: 45.0
   embodied.dVRKEnv.grasp_any_v2.done_device: "keyboard"
   embodied.dVRKEnv.grasp_any_v2.arm_names: ["PSM2"]
   embodied.dVRKEnv.grasp_any_v2.reset_random_pose: false

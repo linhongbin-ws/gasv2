@@ -3,12 +3,13 @@ from dvrk import psm
 from gym_ras.tool.common import TxT, invT, getT, T2Quat, scale_arr, M2Euler, wrapAngleRange, Euler2M, printT, Quat2M, M2Quat, T2Euler
 from gym_ras.tool.kdl_tool import Frame2T, Quaternion2Frame, gen_interpolate_frames, T2Frame
 import numpy as np
-import gym
 
 
 class SinglePSM():
     ACTION_SIZE = 5
-    tilt_angle = -45
+    TITLT_ANGLE = -45
+    YAW_LOW = -270
+    YAW_HIGH = -90
 
     def __init__(self,
                  action_mode='yaw_tilt',
@@ -42,71 +43,87 @@ class SinglePSM():
         self._init_pose_high_gripper = init_pose_high_gripper
         self.seed = 0
         self._tip_pose_local = None
+
+        self._gripper_pos = None
+        self._gripper_yaw = None
         if self._action_mode == 'yaw_tilt':
-            tilt_mat1 = getT([0,0,0], [self.tilt_angle,0, 0], rot_type="euler", euler_Degrees=True)
+            tilt_mat1 = getT([0,0,0], [0,self.TITLT_ANGLE, 0], rot_type="euler", euler_Degrees=True)
             tilt_mat2 = getT([0,0,0], [0, 0, 0], rot_type="euler", euler_Degrees=True)
-            self.tilt_mat = np.matmul(tilt_mat1, tilt_mat2)
-    @property
-    def seed(self):
-        return self._seed
+            self._tilt_mat = np.matmul(tilt_mat1, tilt_mat2)
 
-    @seed.setter
-    def seed(self, seed):
-        self._seed = seed
-        self.init_rng(seed)
+        
+    def move_gripper_init_pose(self):
 
-    def init_rng(self, seed):
-        gripper_pose_seed = np.uint32(seed)
-        self._gripper_pose_rng = np.random.RandomState(gripper_pose_seed)
-    
-    def moveT(self, T, interp_num=-1):
+        # generate init pose
+        pos_rel = self._gripper_pose_rng.uniform(
+            self._init_pose_low_gripper, self._init_pose_high_gripper)
+        ws = self.workspace_limit
+        new_low = np.array([ws[0][0], ws[1][0], ws[2][0], self.YAW_LOW])
+        new_high = np.array([ws[0][1], ws[1][1], ws[2][1], self.YAW_HIGH])
+        pose = scale_arr(pos_rel, -np.ones(pos_rel.shape),
+                         np.ones(pos_rel.shape), new_low, new_high)
+        self._gripper_pos = pose[:3]
+        self._gripper_yaw = pose[3]
+        T = self._get_T_from_pos_yaw()
+
+        # move to catesian pose
+        self.moveT(T, interp_num=-1)
+
+    def _get_T_from_pos_yaw(self):
+        M = Quat2M(self._init_gripper_quat)
+        M1 = Euler2M([0, 0, self._gripper_yaw], convension="xyz", degrees=True)
+        M2 = np.matmul(M1, M)
+        if self._action_mode == 'yaw_tilt':
+            _T = np.eye(4)
+            _T[:3,:3] = M2
+            M2 = TxT([_T, self._tilt_mat])[:3,:3]
+        T = np.eye(4)
+        T[:3,:3] = M2
+        T[:3, 3] = self._gripper_pos
+        return T
+
+    def reset_pose(self):
+        q = np.deg2rad(np.array(self._reset_q))
+        q[2] = self._reset_q[2]
+        self._psm.jaw.move_jp(np.deg2rad(self._open_gripper_deg)).wait()
+        self._psm.move_jp(q).wait()
+
+    def _set_action(self, action):
+        assert len(action) == self.ACTION_SIZE, "The action should have the save dim with the ACTION_SIZE"
+        action = action.copy()
+
+        if self._action_mode in ['yaw', 'yaw_tilt']:
+            new_gripper_pos =  self._gripper_pos + action[:3]*self._max_step_pos
+            new_gripper_pos = np.clip(new_gripper_pos, self.workspace_limit[:, 0], self.workspace_limit[:, 1])
+            new_gripper_yaw = self._gripper_yaw + action[3]*self._max_step_rot
+            new_gripper_yaw = wrapAngleRange(new_gripper_yaw, self.YAW_LOW,  self.YAW_HIGH)
+            self._gripper_pos = new_gripper_pos
+            self._gripper_yaw = new_gripper_yaw
+            T = self._get_T_from_pos_yaw()
+        else:
+            raise NotImplementedError
+
+        # actuate
+        self.moveT(T, interp_num=-1, block=False)
+        if action[4] < 0:
+            self._psm.jaw.close().wait()
+        else:
+            self._psm.jaw.move_jp(np.deg2rad(self._open_gripper_deg)).wait()
+
+    def moveT(self, T, interp_num=-1, block=True):
         T_local = TxT([invT(self._world2base), T])
-        self.moveT_local(T_local, interp_num)
+        self.moveT_local(T_local, interp_num, block=block)
 
     def moveT_local(self, T, interp_num=-1, block=True):
-        T_origin = self.tip_pose_local
-        frame1 = T2Frame(T_origin)
         frame2 = T2Frame(T)
         if interp_num>0:
+            frame1 = T2Frame(self.tip_pose_local)
             frames = gen_interpolate_frames(frame1, frame2,num=interp_num)
             for i, f in enumerate(frames):
                 self._psm.move_cp(f).wait()
         else:
             self._psm.move_cp(frame2).wait() if block else self._psm.move_cp(frame2)
-        
         self.tip_pose_local = T
-        
-    def move_gripper_init_pose(self):
-        pos_rel = self._gripper_pose_rng.uniform(
-            self._init_pose_low_gripper, self._init_pose_high_gripper)
-        ws = self.workspace_limit
-        new_low = np.array([ws[0][0], ws[1][0], ws[2][0], -180])
-        new_high = np.array([ws[0][1], ws[1][1], ws[2][1], 180])
-        # print("workspace:", ws)
-
-        pose = scale_arr(pos_rel, -np.ones(pos_rel.shape),
-                         np.ones(pos_rel.shape), new_low, new_high)
-        M = Quat2M(self._init_gripper_quat)
-        M1 = Euler2M([0, 0, pose[3]], convension="xyz", degrees=True)
-        M2 = np.matmul(M1, M)
-        print("++++++++++++++++++++++++++++++++++++")
-        print(f"init euler: {M2Euler(M2, degrees=True)}")
-        if self._action_mode == 'yaw_tilt':
-            _T = np.eye(4)
-            _T[:3,:3] = M2
-            M2 = TxT([_T, self.tilt_mat])[:3,:3]
-        quat = M2Quat(M2)
-        pos = pose[:3]
-        T = getT(pos_list=pos, rot_list=quat,)
-        action_rcm = TxT([invT(self._world2base), T])
-        self.moveT_local(action_rcm, interp_num=-1)
-
-
-    def reset_pose(self):
-        self._psm.jaw.move_jp(np.deg2rad(self._open_gripper_deg)).wait()
-        q = np.deg2rad(np.array(self._reset_q))
-        q[2] = self._reset_q[2]
-        self._psm.move_jp(q).wait()
 
     def step(self, action):
         self._set_action(action)
@@ -150,9 +167,6 @@ class SinglePSM():
     def act_space(self):
         return [-np.ones(self.ACTION_SIZE), np.ones(self.ACTION_SIZE)]
 
-    @property
-    def tip_pose_quat(self):
-        return T2Quat(self.tip_pose)
 
     @property
     def tip_pose(self):
@@ -169,64 +183,21 @@ class SinglePSM():
     def tip_pose_local(self, T):
         self._tip_pose_local = T
     
-    def _set_action(self, action: np.ndarray):
-        """
-        delta_position (3), delta_theta (1) and open/close the gripper (1)
-        in the world frame
-        """
-        assert len(
-            action) == self.ACTION_SIZE, "The action should have the save dim with the ACTION_SIZE"
-        action = action.copy()  # ensure that we don't change the action outside of this scope
-        # print("step action", action)
-        # position, limit maximum change in position
 
-        if self._action_mode in ['yaw', 'yaw_tilt']:
-            tip_pos = self.tip_pose[:3, 3]
-            if self._action_mode == 'yaw_tilt':
-                tip_rot = M2Euler(TxT([self.tip_pose, invT(self.tilt_mat)])[:3, :3], convension="xyz", degrees=True)
-                tip_rot = np.array(tip_rot)
-                tip_rot_init = M2Euler(Quat2M(self._init_gripper_quat), degrees=True)
-                print(f"tip_rot: {tip_rot}, tip_rot_init: {tip_rot_init}")
-            else:
-                tip_rot = M2Euler(self.tip_pose[:3, :3], convension="xyz", degrees=True)
-                tip_rot = np.array(tip_rot)
 
-            pose_world = np.eye(4)
-            pose_world[:3, 3] = np.clip(
-                                tip_pos + action[:3]*self._max_step_pos, 
-                                self.workspace_limit[:, 0], 
-                                self.workspace_limit[:, 1])
-            
-            # rot = M2Euler(pose_world[:3, :3], convension="xyz", degrees=False)
-            # euler = M2Euler(Quat2M(self._init_gripper_quat), degrees=True)
-            tip_rot[2] = tip_rot[2] + action[3]*self._max_step_rot
-            pose_world[:3, :3] = Euler2M(tip_rot, convension="xyz", degrees=True)
-            if self._action_mode == 'yaw_tilt':
-                pose_world[:3, :3] = TxT([pose_world, self.tilt_mat])[:3, :3]
+    @property
+    def seed(self):
+        return self._seed
 
-        elif self._action_mode == 'pitch':
-            raise NotImplementedError
-        else:
-            raise NotImplementedError
+    @seed.setter
+    def seed(self, seed):
+        self._seed = seed
+        self.init_rng(seed)
 
-        action_rcm = TxT([invT(self._world2base), pose_world])
-        rot = M2Euler(action_rcm[:3, :3], convension="xyz", degrees=True)
-        rot[2] = wrapAngleRange(rot[2], -270, -90)
-        action_rcm[:3, :3] = Euler2M(rot, convension="xyz", degrees=True)
-        pos, quat = T2Quat(action_rcm)
-        pos = np.array(pos)
-        pos = pos.tolist()
-        goal = Quaternion2Frame(*pos, *quat)
+    def init_rng(self, seed):
+        gripper_pose_seed = np.uint32(seed)
+        self._gripper_pose_rng = np.random.RandomState(gripper_pose_seed)
 
-        # self._psm.move_cp(goal).wait()
-        self.moveT_local(Frame2T(goal), interp_num=-1, block=False)
-
-        # jaw
-        if action[4] < 0:
-            self._psm.jaw.close().wait()
-        else:
-            # open jaw angle; can tune
-            self._psm.jaw.move_jp(np.deg2rad(self._open_gripper_deg)).wait()
 
     def __del__(self):
         del self._psm
