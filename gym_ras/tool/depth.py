@@ -133,9 +133,12 @@ def occup2image(occ_mat, image_type='projection', background_encoding=255
         raise NotImplementedError
 
 def edge_detection(depth, segmask, depth_thres=0.003, debug=False):
+    print(f"depth_thres: {depth_thres}")
     _depth = depth.copy()
     seg_depth = depth.copy()
     seg_depth[np.logical_not(segmask)] = 0
+
+    # find center index in the mask
     idx_mat = np.stack([np.arange(seg_depth.shape[1])]*seg_depth.shape[0], axis=0)
     center_idxs = []
     for i in range(segmask.shape[0]):
@@ -147,6 +150,7 @@ def edge_detection(depth, segmask, depth_thres=0.003, debug=False):
             c = np.int(c)
         center_idxs.append(c)
     
+    # find convex index in the mask
     convex_rows = []
     seg_rows = []
     for i in range(segmask.shape[0]):
@@ -157,38 +161,16 @@ def edge_detection(depth, segmask, depth_thres=0.003, debug=False):
         convex_rows.append(cvx_cnt==1)
         seg_rows.append(cvx_cnt>=1)
 
-    for i in range(segmask.shape[0]):
-        if seg_rows[i]:
-            _depth[i][segmask[i]] = np.min(_depth[i][segmask[i]])
-
-
-    return _depth, segmask
-    # center_idxs[np.logical_not(segmask)] = 0 
-    # center_idx = np.int(center_idxs[segmask].mean())
+    # create left mask
     left_arr1 = depth[:,1:]
     left_arr2 = depth[:,:-1]
     err = np.abs(left_arr1 - left_arr2)
-    # imshow(err)
-    # plt.colorbar()
-    # show()
     for i, c in enumerate(center_idxs):
         if c == -1:
             err[i][:] = 0
         else:
             err[i][c:] = 0
-    # imshow(err)
-    # plt.colorbar()
-    # show()
     left_mask = err > depth_thres
-
-    # plt.subplot(1,2, 1)
-    # imshow(left_mask)
-    # plt.colorbar()
-    # plt.subplot(1,2, 2)
-    # imshow(seg_depth)
-    # plt.colorbar()
-    # show()
-
     idx_mat1 = idx_mat[:,1:].copy()
     idx_mat1[np.logical_not(left_mask)] = -1
     boundary = np.max(idx_mat1, axis=1)
@@ -203,38 +185,16 @@ def edge_detection(depth, segmask, depth_thres=0.003, debug=False):
             out_mask_left[i,:] = segmask[i]
     out_mask_left[np.logical_not(segmask)] = False
     
-    # plt.subplot(1,2, 1)
-    # imshow(out_mask_left)
-    # plt.colorbar()
-    # plt.subplot(1,2, 2)
-    # imshow(seg_depth)
-    # plt.colorbar()
-    # show()
-            
+    # create right mask
     right_arr1 = depth[:,:-1]
     right_arr2 = depth[:,1: ]
     err = np.abs(right_arr1 - right_arr2)
-    # imshow(err)
-    # plt.colorbar()
-    # show()
     for i, c in enumerate(center_idxs):
         if c == -1:
             err[i][:] = 0
         else:
             err[i][:c+1] = 0
-    # imshow(err)
-    # plt.colorbar()
-    # show()
     right_mask = err > depth_thres
-
-    # plt.subplot(1,2, 1)
-    # imshow(right_mask)
-    # plt.colorbar()
-    # plt.subplot(1,2, 2)
-    # imshow(seg_depth)
-    # plt.colorbar()
-    # show()
-
     idx_mat1 = idx_mat[:,:-1].copy()
     s = idx_mat1.shape[1]
     idx_mat1[np.logical_not(right_mask)] = s
@@ -250,8 +210,8 @@ def edge_detection(depth, segmask, depth_thres=0.003, debug=False):
             out_mask_right[i,:] = segmask[i]
     out_mask_right[np.logical_not(segmask)] = False
     
+    # merge left and right masks
     out_mask = np.logical_and(out_mask_left, out_mask_right)
-
     seg_depth_out = seg_depth.copy()
     seg_depth_out[np.logical_not(out_mask)] = 0
 
@@ -274,9 +234,4 @@ def edge_detection(depth, segmask, depth_thres=0.003, debug=False):
         imshow(seg_depth_out)
         plt.colorbar()
         show()
-    
-
-    
-
-        
     return _depth, out_mask

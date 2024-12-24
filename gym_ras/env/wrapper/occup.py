@@ -50,10 +50,19 @@ class Occup(BaseWrapper):
         if cam_cal_file != "":
             fs = cv2.FileStorage(cam_cal_file, cv2.FILE_STORAGE_READ)
             fn_M1 = fs.getNode("M1").mat()
-            fn_M1[0][0] = fn_M1[1][1]
-            fn_M1[0][2] = fn_M1[1][2]
+            # fn_M1[0][0] = fn_M1[1][1]
+            # fn_M1[0][2] = fn_M1[1][2]
+
+            # fn_M1[1][1] = fn_M1[0][0]
+            # fn_M1[1][2] = fn_M1[0][2] 
             # print("instrinsic matrisxx: ", fn_M1)
-            self._K = fn_M1
+            self._K = np.zeros((3,3))
+            self._K[1][1] = fn_M1[0][0]
+            self._K[0][0] = fn_M1[1][1]
+            self._K[0][2] = 300
+            self._K[1][2] = 300
+            # self._K = self._K/10
+            print(f"read cam_cal_file {cam_cal_file}, K: {self._K}")
         else:
             self._K = self.unwrapped.instrinsic_K
 
@@ -65,7 +74,7 @@ class Occup(BaseWrapper):
 
     def render(
         self,
-        debug=False,
+        debug=True,
     ):
         import time
         start = time.time()
@@ -86,6 +95,7 @@ class Occup(BaseWrapper):
         points = depth_image_to_point_cloud(
             rgb, depth, scale, self._K, pose, encode_mask=encode_mask, tolist=False
         )
+        if debug: print(f"pc: {points[:3,:]}")
         if debug: print(f"to point clouds {time.time() - start}")
 
         # transform point clouds

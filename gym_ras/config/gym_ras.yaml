@@ -269,8 +269,8 @@ gasv2_dvrk:
   # wrapper.TimeLimit: { max_timestep: 80 }
   # wrapper.DepthProcess.skip: false
   # wrapper.DepthProcess.uncert_scale: 1.5
-  # wrapper.DepthProcess.edge_detect_thres: 0.002
-  # wrapper.DepthProcess.erode_kernel: 0
+  wrapper.DepthProcess.edge_detect_thres: 0.006
+  wrapper.DepthProcess.erode_kernel: 0
   # wrapper.OBS.vector_obs_key: ["gripper_state", "fsm_state", "controller_state"]
   # wrapper.OBS.vector2image_type: row
   # wrapper.VirtualClutch.start: 6
@@ -293,9 +293,9 @@ gasv2_dvrk:
         # cam_offset_x: 0.0,
         # cam_offset_y: 0.0,
         cam_offset_z: -0.138, 
-        # cam_offset_rx: 160.0,
-        # cam_offset_ry: 0.0,
-        # cam_offset_rz: -90.0,     
+        cam_offset_rx: 160,
+        cam_offset_ry: 0.0,
+        cam_offset_rz: -90.0,     
         cam_cal_file: './config/cam_cal.yaml',   
         # cam_fov: 45,  
   }

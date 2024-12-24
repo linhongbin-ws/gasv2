@@ -14,6 +14,7 @@ class DepthProcess(BaseWrapper):
                 #  edge_dectection=True,
                  edge_detect_thres=0.0,
                  depth_image_range = 0.05,
+                 erode_keys=['psm1'],
                  **kwargs,
                  ):
         super().__init__(env)
@@ -23,6 +24,7 @@ class DepthProcess(BaseWrapper):
         self._erode_kernel = erode_kernel
         self._edge_detect_thres = edge_detect_thres
         self._depth_image_range = depth_image_range
+        self._erode_keys = erode_keys
 
 
     def render(self, ):
@@ -59,7 +61,10 @@ class DepthProcess(BaseWrapper):
     def _erode_mask(self, masks):
         new_mask = {}
         for k,v in masks.items():
-            new_mask[k] = self._erode_func(v)
+            if k in self._erode_keys:
+                new_mask[k] = self._erode_func(v)
+            else:
+                new_mask[k] = v
         return new_mask
 
     def _erode_func(self, mask):
