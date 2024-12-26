@@ -7,10 +7,6 @@ import numpy as np
 
 class SinglePSM():
     ACTION_SIZE = 5
-    TITLT_ANGLE = -45
-    YAW_LOW = -270
-    YAW_HIGH = -90
-
     def __init__(self,
                  action_mode='yaw_tilt',
                  arm_name='PSM1',
@@ -27,6 +23,15 @@ class SinglePSM():
                  reset_q=[0, 0, 0.12, 0, 0, 0],
                  ):
         assert arm_name in ["PSM1", "PSM2", "PSM3",]
+        if arm_name == "PSM1":
+            self.TITLT_ANGLE = 45
+            self.YAW_LOW = -180
+            self.YAW_HIGH = -45
+        elif arm_name == "PSM2":
+            self.TITLT_ANGLE = -45
+            self.YAW_LOW = -270
+            self.YAW_HIGH = -90
+
         self._psm = psm(arm_name)
         self._action_mode = action_mode
         self._world2base = getT([0, 0, 0], [0, 0, world2base_yaw],

@@ -259,10 +259,10 @@ gasv2_dvrk:
   embodied.dVRKEnv.grasp_any_v2.psm_max_step_pos: 0.01
   embodied.dVRKEnv.grasp_any_v2.psm_max_step_rot: 45.0
   embodied.dVRKEnv.grasp_any_v2.done_device: "keyboard"
-  embodied.dVRKEnv.grasp_any_v2.arm_names: ["PSM2"]
+  embodied.dVRKEnv.grasp_any_v2.arm_names: ["PSM1"]
   embodied.dVRKEnv.grasp_any_v2.reset_random_pose: false
   wrapper.PID: {
-          # control_p: 1.0,
+          control_p: 10.0,
           phase_thres: [0.02, 0.02, 0.02],
           err_offset: [0.0,  0.0, -0.02],  
     }
@@ -288,9 +288,9 @@ gasv2_dvrk:
   # wrapper.TimeLimit.max_timestep: 300
   wrapper.DepthProcess.eval: true
   wrapper.Occup: {
-        occup_h: 100,
-        occup_w: 100,
-        occup_d: 100,
+        # occup_h: 100,
+        # occup_w: 100,
+        # occup_d: 100,
         pc_x_min: -0.1,
         pc_x_max: 0.1,
         pc_y_min: -0.1,
@@ -335,6 +335,9 @@ occup1:
   wrapper.Occup.occup_h: 100
   wrapper.Occup.occup_w: 100
   wrapper.Occup.occup_d: 100
+
+psm2:
+  embodied.dVRKEnv.grasp_any_v2.arm_names: ["PSM2"]
 
 
 gui: 
