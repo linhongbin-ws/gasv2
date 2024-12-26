@@ -28,6 +28,9 @@ def depth_image_to_point_cloud( rgb, depth_real, scale, new_K, pose, encode_mask
     pointSet = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd, 
                                             intrinsic,project_valid_depth_only=False)
     
+    # pointSet,_  = pointSet.remove_statistical_outlier(nb_neighbors=20,
+    #                                                 std_ratio=2.0)
+
 
     points = np.asarray(pointSet.points)
     colors = np.asarray(pointSet.colors)
@@ -48,6 +51,8 @@ def pointclouds2occupancy(pc_mat,
                         pc_y_max,
                         pc_z_min,
                         pc_z_max,
+                        outlier_rm_pts=0,
+                        outlier_rm_radius=0,
                         debug=False,
                           ):
     range_ = pc_x_max - pc_x_min
@@ -73,6 +78,13 @@ def pointclouds2occupancy(pc_mat,
     pointSet = o3d.geometry.PointCloud()
     pointSet.points = o3d.utility.Vector3dVector(_pc_mat[:,:3])
     pointSet.colors = o3d.utility.Vector3dVector(_pc_mat[:,3:6])
+
+    if outlier_rm_pts>0 and outlier_rm_radius>0:
+        # print(f"before point nums: {np.asarray(pointSet.points).shape}")
+        _,ind  =pointSet.remove_radius_outlier(nb_points=outlier_rm_pts, radius=outlier_rm_radius)
+        pointSet = pointSet.select_by_index(ind)
+        # print(f"after point nums: {np.asarray(pointSet.points).shape}")
+
     voxel_grid = o3d.geometry.VoxelGrid.create_from_point_cloud_within_bounds(pointSet, 
                                           voxel_size, 
                                           min_bound, 
