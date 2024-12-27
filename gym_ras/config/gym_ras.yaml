@@ -18,9 +18,9 @@ default:
     DSA:
       {
         zoom_box_obj: psm1,
-        encode_type: general_simple2,
+        encode_type: occup_depth,
         cv_interpolate: area,
-        zoom_box_fix_length_ratio: 0.5,
+        zoom_box_fix_length_ratio: 0.3,
         encoding_id_stuff: 50,
         encoding_id_psm1: 100,
         encoding_id_zoom_box: 30,
@@ -28,206 +28,16 @@ default:
         dense_reward: false,
       }
     VirtualClutch: { start: 6 }
-    ActionNoise: { noise_scale: 0.0 }
-    DiscreteAction: { pos_action_scale: 0.2, rot_action_scale:  0.2,}
-    TimeLimit: { max_timestep: 200 }
-    DepthProcess: { skip: false, uncert_scale: 1.0, eval: false , erode_kernel: 0, edge_detect_thres: 0.0, depth_image_range: 0.05}
-    FSM: { arg: 0 , ensure_norm_reward: false,  dsa_out_zoom_anamaly: false,}
-    Occup: {is_skip: false,
-            occup_h: 60,
-        occup_w: 60,
-        occup_d: 60,
-        pc_x_min: -0.5,
-        pc_x_max: 0.5,
-        pc_y_min: -0.5,
-        pc_y_max: 0.5,
-        pc_z_min: -0.5,
-        pc_z_max: 0.5,    
-        cam_offset_x: 0.0,
-        cam_offset_y: 0.0,
-        cam_offset_z: -1.0,
-        cam_offset_rx: 45.0,
-        cam_offset_ry: 0.0,
-        cam_offset_rz: 0.0,     
-        cam_cal_file: '',   
-        cam_fov: 45,  
-        psm_outlier_rm_radius: 0.0,
-        psm_outlier_rm_pts: 0,
-    }
-    PID: {
-          obs_type: occup,
-          control_p: 10.0,
-          phase_thres: [0.1,0.1,0.05],
-          err_offset: [0.0,0.0,0.1],  
-          skip: false,
-    }
-    OBS:
-      {
-        image_obs_key: ["dsa"],
-        vector_obs_key: ["gripper_state", "fsm_state"],
-        direct_map_key: ["fsm_state"],
-        direct_render_key: ["rgb", "depth"],
-        is_vector2image: true,
-        image_resize: [64, 64],
-        vector2image_type: "row",
-        action_insertion_anamaly: false,
-        cv_interpolate: "area"
-      }
-    ImageNoise:
-      {
-        skip: true,
-        pns_noise_amount: 0.1,
-        pns_noise_balance: 0.5,
-        pns_noise_value: 0.1,
-        uniform_noise_amount: 0.0,
-        gaussian_blur_kernel: 3,
-        gaussian_blur_sigma: 0.8,
-        cutout_all_amount_range: [0.6, 1.0],
-        cutout_depth_amount_range: [0.7, 1.0],
-        cutout_line_num_low: 3,
-        cutout_line_num_high: 10,
-      }
-  task_name: needle_pick
-  embodied_name: SurrolEnv
-  embodied:
-    SurrolEnv:
-      pybullet_gui: false
-      cam_width: 600
-      cam_height: 600
-      mask_background_id: -3
-      depth_remap_range: 0.1
-      depth_remap_range_noise: 0.0
-      depth_remap_center_noise: 0.0
-      cam_target_noise: 0.0
-      cam_distance_noise: 0.0
-      cam_yaw_noise: 0.0
-      cam_pitch_noise: 0.0
-      cam_roll_noise: 0.0
-      cam_up_axis_noise: 0.0
-      background_texture_dir: ""
-      cam_mode: "rgbdm"
-      cam_num: 1
-      no_depth_link: false
-      mask_except_gripper: false
-      reward_done_success: 1
-      reward_done_fail: -0.1
-      reward_prog_norm: -0.001
-      reward_prog_abnorm_1: -0.01
-      reward_prog_abnorm_2: -0.001
-      reward_prog_abnorm_3: -0.001
-      disturbance_scale: 0.0
-      cam_dynamic_noise_scale: 0.0
-      dr_scale_train: 1
-      dr_scale_eval: 1
-      grasp_any_v2:
-        stuff_name: needle
-        fix_goal: true
-        noise_scale: 1.0
-        done_z_thres: 0.2
-        init_pose_ratio_low_gripper: [-0.5, -0.5, -0.5, -0.9]
-        init_pose_ratio_high_gripper: [0.5, 0.5, 0.5, 0.9]
-        init_pose_ratio_low_stuff: [-0.5, -0.5, 0.1, -0.99]
-        init_pose_ratio_high_stuff: [0.5, 0.5, 0.5, 0.99]
-        random_obj_vis: false
-        depth_distance: 0.2
-        on_plane: true
-        oracle_pos_thres: 15e-4
-        oracle_rot_thres: 0.5
-        max_grasp_trial: 2
-        horizontal_stuff: False
-    dVRKEnv:
-      robot_type: 'dvrk'
-      grasp_any_v2:
-        arm_names: ["PSM1"]
-        rgbd_device: "rs435"
-        ws_x: [-0.1, 0.1]
-        ws_y: [-0.1, 0.1]
-        ws_z: [-0.24, 0.0]
-        psm_reset_q: [0.0, 0.0, 0.12, 0.0, 0.0, 0.0]
-        psm_open_gripper_deg: 40.0
-        psm_init_gripper_quat: [7.07106781e-01, 7.07106781e-01, 0.0, 0.0]
-        psm_init_pose_low_gripper: [-0.5, -0.5, -0.5, -0.9]
-        psm_init_pose_high_gripper: [0.5, 0.5, 0.5, 0.9]
-        psm_max_step_pos: 0.01
-        psm_max_step_rot: 20.0
-        cam_image_height: 600
-        cam_image_width: 600
-        cam_depth_remap_center: 0.3
-        cam_depth_remap_range: 0.1
-        dvrk_cal_file: ""
-        cam_segment_tool: ""
-        cam_segment_model_dir: ""
-        cam_cal_file: ""
-        done_cal_file: ""
-        cam_mask_noisy_link: true
-        done_device: ""
-        reset_random_pose: True
-
-
-gasv2_surrol:
-  task_name: grasp_any_v2
-  embodied.SurrolEnv.cam_target_noise: 0
-  embodied.SurrolEnv.cam_distance_noise: 0.01
-  embodied.SurrolEnv.cam_pitch_noise: 0
-  embodied.SurrolEnv.cam_roll_noise: 0
-  embodied.SurrolEnv.cam_up_axis_noise: 0
-  embodied.SurrolEnv.depth_remap_range_noise: 1e-2
-  embodied.SurrolEnv.depth_remap_center_noise: 1e-2
-  embodied.SurrolEnv.reward_prog_abnorm_1: -0.01
-  embodied.SurrolEnv.reward_prog_abnorm_2: -0.01 # sliding
-  embodied.SurrolEnv.reward_prog_abnorm_3: -0.005 # gripper toggling | dsa out
-  embodied.SurrolEnv.reward_done_fail: -0.1
-  embodied.SurrolEnv.reward_prog_norm: -0.001
-  embodied.SurrolEnv.reward_done_success: 1
-  embodied.SurrolEnv.grasp_any_v2.init_pose_ratio_low_gripper: [-0.9, -0.9, -0.8, -0.9]
-  embodied.SurrolEnv.grasp_any_v2.init_pose_ratio_high_gripper: [0.9, 0.9, 0.9, 0.9]
-  embodied.SurrolEnv.grasp_any_v2.init_pose_ratio_low_stuff: [-0.8, -0.8, 0.1, -0.99,-0.99,-0.99]
-  embodied.SurrolEnv.grasp_any_v2.init_pose_ratio_high_stuff: [0.8, 0.8, 0.5, 0.99, 0.99, 0.99]
-  embodied.SurrolEnv.grasp_any_v2.stuff_name: "needle"
-  embodied.SurrolEnv.grasp_any_v2.on_plane: false
-  embodied.SurrolEnv.grasp_any_v2.max_grasp_trial: 1
-  embodied.SurrolEnv.grasp_any_v2.oracle_pos_thres: 15e-4
-  embodied.SurrolEnv.grasp_any_v2.oracle_rot_thres: 0.5
-  embodied.SurrolEnv.disturbance_scale: 0.01
-  embodied.SurrolEnv.cam_dynamic_noise_scale: 0.0
-  wrapper.DSA.zoom_box_fix_length_ratio: 0.3
-  wrapper.DSA.encode_type: general_simple4
-  wrapper.DSA.encoding_id_stuff: 200
-  wrapper.DSA.encoding_id_psm1: 150
-  wrapper.ImageNoise: {
-          skip: false,
-        pns_noise_amount: 0.3,
-        pns_noise_balance: 0.5,
-        pns_noise_value: 0.01,
-        uniform_noise_amount: 0.00,
-        gaussian_blur_kernel: 3,
-        gaussian_blur_sigma: 0.8,
-        cutout_all_amount_range: [1.0, 1.0],
-        cutout_depth_amount_range: [1.0, 1.0],
-        cutout_line_num_low: 0,
-        cutout_line_num_high: 0,
-  }
-  wrapper.FSM.dsa_out_zoom_anamaly: true
-  wrapper.TimeLimit: { max_timestep: 80 }
-  wrapper.ActionNoise.noise_scale: 0.01
-  wrapper.DepthProcess.skip: false
-  wrapper.DepthProcess.uncert_scale: 1.5
-  wrapper.DepthProcess.depth_image_range: 0.25
-  wrapper.OBS.vector_obs_key: ["gripper_state", "fsm_state", "controller_state"]
-  wrapper.OBS.vector2image_type: row
-  wrapper.VirtualClutch.start: 6
-  wrapper.DiscreteAction.pos_action_scale: 0.2
-  wrapper.DiscreteAction.rot_action_scale: 1
-  wrapper.PID: {
-          # obs_type: occup,
-          control_p: 5.0,
-          phase_thres: [0.1, 0.1, 0.1],
-          err_offset: [0.0,  0.0, -0.1],  
-    }
-  wrapper.Occup: {
-        occup_h: 150,
-        occup_w: 150,
-        occup_d: 150,
+    ActionNoise: { noise_scale: 0.01 }
+    DiscreteAction: { pos_action_scale: 0.2, rot_action_scale:  1.0,}
+    TimeLimit: { max_timestep: 80 }
+    DepthProcess: { skip: false, uncert_scale: 1.5, eval: false , erode_kernel: 0, edge_detect_thres: 0.0, depth_image_range: 0.25}
+    FSM: { arg: 0 , ensure_norm_reward: false,  dsa_out_zoom_anamaly: true,}
+    Occup: {
+        is_skip: false,
+        occup_h: 200,
+        occup_w: 200,
+        occup_d: 200,
         pc_x_min: -0.5,
         pc_x_max: 0.5,
         pc_y_min: -0.5,
@@ -241,64 +51,140 @@ gasv2_surrol:
         cam_offset_ry: 0.0,
         cam_offset_rz: -90.0,     
         cam_cal_file: './config/cam_cal.yaml',   
-        cam_fov: 45,  
-  }
+        cam_fov: 45,    
+        psm_outlier_rm_radius: 0.0,
+        psm_outlier_rm_pts: 0,
+    }
+    PID: {
+          obs_type: occup,
+          control_p: 5.0,
+          phase_thres: [0.1, 0.1, 0.1],
+          err_offset: [0.0,  0.0, -0.1],  
+          skip: false,
+    }
+    OBS:
+      {
+        image_obs_key: ["dsa"],
+        vector_obs_key: ["gripper_state", "fsm_state", "controller_state"],
+        direct_map_key: ["fsm_state"],
+        direct_render_key: ["rgb", "depth"],
+        is_vector2image: true,
+        image_resize: [64, 64],
+        vector2image_type: "row",
+        action_insertion_anamaly: false,
+        cv_interpolate: "area"
+      }
+    ImageNoise:
+      {
+        skip: false,
+        pns_noise_amount: 0.3,
+        pns_noise_balance: 0.5,
+        pns_noise_value: 0.01,
+        uniform_noise_amount: 0.00,
+        gaussian_blur_kernel: 3,
+        gaussian_blur_sigma: 0.8,
+        cutout_all_amount_range: [1.0, 1.0],
+        cutout_depth_amount_range: [1.0, 1.0],
+        cutout_line_num_low: 0,
+        cutout_line_num_high: 0,
+      }
+  task_name: grasp_any_v2
+  embodied_name: SurrolEnv
+  embodied:
+    SurrolEnv:
+      pybullet_gui: false
+      cam_width: 600
+      cam_height: 600
+      mask_background_id: -3
+      depth_remap_range: 0.1
+      depth_remap_range_noise: 1e-2
+      depth_remap_center_noise: 1e-2
+      cam_target_noise: 0.0
+      cam_distance_noise: 0.01
+      cam_yaw_noise: 0.0
+      cam_pitch_noise: 0.0
+      cam_roll_noise: 0.0
+      cam_up_axis_noise: 0.0
+      background_texture_dir: ""
+      cam_mode: "rgbdm"
+      cam_num: 1
+      no_depth_link: false
+      mask_except_gripper: false
+      reward_done_success: 1
+      reward_done_fail: -0.1
+      reward_prog_norm: -0.001
+      reward_prog_abnorm_1: -0.01
+      reward_prog_abnorm_2: -0.01 # sliding
+      reward_prog_abnorm_3: -0.005 # gripper toggling | dsa out
+      disturbance_scale: 0.01
+      cam_dynamic_noise_scale: 0.0
+      dr_scale_train: 1
+      dr_scale_eval: 1
+      grasp_any_v2:
+        stuff_name: needle
+        fix_goal: true
+        noise_scale: 1.0
+        done_z_thres: 0.2
+        init_pose_ratio_low_gripper: [-0.9, -0.9, -0.8, -0.9]
+        init_pose_ratio_high_gripper: [0.9, 0.9, 0.9, 0.9]
+        init_pose_ratio_low_stuff: [-0.8, -0.8, 0.1, -0.99,-0.99,-0.99]
+        init_pose_ratio_high_stuff: [0.8, 0.8, 0.5, 0.99, 0.99, 0.99]
+        random_obj_vis: false
+        depth_distance: 0.2
+        on_plane: false
+        oracle_pos_thres: 15e-4
+        oracle_rot_thres: 0.5
+        max_grasp_trial: 1
+        horizontal_stuff: true
+    dVRKEnv:
+      robot_type: 'dvrk'
+      grasp_any_v2:
+        arm_names: ["PSM1"]
+        rgbd_device: "stereo"
+        ws_x: [-0.1, 0.1]
+        ws_y: [-0.1, 0.1]
+        ws_z: [-0.24, 0.0]
+        psm_reset_q: [0.0, 0.0, 0.12, 0.0, 0.0, 0.0]
+        psm_open_gripper_deg: 40.0
+        psm_init_gripper_quat: [7.07106781e-01, 7.07106781e-01, 0.0, 0.0]
+        psm_init_pose_low_gripper: [0.0, 0.0, 0.0, 0.0]
+        psm_init_pose_high_gripper: [0.0, 0.0, 0.0, 0.0]
+        psm_max_step_pos: 0.01
+        psm_max_step_rot: 45.0
+        cam_image_height: 600
+        cam_image_width: 600
+        cam_depth_remap_center: 0.3
+        cam_depth_remap_range: 0.1
+        dvrk_cal_file: "./data/dvrk_cal/dvrk_cal.yaml"
+        cam_segment_tool: "track_any"
+        cam_segment_model_dir: "./data/dvrk_cal/color_seg_cal.yaml"
+        cam_cal_file: ""
+        done_cal_file: ""
+        cam_mask_noisy_link: true
+        done_device: "keyboard"
+        reset_random_pose: false
+
+
 
 gasv2_dvrk:
   task_name: grasp_any_v2
   embodied_name: dVRKEnv
-  embodied.dVRKEnv.robot_type: "dvrk"
-  embodied.dVRKEnv.grasp_any_v2.dvrk_cal_file: "./data/dvrk_cal/dvrk_cal.yaml"
-  embodied.dVRKEnv.grasp_any_v2.cam_segment_tool: "track_any"
-  embodied.dVRKEnv.grasp_any_v2.cam_segment_model_dir: "./data/dvrk_cal/color_seg_cal.yaml"
-  embodied.dVRKEnv.grasp_any_v2.rgbd_device: "stereo"
-  # embodied.dVRKEnv.grasp_any_v2.psm_init_pose_low_gripper: [-0.8, -0.8, 0.3, 0.8]
-  # embodied.dVRKEnv.grasp_any_v2.psm_init_pose_high_gripper: [0.8, 0.8, 0.3, 0.8]
-  embodied.dVRKEnv.grasp_any_v2.psm_init_pose_low_gripper: [0.0, 0.0, 0.0, 0.0]
-  embodied.dVRKEnv.grasp_any_v2.psm_init_pose_high_gripper: [0.0, 0.0, 0.0, 0.0]
-  embodied.dVRKEnv.grasp_any_v2.psm_max_step_pos: 0.01
-  embodied.dVRKEnv.grasp_any_v2.psm_max_step_rot: 45.0
-  embodied.dVRKEnv.grasp_any_v2.done_device: "keyboard"
-  embodied.dVRKEnv.grasp_any_v2.arm_names: ["PSM1"]
-  embodied.dVRKEnv.grasp_any_v2.reset_random_pose: false
   wrapper.PID: {
           control_p: 10.0,
           phase_thres: [0.02, 0.02, 0.02],
           err_offset: [0.0,  0.0, -0.02],  
     }
-  # wrapper.DSA.zoom_box_fix_length_ratio: 0.6
-  # wrapper.DSA.encode_type: occup
-  # wrapper.ImageNoise.cutout_all_amount_range: [0.8, 1.0]
-  # wrapper.ImageNoise.cutout_depth_amount_range: [1.0, 1.0]
-  # wrapper.ImageNoise.cutout_line_num_low: 0
-  # wrapper.ImageNoise.cutout_line_num_high: 0
-  # wrapper.FSM.dsa_out_zoom_anamaly: true
-  # wrapper.TimeLimit: { max_timestep: 80 }
-  # wrapper.DepthProcess.skip: false
-  # wrapper.DepthProcess.uncert_scale: 1.5
-  # wrapper.DepthProcess.edge_detect_thres: 0.0
-  # wrapper.DepthProcess.erode_kernel: 0
-  # wrapper.OBS.vector_obs_key: ["gripper_state", "fsm_state", "controller_state"]
-  # wrapper.OBS.vector2image_type: row
-  # wrapper.VirtualClutch.start: 6
   wrapper.DiscreteAction.pos_action_scale: 0.4
-  wrapper.DiscreteAction.rot_action_scale: 1
   wrapper.ImageNoise.skip: true
   wrapper.ActionNoise.noise_scale: 0.0
-  # wrapper.TimeLimit.max_timestep: 300
   wrapper.DepthProcess.eval: true
   wrapper.Occup: {
-        # occup_h: 100,
-        # occup_w: 100,
-        # occup_d: 100,
         pc_x_min: -0.1,
         pc_x_max: 0.1,
         pc_y_min: -0.1,
         pc_y_max: 0.1,
         pc_z_min: -0.1,
         pc_z_max: 0.1,    
-        # cam_offset_x: 0.0,
-        # cam_offset_y: 0.0,
         cam_offset_z: -0.138, 
         cam_offset_rx: 160,
         cam_offset_ry: 0.0,
@@ -306,35 +192,13 @@ gasv2_dvrk:
         cam_cal_file: './config/cam_cal.yaml',   
         psm_outlier_rm_radius: 0.001,
         psm_outlier_rm_pts: 30,
-        # cam_fov: 45,  
   }
-  # wrapper.PID: {
-  #         # obs_type: occup,
-  #         control_p: 40.0,
-  #         phase_thres: [0.02, 0.02, 0.01],
-  #         err_offset: [0.0,  0.0, 0.01],  
-  #   }
 
-dsa1:
-    # wrapper.DSA.encoding_id_stuff: 200
-    # wrapper.DSA.encoding_id_psm1: 150
-    wrapper.DSA.encode_type: occup
-    wrapper.Occup.occup_h: 200
-    wrapper.Occup.occup_w: 200
-    wrapper.Occup.occup_d: 200
 
-dsa2:
-    # wrapper.DSA.encoding_id_stuff: 200
-    # wrapper.DSA.encoding_id_psm1: 150
-    wrapper.DSA.encode_type: occup_depth
-    wrapper.Occup.occup_h: 200
-    wrapper.Occup.occup_w: 200
-    wrapper.Occup.occup_d: 200
 
-occup1:
-  wrapper.Occup.occup_h: 100
-  wrapper.Occup.occup_w: 100
-  wrapper.Occup.occup_d: 100
+
+################################################
+## other setting that might not work
 
 psm2:
   embodied.dVRKEnv.grasp_any_v2.arm_names: ["PSM2"]
@@ -343,37 +207,17 @@ psm2:
 gui: 
   embodied.SurrolEnv.pybullet_gui: true
 
-################################################
-## other setting that might not work
-dsa_decompose:
-  wrapper.DSA.encode_type: decompose
-  wrapper.OBS.cv_interpolate: area
-  wrapper.OBS.vector2image_type: "row"
-  wrapper.FSM.ensure_norm_reward: true
-  wrapper.DSA.dense_reward: true
-
-grasp_standing_needle:
-  embodied.SurrolEnv.grasp_any.on_plane: false
-  embodied.SurrolEnv.grasp_any.oracle_pos_thres: 15e-4
-  wrapper.ActionNoise.noise_scale: 0.01
-
 timelimit_debug:
   wrapper.TimeLimit: { max_timestep: 1}
 
 no_depth_process:
   wrapper.DepthProcess.skip: True
 
-#########################################
-
 no_pid:
   wrapper.PID.skip: true
 
 no_clutch:
   wrapper.VirtualClutch.start: 0
-
-horizontal_stuff:
-  embodied.SurrolEnv.grasp_any_v2.horizontal_stuff: true
-
 
 action_continuous:
   wrapper:
