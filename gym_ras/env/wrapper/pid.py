@@ -11,6 +11,8 @@ class PID(BaseWrapper):
         phase_thres=[0.1, 0.1, 0.05],
         err_offset=[0.0, 0.0, 0.10],
         skip=False,
+        fsm_z_err_min=-0.02,
+        fsm_z_err_state='prog_abnorm_1',
         **kwargs
     ):
         super().__init__(env, **kwargs)
@@ -19,6 +21,8 @@ class PID(BaseWrapper):
         self._phase_thres = phase_thres
         self._err_offset = err_offset
         self._skip = skip
+        self._fsm_z_err_min = fsm_z_err_min
+        self._fsm_z_err_state = fsm_z_err_state
 
     def reset(self):
         obs = self.env.reset()
@@ -26,16 +30,20 @@ class PID(BaseWrapper):
         return obs
 
     def step(self, action):
-        obs = self._get_pid_observation()
+        pid_obs = self._get_pid_observation()
         pid_phase = False
-        check_phase, x_phase, y_phase, z_phase = self._check_pid_phase(obs)
+        check_phase, x_phase, y_phase, z_phase = self._check_pid_phase(pid_obs)
         if check_phase and (not self._skip):
-            action = self._get_pid_action(obs, x_phase, y_phase, z_phase)
+            action = self._get_pid_action(pid_obs, x_phase, y_phase, z_phase)
             pid_phase = True
 
         obs, reward, done, info = self.env.step(action)
         obs["controller_state"] = 1 if pid_phase else 0
         info["controller_state"] = obs["controller_state"]
+
+        if pid_obs['err'][2] < self._fsm_z_err_min:
+            info['fsm'] =  self._fsm_z_err_state
+            print(f"exceed z err, err: {pid_obs['err'][2]}, thres: {self._fsm_z_err_min}")
         # print("pid state", obs["controller_state"])
         return obs, reward, done, info
 

@@ -61,6 +61,7 @@ default:
           phase_thres: [0.1, 0.1, 0.1],
           err_offset: [0.0,  0.0, -0.1],  
           skip: false,
+          fsm_z_err_min: -0.06,
     }
     OBS:
       {

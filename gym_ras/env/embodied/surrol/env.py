@@ -83,7 +83,7 @@ class SurrolEnv(BaseEnv):
             raise Exception("Not support")
 
         super().__init__(client)
-        if not support_o3d:
+        if (not support_o3d) and (not pybullet_gui):
             import socket
             import pkgutil
             if socket.gethostname().startswith('pc') or True:
