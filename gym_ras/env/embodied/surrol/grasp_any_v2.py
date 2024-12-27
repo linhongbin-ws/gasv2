@@ -261,7 +261,7 @@ class GraspAnyV2(PsmEnv):
             pos_rel, -np.ones(pos_rel.shape), np.ones(pos_rel.shape), new_low, new_high
         )
         M = Quat2M([0.5, 0.5, -0.5, -0.5])
-        M1 = Euler2M([0, 0, pose[3]], convension="xyz", degrees=True)
+        M1 = Euler2M([0, 0, -22.5], convension="xyz", degrees=True)
         M2 = np.matmul(M1, M)
         quat = M2Quat(M2)
         pos = pose[:3]

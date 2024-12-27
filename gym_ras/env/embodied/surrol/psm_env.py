@@ -215,7 +215,7 @@ class PsmEnv(SurRoLGoalEnv):
         rot = get_euler_from_matrix(pose_world[:3, :3])
         if self.ACTION_MODE in ['yaw', 'yaw_tilt']:
             action[3] *= np.deg2rad(45)  # yaw, limit maximum change in rotation
-            rot = (self.psm1_eul[0], self.psm1_eul[1], wrapAngleRange(rot[2] + action[3], -np.pi/2, np.pi/2))  # only change yaw
+            rot = (self.psm1_eul[0], self.psm1_eul[1], wrapAngleRange(rot[2] + action[3], 0, np.pi))  # only change yaw
 
 
         elif self.ACTION_MODE == 'pitch':
