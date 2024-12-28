@@ -66,8 +66,7 @@ for _ in tqdm(range(args.repeat)):
         # print("step....")
         obs, reward, done, info = env.step(action)
         print_obs = obs.copy()
-        print_obs = {k: v.shape if k in [
-            "image", "rgb", "depth"] else v for k, v in print_obs.items()}
+        print_obs = {k: v.shape if hasattr(v, 'shape') else "" for k, v in print_obs.items()}
         print_obs = [str(k) + ":" + str(v) for k, v in print_obs.items()]
         print(" | ".join(print_obs))
         print("reward:", reward, "done:", done,)

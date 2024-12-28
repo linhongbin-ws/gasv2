@@ -119,20 +119,12 @@ class GraspAny(gym.Env):
         time.sleep(1) # render lagging
         obs = _psm.get_obs()
         reward = 0
-        done = self._fsm_done()
+        # done = self._fsm_done()
         # done = False # debug
-        if done:
 
-            # _psm.move_gripper_init_pose()
-            # time.sleep(0.5)
-            # _psm._psm.jaw.move_jp(np.deg2rad(20)).wait()
-
-            info = {"fsm": "done_success"}
-        else:
-            info = {"fsm": "prog_norm"}
         return obs, reward, done, info
 
-    def _fsm_done(self,):
+    def _fsm(self, info):
         if self._done_device is not None:
             if self._done_device_name == "keyboard":
                 ch = self._done_device.get_char()
@@ -155,7 +147,9 @@ class GraspAny(gym.Env):
         is_lift = z_current - _z_low > self._done_tip_z_thres
         # print(z_current, _z_low, z_current - _z_low)
         # print("Grasp:",is_grasp, " is_lift:" , is_lift)
-        return is_grasp and is_lift
+        done = is_grasp and is_lift
+        info['fsm'] = "done_success" if done else "prog_norm"
+        return info
 
     def reset_pose(self):
         _psm = self._arms[self._arm_names[0]]

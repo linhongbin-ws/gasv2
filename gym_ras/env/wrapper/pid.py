@@ -23,33 +23,45 @@ class PID(BaseWrapper):
         self._skip = skip
         self._fsm_z_err_min = fsm_z_err_min
         self._fsm_z_err_state = fsm_z_err_state
+        self._phase_pid = True
+        self._prv_sigs = {}
 
     def reset(self):
         obs = self.env.reset()
-        obs["controller_state"] = 1
+        pid_obs = self._get_pid_observation(obs['occup_mat'])
+        pid_phase, x_phase, y_phase, z_phase = self._check_pid_phase(pid_obs)
+        obs["controller_state"] = 1 if self._phase_pid else 0
+        self._prv_sigs['x_phase'] = x_phase
+        self._prv_sigs['y_phase'] = y_phase
+        self._prv_sigs['z_phase'] = z_phase
+        self._prv_sigs['pid_obs'] = pid_obs
+        self._phase_pid = pid_phase and (not self._skip)
         return obs
 
     def step(self, action):
-        pid_obs = self._get_pid_observation()
-        pid_phase = False
-        check_phase, x_phase, y_phase, z_phase = self._check_pid_phase(pid_obs)
-        if check_phase and (not self._skip):
-            action = self._get_pid_action(pid_obs, x_phase, y_phase, z_phase)
-            pid_phase = True
-
+        if self._phase_pid:
+            action = self._get_pid_action(self._prv_sigs['pid_obs'], self._prv_sigs['x_phase'], self._prv_sigs['y_phase'], self._prv_sigs['z_phase'])
         obs, reward, done, info = self.env.step(action)
-        obs["controller_state"] = 1 if pid_phase else 0
-        info["controller_state"] = obs["controller_state"]
+        pid_obs = self._get_pid_observation(obs['occup_mat'])
+        pid_phase, x_phase, y_phase, z_phase = self._check_pid_phase(pid_obs)
+        obs["controller_state"] = 1 if self._phase_pid else 0
+        self._prv_sigs['x_phase'] = x_phase
+        self._prv_sigs['y_phase'] = y_phase
+        self._prv_sigs['z_phase'] = z_phase
+        self._prv_sigs['pid_obs'] = pid_obs
+        self._phase_pid = pid_phase and (not self._skip)
+        info = self._fsm(info, pid_obs)
+        return obs, reward, done, info
 
+    def _fsm(self, info, pid_obs, ):
         if pid_obs['err'][2] < self._fsm_z_err_min:
             info['fsm'] =  self._fsm_z_err_state
             print(f"exceed z err, err: {pid_obs['err'][2]}, thres: {self._fsm_z_err_min}")
-        # print("pid state", obs["controller_state"])
-        return obs, reward, done, info
+        return info
 
-    def _get_pid_observation(self):
+    def _get_pid_observation(self, occup_mat):
         if self._obs_type == 'occup':
-            occ = self.env.occup_mat
+            occ = occup_mat
             centroids = {}
 
             for k, v in occ.items():

@@ -14,6 +14,10 @@ class TimeLimit(BaseWrapper):
     def step(self, action):
         obs, reward, done, info = self.env.step(action)
         is_exceed = self.unwrapped.timestep >= self._max_timestep
+        info = self._fsm(info, is_exceed)
+        return obs, reward, done, info
+    
+    def _fsm(self, info, is_exceed):
         if is_exceed:
             info["fsm"] = "done_fail"
-        return obs, reward, done, info
+        return info

@@ -372,11 +372,9 @@ class GraspAnyV2(PsmEnv):
         
 
     def step(self, action):
-        # print("action", action)
         obs, reward, done, info = super().step(action)
         if self._jump_sig_prv:
             self._grasp_trial_cnt += 1
-        info["fsm"] = self._fsm()
         return obs, reward, done, info
 
     def _is_grasp_obj(self):
@@ -387,7 +385,7 @@ class GraspAnyV2(PsmEnv):
         pos_obj, _ = get_link_pose(stuff_id, -1)
         return pos_obj[2]
 
-    def _fsm(self):
+    def _fsm(self,):
         if self._on_plane:
             obs = self._get_robot_state(idx=0)  # for psm1
             tip = obs[2]

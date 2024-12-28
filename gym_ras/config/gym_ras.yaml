@@ -3,17 +3,22 @@ default:
   wrapper:
     pipeline: [
         "ActionNoise",
-        "ImageNoise",
         "TimeLimit",
         "VirtualClutch",
+        "ImageNoise",
         "DepthProcess",
         'Occup',
-        'PID',
         "DSA",
+        "ObsImage",
+        'PID',
         "DiscreteAction",
         "FSM",
-        "OBS",
+        "ObsVector",
+        "GymRegularizer",
       ]
+    GymRegularizer: {
+      obs_key: ['image','vector'],
+    }
     ActionSmooth: { skip: true, window: 3, smooth_type: ema }
     DSA:
       {
@@ -32,7 +37,22 @@ default:
     DiscreteAction: { pos_action_scale: 0.2, rot_action_scale:  1.0,}
     TimeLimit: { max_timestep: 80 }
     DepthProcess: { skip: false, uncert_scale: 1.5, eval: false , erode_kernel: 0, edge_detect_thres: 0.0, depth_image_range: 0.25}
-    FSM: { arg: 0 , ensure_norm_reward: false,  dsa_out_zoom_anamaly: true,}
+    FSM: { 
+      states: [
+              "done_fail",  # done, failure case
+              "prog_abnorm_1",  # abnormal 1 : hit workspace limit
+              # "prog_abnorm_2",  # abnormal 2 : object sliding
+              # "prog_abnorm_3",  # abnormal 3 : gripper toggle
+              "prog_norm",  # normal in progress
+              "done_success",  # done success case
+              ],
+      reward_done_success: 1,
+      reward_done_fail: -0.1,
+      reward_prog_norm: -0.001,
+      reward_prog_abnorm_1: -0.01,
+      reward_prog_abnorm_2: -0.01,
+      reward_prog_abnorm_3: -0.005,
+    }
     Occup: {
         is_skip: false,
         occup_h: 200,
@@ -63,18 +83,17 @@ default:
           skip: false,
           fsm_z_err_min: -0.06,
     }
-    OBS:
-      {
-        image_obs_key: ["dsa"],
-        vector_obs_key: ["gripper_state", "fsm_state", "controller_state"],
-        direct_map_key: ["fsm_state"],
-        direct_render_key: ["rgb", "depth"],
-        is_vector2image: true,
-        image_resize: [64, 64],
-        vector2image_type: "row",
-        action_insertion_anamaly: false,
-        cv_interpolate: "area"
-      }
+    ObsImage: {
+      new_image_map_key: "dsa",
+      new_image_key: "image",
+      new_image_size: 64,
+      cv_interpolate: "area",     
+    }
+    ObsVector: {
+      new_vector_map_key: ["gripper_state", "fsm_state", "controller_state"],
+      vector2image_type: "row",
+    }
+
     ImageNoise:
       {
         skip: false,
@@ -111,12 +130,6 @@ default:
       cam_num: 1
       no_depth_link: false
       mask_except_gripper: false
-      reward_done_success: 1
-      reward_done_fail: -0.1
-      reward_prog_norm: -0.001
-      reward_prog_abnorm_1: -0.01
-      reward_prog_abnorm_2: -0.01 # sliding
-      reward_prog_abnorm_3: -0.005 # gripper toggling | dsa out
       disturbance_scale: 0.01
       cam_dynamic_noise_scale: 0.0
       dr_scale_train: 1
@@ -220,19 +233,19 @@ no_pid:
 no_clutch:
   wrapper.VirtualClutch.start: 0
 
-action_continuous:
-  wrapper:
-    pipeline: [
-        "ActionNoise",
-        "ImageNoise",
-        "TimeLimit",
-        "VirtualClutch",
-        "DepthProcess",
-        'Occup',
-        'PID',
-        "DSA",
-        # "DiscreteAction",
-        "FSM",
-        "OBS",
-      ]
+# action_continuous:
+#   wrapper:
+#     pipeline: [
+#         "ActionNoise",
+#         "ImageNoise",
+#         "TimeLimit",
+#         "VirtualClutch",
+#         "DepthProcess",
+#         'Occup',
+#         'PID',
+#         "DSA",
+#         # "DiscreteAction",
+#         "FSM",
+#         "OBS",
+#       ]
   

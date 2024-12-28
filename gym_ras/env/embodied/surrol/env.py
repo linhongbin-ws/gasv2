@@ -261,14 +261,10 @@ class SurrolEnv(BaseEnv):
             _action = action.copy()
             _action[:3] = action_clip
             obs, reward, done, info = self.client.step(_action)
-
             obs["robot_prio"], obs["gripper_state"] = self._get_prio_obs()
-
             gripper_toggle = np.abs(
                 obs["gripper_state"]-self.step_func_prv[0]["gripper_state"]) > 0.1
-            _str = self._get_fsm_prog_abnorm(gripper_toggle, _is_out)
-            if _str != "":
-                info["fsm"] = _str
+            info = self._fsm(info, gripper_toggle, _is_out)
             if not self.client._is_grasp_obj() and self._stuff_dist:
                 self._disturbance_on_stuff()
 
@@ -276,6 +272,26 @@ class SurrolEnv(BaseEnv):
             self._stuff_pos_prv = self._get_obj_pose("stuff", -1)[0]
 
         return self.step_func_prv
+
+    def _fsm(self, info, gripper_toggle, _is_out):
+        info['fsm'] = self.client._fsm()
+        _str = self._get_fsm_prog_abnorm(gripper_toggle, _is_out)
+        if _str != "":
+            info["fsm"] = _str
+        return info
+    def _get_fsm_prog_abnorm(self, gripper_toggle, is_out):
+        if is_out:
+            return "prog_abnorm_1" # desired comman out of workspace
+        
+        # _pos = self._get_obj_pose("stuff", -1)[0]
+        # _pos_delta = np.array(_pos) - np.array(self._stuff_pos_prv)
+        # if (np.linalg.norm(_pos_delta[:2]) > self._stuff_slide_thres * self.client.SCALING) and (not self.client._is_grasp_obj()):
+        #     return "prog_abnorm_2" # object slide
+        
+        # if gripper_toggle and self._gripper_toggle_anolamy:
+        #     return "prog_abnorm_3" # gripper toggle
+        
+        return ""
 
     def _disturbance_on_stuff(self):
         cur_pos, cur_quat = self._get_obj_pose("stuff", -1)
@@ -303,17 +319,7 @@ class SurrolEnv(BaseEnv):
         p.resetBasePositionAndOrientation(
             self.client.obj_ids['rigid'][0], pos, quat)
 
-    def _get_fsm_prog_abnorm(self, gripper_toggle, is_out):
-        if is_out:
-            return "prog_abnorm_1"
-        _pos = self._get_obj_pose("stuff", -1)[0]
-        _pos_delta = np.array(_pos) - np.array(self._stuff_pos_prv)
-        # print(np.linalg.norm(_pos_delta[:2]), _pos_delta[:2])
-        if (np.linalg.norm(_pos_delta[:2]) > self._stuff_slide_thres * self.client.SCALING) and (not self.client._is_grasp_obj()):
-            return "prog_abnorm_2"
-        if gripper_toggle and self._gripper_toggle_anolamy:
-            return "prog_abnorm_3"
-        return ""
+
 
     def render(self,):
         imgs = {}
