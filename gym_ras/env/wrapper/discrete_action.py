@@ -41,7 +41,7 @@ class DiscreteAction(BaseWrapper):
         self._is_gripper_close = False
 
     def step(self, action):
-        print(action)
+        # print(action)
         _action = self._action_prim[self._action_strs[self._action_idx[action]]]
         if self._action_strs[self._action_idx[action]] == 'gripper_toggle':
             self._is_gripper_close = not self._is_gripper_close

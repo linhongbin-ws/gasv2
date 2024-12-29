@@ -33,12 +33,6 @@ class SurrolEnv(BaseEnv):
                  no_depth_link=False,
                  mask_except_gripper=False,
                  stuff_slide_thres=0.0012,
-                 reward_done_success=1,
-                 reward_done_fail=-0.2,
-                 reward_prog_norm=0,
-                 reward_prog_abnorm_1=-0.04,
-                 reward_prog_abnorm_2=-0.04,
-                 reward_prog_abnorm_3=-0.01,
                  disturbance_scale=0.03,
                  cam_dynamic_noise_scale=0.1,
                  gripper_toggle_anolamy=False,
@@ -125,14 +119,6 @@ class SurrolEnv(BaseEnv):
         self._no_depth_link = no_depth_link
         self._mask_except_gripper = mask_except_gripper
         self._stuff_slide_thres = stuff_slide_thres
-        self._reward_dict = {
-            "done_success": reward_done_success,
-            "done_fail": reward_done_fail,
-            "prog_norm": reward_prog_norm,
-            "prog_abnorm_1": reward_prog_abnorm_1,
-            "prog_abnorm_2": reward_prog_abnorm_2,
-            "prog_abnorm_3": reward_prog_abnorm_3,
-        }
 
     @property
     def reward_dict(self, ):
@@ -240,13 +226,9 @@ class SurrolEnv(BaseEnv):
             self._random_background_obj_vis()
         obs, reward, done, info = self.client.step(
             np.array([0.0, 0.0, 0.0, 0.0, 1.0]))
+        info['fsm'] = "prog_norm"
         obs["robot_prio"], obs["gripper_state"] = self._get_prio_obs()
-        # obs = {}
-        # obs["robot_prio"], obs["gripper_state"] = self._get_prio_obs()
-        # info = {}
-        # info["fsm"] = self.client._fsm()
         self.step_func_prv = (obs, reward, done, info)
-        # self._has_constraint_prv = self._get_contact_constraint()
         self._stuff_pos_prv = self._get_obj_pose("stuff", -1)[0]
         return obs
 
@@ -275,9 +257,10 @@ class SurrolEnv(BaseEnv):
 
     def _fsm(self, info, gripper_toggle, _is_out):
         info['fsm'] = self.client._fsm()
-        _str = self._get_fsm_prog_abnorm(gripper_toggle, _is_out)
-        if _str != "":
-            info["fsm"] = _str
+        if info['fsm'].find("done") < 0:
+            _str = self._get_fsm_prog_abnorm(gripper_toggle, _is_out)
+            if _str != "":
+                info["fsm"] = _str
         return info
     def _get_fsm_prog_abnorm(self, gripper_toggle, is_out):
         if is_out:

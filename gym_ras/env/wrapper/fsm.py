@@ -39,7 +39,6 @@ class FSM(BaseWrapper):
 
     def step(self, action):
         obs, _, _, info = self.env.step(action)
-        print(f"info{info}")
         obs_state, reward, done = self._get_state_data(info['fsm'])
         obs['fsm_state'] = obs_state
         return obs, reward, done, info

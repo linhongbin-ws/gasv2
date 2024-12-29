@@ -3,7 +3,6 @@ default:
   wrapper:
     pipeline: [
         "ActionNoise",
-        "TimeLimit",
         "VirtualClutch",
         "ImageNoise",
         "DepthProcess",
@@ -12,12 +11,13 @@ default:
         "ObsImage",
         'PID',
         "DiscreteAction",
+        "TimeLimit",
         "FSM",
         "ObsVector",
         "GymRegularizer",
       ]
     GymRegularizer: {
-      obs_key: ['image','vector'],
+      obs_key: ['image','vector','rgb','fsm_state'],
     }
     ActionSmooth: { skip: true, window: 3, smooth_type: ema }
     DSA:

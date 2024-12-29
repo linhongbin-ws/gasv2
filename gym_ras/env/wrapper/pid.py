@@ -13,6 +13,7 @@ class PID(BaseWrapper):
         skip=False,
         fsm_z_err_min=-0.02,
         fsm_z_err_state='prog_abnorm_1',
+        debug=False,
         **kwargs
     ):
         super().__init__(env, **kwargs)
@@ -25,6 +26,7 @@ class PID(BaseWrapper):
         self._fsm_z_err_state = fsm_z_err_state
         self._phase_pid = True
         self._prv_sigs = {}
+        self._debug = debug
 
     def reset(self):
         obs = self.env.reset()
@@ -55,8 +57,9 @@ class PID(BaseWrapper):
 
     def _fsm(self, info, pid_obs, ):
         if pid_obs['err'][2] < self._fsm_z_err_min:
-            info['fsm'] =  self._fsm_z_err_state
-            print(f"exceed z err, err: {pid_obs['err'][2]}, thres: {self._fsm_z_err_min}")
+            if info['fsm'].find("done") < 0:
+                info['fsm'] =  self._fsm_z_err_state
+            if self._debug: print(f"exceed z err, err: {pid_obs['err'][2]}, thres: {self._fsm_z_err_min}")
         return info
 
     def _get_pid_observation(self, occup_mat):

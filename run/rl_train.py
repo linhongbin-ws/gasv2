@@ -9,8 +9,8 @@ from datetime import datetime
 parser = argparse.ArgumentParser()
 parser.add_argument('--baseline', type=str, default="dreamerv2")
 parser.add_argument('--baseline-tag', type=str,
-                    nargs='+', default=['gas_surrol'])
-parser.add_argument('--env-tag', type=str, nargs='+', default=['gas'])
+                    nargs='+', default=['gasv2'])
+parser.add_argument('--env-tag', type=str, nargs='+', default=[])
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--logdir', type=str, default="./log")
 parser.add_argument('--reload-dir', type=str, default="")
@@ -43,7 +43,7 @@ if args.reload_dir == "":
     for tag in args.baseline_tag:
         baseline_config = baseline_config.update(yaml_dict[tag])
 
-    _env_name = "ras"
+    _env_name = env_config.task_name
     _baseline_name = baseline_config.baseline_name
     if len(args.baseline_tag) != 0:
         _baseline_name += "-" + "-".join(args.baseline_tag)
@@ -52,7 +52,9 @@ if args.reload_dir == "":
         _env_name += "-" + "-".join(args.env_tag)
 
     logdir = str(Path(args.logdir) / str(datetime.now().strftime("%Y_%m_%d-%H_%M_%S") +
-                 '@'+_env_name + '@' + _baseline_name + '@seed' + str(args.seed)))
+                 '@' +_env_name + 
+                 '@' + _baseline_name + 
+                 '@seed' + str(args.seed)))
     logdir = Path(logdir).expanduser()
     logdir.mkdir(parents=True, exist_ok=True)
     if args.baseline == "DreamerfD":

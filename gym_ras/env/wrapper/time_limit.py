@@ -19,5 +19,6 @@ class TimeLimit(BaseWrapper):
     
     def _fsm(self, info, is_exceed):
         if is_exceed:
-            info["fsm"] = "done_fail"
+            if info['fsm'].find("done") < 0:
+                info["fsm"] = "done_fail"
         return info
