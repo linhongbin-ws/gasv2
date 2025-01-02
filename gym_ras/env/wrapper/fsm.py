@@ -49,6 +49,11 @@ class FSM(BaseWrapper):
         obs['fsm_state'] = gym.spaces.Box(low=0,
                                           high=len(self._states)-1, shape=(1,), dtype=float)
         return gym.spaces.Dict(obs)
+    
+    @property
+    def done_success_id(self):
+        # print(f"done_success_id{done_success_id}")
+        return self._states.index("done_success")
     # @property
     # def fsm_states(self):
     #     return self._states

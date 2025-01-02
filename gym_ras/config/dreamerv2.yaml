@@ -231,7 +231,7 @@ gasv2:
   decoder: { mlp_keys: "$^", cnn_keys: "image" }
   eval_eps: 20
   # prefill: {random: 9e3, oracle: 1e3}
-  log_keys_video: ["image", "rgb"]
+  log_keys_video: ["image"]
   video_every: 3e5
   # high_oracle:
   # prefill: { random: 1e4}

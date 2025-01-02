@@ -110,7 +110,7 @@ elif baseline_config.baseline_name == "dreamerv2":
 
     else:
         from gym_ras.rl import train_dreamerv2
-        train_dreamerv2.train(env, baseline_config, )
+        train_dreamerv2.train(env, baseline_config, success_id=env.done_success_id)
 
 elif baseline_config.baseline_name == "ppo":
     if args.online_eval:

@@ -150,6 +150,7 @@ def train(origin_env, config, success_id=5.0, max_eps_length=300):
         eval_stat['total_eps'] += 1
         # print(ep['fsm_state'][-1]==2.0)
         if ep['fsm_state'][-1] == success_id:
+            # print(f"ep['fsm_state'][-1]:{ep['fsm_state'][-1]}, success_id {success_id}")
             eval_stat['success_eps'] += 1
         eps_length = ep['fsm_state'].shape[0] - 1
         score = (max_eps_length - eps_length) / max_eps_length

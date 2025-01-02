@@ -17,7 +17,7 @@ default:
         "GymRegularizer",
       ]
     GymRegularizer: {
-      obs_key: ['image','vector','rgb','fsm_state'],
+      obs_key: ['image','vector','fsm_state'],
     }
     ActionSmooth: { skip: true, window: 3, smooth_type: ema }
     DSA:
