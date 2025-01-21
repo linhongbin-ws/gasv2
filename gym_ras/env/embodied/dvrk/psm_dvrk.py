@@ -26,7 +26,7 @@ class SinglePSM():
         if arm_name == "PSM1":
             self.TITLT_ANGLE = 45
             self.YAW_LOW = -180
-            self.YAW_HIGH = -45
+            self.YAW_HIGH = -0
         elif arm_name == "PSM2":
             self.TITLT_ANGLE = -45
             self.YAW_LOW = -270
@@ -68,7 +68,7 @@ class SinglePSM():
         pose = scale_arr(pos_rel, -np.ones(pos_rel.shape),
                          np.ones(pos_rel.shape), new_low, new_high)
         self._gripper_pos = pose[:3]
-        self._gripper_yaw = pose[3]
+        self._gripper_yaw = self.YAW_HIGH - 22.5 - 90
         T = self._get_T_from_pos_yaw()
 
         # move to catesian pose

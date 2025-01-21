@@ -13,6 +13,10 @@ class Keyboard():
             self._char = None
         
 
+
+    def reset_char_buffer(self):
+        self._char = None
+        
     def _worker(self):
         while self.is_active:
             self._char = self._get_char()

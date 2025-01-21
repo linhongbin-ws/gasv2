@@ -31,7 +31,8 @@ class ObsVector(BaseWrapper):
 
     def render(self, ):
         imgs = self.env.render()
-        imgs['image'] = self._image_current.copy()
+        if not self._image_current is None:
+            imgs['image'] = self._image_current.copy()
         return imgs
 
     def _get_vector_obs(self, obs):

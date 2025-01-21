@@ -184,11 +184,11 @@ gasv2_dvrk:
   task_name: grasp_any_v2
   embodied_name: dVRKEnv
   wrapper.PID: {
-          control_p: 10.0,
+          control_p: 15.0,
           phase_thres: [0.02, 0.02, 0.02],
           err_offset: [0.0,  0.0, -0.02],  
     }
-  wrapper.DiscreteAction.pos_action_scale: 0.4
+  wrapper.DiscreteAction.pos_action_scale: 0.2
   wrapper.ImageNoise.skip: true
   wrapper.ActionNoise.noise_scale: 0.0
   wrapper.DepthProcess.eval: true
@@ -199,7 +199,7 @@ gasv2_dvrk:
         pc_y_max: 0.1,
         pc_z_min: -0.1,
         pc_z_max: 0.1,    
-        cam_offset_z: -0.138, 
+        cam_offset_z: -0.13548762, 
         cam_offset_rx: 160,
         cam_offset_ry: 0.0,
         cam_offset_rz: -90.0,     
@@ -233,19 +233,20 @@ no_pid:
 no_clutch:
   wrapper.VirtualClutch.start: 0
 
-# action_continuous:
-#   wrapper:
-#     pipeline: [
-#         "ActionNoise",
-#         "ImageNoise",
-#         "TimeLimit",
-#         "VirtualClutch",
-#         "DepthProcess",
-#         'Occup',
-#         'PID',
-#         "DSA",
-#         # "DiscreteAction",
-#         "FSM",
-#         "OBS",
-#       ]
+action_continuous:
+  wrapper.pipeline: [
+      "ActionNoise",
+      "VirtualClutch",
+      "ImageNoise",
+      "DepthProcess",
+      'Occup',
+      "DSA",
+      "ObsImage",
+      'PID',
+      # "DiscreteAction",
+      "TimeLimit",
+      "FSM",
+      "ObsVector",
+      "GymRegularizer",
+    ]
   

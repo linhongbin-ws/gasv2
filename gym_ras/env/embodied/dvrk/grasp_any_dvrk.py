@@ -119,8 +119,8 @@ class GraspAny(gym.Env):
         time.sleep(1) # render lagging
         obs = _psm.get_obs()
         reward = 0
-        # done = self._fsm_done()
-        # done = False # debug
+        info = {}
+        done = False
 
         return obs, reward, done, info
 
@@ -128,6 +128,7 @@ class GraspAny(gym.Env):
         if self._done_device is not None:
             if self._done_device_name == "keyboard":
                 ch = self._done_device.get_char()
+                self._done_device.reset_char_buffer()
                 is_grasp = ch == "g"
 
         else:
@@ -147,7 +148,7 @@ class GraspAny(gym.Env):
         is_lift = z_current - _z_low > self._done_tip_z_thres
         # print(z_current, _z_low, z_current - _z_low)
         # print("Grasp:",is_grasp, " is_lift:" , is_lift)
-        done = is_grasp and is_lift
+        done = is_grasp
         info['fsm'] = "done_success" if done else "prog_norm"
         return info
 

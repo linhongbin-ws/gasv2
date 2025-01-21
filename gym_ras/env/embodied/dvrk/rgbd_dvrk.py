@@ -76,7 +76,12 @@ class RGBD_CAM():
 
     def render(self,):
         img = self._device.get_image()
-        while not ("mask" in img):
+        while not (
+            "depReal" in img and
+            "rgb" in img and
+            "depth" in img and
+            "mask" in img
+            ):
             print("waiting for mask")
             img = self._device.get_image()
         if self._segment is not None and "mask" in img:

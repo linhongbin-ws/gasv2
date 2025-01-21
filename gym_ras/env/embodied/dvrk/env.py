@@ -27,6 +27,7 @@ class dVRKEnv(BaseEnv):
         obs, reward, done, info = self.client.step(
             np.array([0.0, 0.0, 0.0, 0.0, 1.0]), False)
         obs["robot_prio"], obs["gripper_state"] = self._get_prio_obs()
+        info['fsm'] = "prog_norm"
         self.step_func_prv = (obs, reward, done, info)
         return obs
 
@@ -38,6 +39,8 @@ class dVRKEnv(BaseEnv):
         if (not self.skip) or (self.step_func_prv is None):
             _prio, _ = self._get_prio_obs()
             _is_out, action_clip = self._check_new_action(_prio, action[:3])
+            _action = action.copy()
+            _action[:3] = action_clip
             obs, reward, done, info = self.client.step(_action, _is_out)
             obs["robot_prio"], obs["gripper_state"] = self._get_prio_obs()
             gripper_toggle = np.abs(obs["gripper_state"]-self.step_func_prv[0]["gripper_state"]) > 0.1
@@ -57,8 +60,6 @@ class dVRKEnv(BaseEnv):
     def _get_fsm_prog_abnorm(self, gripper_toggle, is_out):
         if is_out:
             return "prog_abnorm_1"
-        if gripper_toggle:
-            return "prog_abnorm_3"
         return ""
 
     def render(self, **kwargs):  # ['human', 'rgb_array', 'mask_array']

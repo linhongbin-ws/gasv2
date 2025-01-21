@@ -42,8 +42,10 @@ class PID(BaseWrapper):
 
     def step(self, action):
         if self._phase_pid:
-            action = self._get_pid_action(self._prv_sigs['pid_obs'], self._prv_sigs['x_phase'], self._prv_sigs['y_phase'], self._prv_sigs['z_phase'])
-        obs, reward, done, info = self.env.step(action)
+            _action = self._get_pid_action(self._prv_sigs['pid_obs'], self._prv_sigs['x_phase'], self._prv_sigs['y_phase'], self._prv_sigs['z_phase'])
+        else:
+            _action = action
+        obs, reward, done, info = self.env.step(_action)
         pid_obs = self._get_pid_observation(obs['occup_mat'])
         pid_phase, x_phase, y_phase, z_phase = self._check_pid_phase(pid_obs)
         obs["controller_state"] = 1 if self._phase_pid else 0
