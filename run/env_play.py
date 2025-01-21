@@ -25,6 +25,7 @@ parser.add_argument('--vis-occup', action="store_true")
 args = parser.parse_args()
 
 env, env_config = make_env(tags=args.env_tag, seed=args.seed)
+print(env_config)
 if args.action == 'oracle':
     env = ActionOracle(env, device=args.oracle)
 if not args.no_vis:

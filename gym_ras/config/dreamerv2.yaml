@@ -213,19 +213,6 @@ gym_ras_np:
   video_every: 3e5
 
 gas:
-  eval_every: 2e5
-  encoder: { mlp_keys: "$^", cnn_keys: "image" }
-  decoder: { mlp_keys: "$^", cnn_keys: "image" }
-  eval_eps: 20
-  # prefill: {random: 9e3, oracle: 1e3}
-  replay.capacity: 5e5 # limit ram usage
-  log_keys_video: ["image", "rgb"]
-  video_every: 3e5
-  # high_oracle:
-  prefill: { random: 7e3, oracle: 3e3 }
-  steps: 1820000
-
-gasv2:
   eval_every: 1e4
   encoder: { mlp_keys: "$^", cnn_keys: "image" }
   decoder: { mlp_keys: "$^", cnn_keys: "image" }
@@ -244,6 +231,9 @@ gasv2:
       maxlen: 6,
     }
   train_every: 2
+
+eval_less:
+  eval_every: 4e4
 
 mlp:
   encoder: { mlp_keys: "vector", cnn_keys: "image" }
@@ -272,6 +262,7 @@ high_oracle2:
 
 debug_prefill:
   prefill: { random: 10, oracle: 10 }
+  eval_eps: 2
 
 oracle_1e3:
   prefill: { random: 9e3, oracle: 1e3 }

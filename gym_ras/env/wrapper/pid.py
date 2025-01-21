@@ -10,10 +10,10 @@ class PID(BaseWrapper):
         control_p=10,
         phase_thres=[0.1, 0.1, 0.05],
         err_offset=[0.0, 0.0, 0.10],
-        skip=False,
         fsm_z_err_min=-0.02,
         fsm_z_err_state='prog_abnorm_1',
         debug=False,
+        skip=False,
         **kwargs
     ):
         super().__init__(env, **kwargs)
@@ -21,12 +21,12 @@ class PID(BaseWrapper):
         self._control_p = control_p
         self._phase_thres = phase_thres
         self._err_offset = err_offset
-        self._skip = skip
         self._fsm_z_err_min = fsm_z_err_min
         self._fsm_z_err_state = fsm_z_err_state
         self._phase_pid = True
         self._prv_sigs = {}
         self._debug = debug
+        self._skip = skip
 
     def reset(self):
         obs = self.env.reset()

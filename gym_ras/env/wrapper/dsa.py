@@ -74,7 +74,7 @@ class DSA(BaseWrapper):
 
     def dsa_process(self, img, pfix):
         self._out_zoom = False
-        if self._encode_type == "raw":
+        if self._encode_type == "raw2":
             _mask_mat = np.zeros(img["depth"+pfix].shape)
             for k, v in img["mask"+pfix].items():
                 if k in self._dsa_key:
@@ -339,7 +339,20 @@ class DSA(BaseWrapper):
             )
 
             im_pre = np.stack(layers, axis=2)
-            img_dsa = im_pre            
+            img_dsa = im_pre    
+
+        elif self._encode_type in ["raw"]:
+            layers = [
+                np.zeros(img["rgb" + pfix].shape[0:2], dtype=np.uint8) for i in range(3)
+            ]
+            layers[1] = img["depth"+pfix]
+            for k, v in img["mask"+pfix].items():
+                if k in self._dsa_key:
+                    layers[2][v] = self._image_encode_id[k]
+            im_pre = np.stack(layers, axis=2)
+            img_dsa = im_pre 
+            return img_dsa
+            
 
         if self._timestep_prv != self.env.timestep:
             self._zoom_coordinate_prv = (
