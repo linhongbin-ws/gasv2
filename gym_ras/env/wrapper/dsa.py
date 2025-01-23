@@ -14,6 +14,8 @@ class DSA(BaseWrapper):
                  encode_type="general_simple",
                  cv_interpolate="area",
                  zoom_box_fix_length_ratio=0.5,
+                 zoom_depth_scale=0.3,
+                 zoom_depth_offeset=0.01,
                  encoding_id_stuff=50,
                  encoding_id_psm1=100,
                  encoding_id_zoom_box=200,
@@ -37,6 +39,8 @@ class DSA(BaseWrapper):
         self._out_reward_xy = out_reward_xy
         self._out_reward_z = out_reward_z
         self._dense_reward = dense_reward
+        self._zoom_depth_scale=zoom_depth_scale
+        self._zoom_depth_offeset = zoom_depth_offeset
         self._reset_vars()
 
     def render(self, ):
@@ -300,7 +304,7 @@ class DSA(BaseWrapper):
 
             im_pre = np.stack(layers, axis=2)
             img_dsa = im_pre
-        elif self._encode_type in ["occup_depth"]:
+        elif self._encode_type in ["occup_depth", "occup_depth2"]:
             layers = [
                 np.zeros(img["rgb" + pfix].shape[0:2], dtype=np.uint8) for i in range(3)
             ]
@@ -315,29 +319,38 @@ class DSA(BaseWrapper):
                 zoom_box_x, zoom_box_y, zoom_box_length, zoom_mask.shape
             )
 
-            dimgs = []
-            for _k, _v in img["occup_zimage"].items():
-                a = _v[0].copy()
-                a = a.astype(int)
-                a[np.logical_not(_v[1])] = 256
-                dimgs.append(a)
-            layers[1] = np.minimum(*dimgs)
-            layers[1][layers[1]==256] = 0
-            layers[1] = layers[1].astype(np.uint8)
-            ct = np.median(img["occup_zimage"]["psm1"][0][img["occup_zimage"]["psm1"][1]])
-            lb = ct-255/2*self._zoom_box_fix_length_ratio
-            hb = ct+255/2*self._zoom_box_fix_length_ratio
+            if self._encode_type == "occup_depth":
+                dimgs = []
+                for _k, _v in img["occup_zimage"].items():
+                    a = _v[0].copy()
+                    a[np.logical_not(_v[1])] = 1.1
+                    dimgs.append(a)
+                dimg = np.minimum(*dimgs)
+                dimg[dimg==1.1] = 0
+            else:
+                a = img["occup_zimage"]["stuff"][0].copy()
+                a = a.astype(np.float32)
+                a[np.logical_not(img["occup_zimage"]["stuff"][1])] = 0  
+                dimg = a   
 
-            layers[1] = scale_arr(layers[1], 
+            ct = np.median(img["occup_zimage"]["psm1"][0][img["occup_zimage"]["psm1"][1]]) + self._zoom_depth_offeset
+            lb = ct-1/2*self._zoom_depth_scale
+            hb = ct+1/2*self._zoom_depth_scale
+            
+            dimg = np.clip(dimg, lb,hb)
+            dimg = scale_arr(dimg, 
                                   lb,
                                  hb,
                                  0,255)
-            layers[1] = np.clip(layers[1], 0,255).astype(np.uint8)
+            layers[1] = dimg.astype(np.uint8)
             
             layers[1] = self._zoom_legal(
                 layers[1], zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max
             )
-
+            if self._encode_type in ["occup_depth2"]:
+                for _k, _v in img["occup_zimage"].items():
+                    layers[2][_v[1]] += self._image_encode_id[_k]
+                layers[2] = self._zoom_legal(layers[2], zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max )
             im_pre = np.stack(layers, axis=2)
             img_dsa = im_pre    
 

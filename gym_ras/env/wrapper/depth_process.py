@@ -44,15 +44,15 @@ class DepthProcess(BaseWrapper):
             for k, v in imgs['mask'].items():
                 imgs['depReal'], imgs['mask'][k] = self._edge_detection_proc(imgs['depReal'], v)
 
-        if "depReal" in imgs and "mask" in imgs:
-            # print(imgs['mask'])
-            depth_c = np.median(imgs['depReal'][imgs['mask']['psm1']])
-            depth_r = self._depth_image_range / 2
+        # if "depReal" in imgs and "mask" in imgs:
+        #     # print(imgs['mask'])
+        #     depth_c = np.median(imgs['depReal'][imgs['mask']['psm1']])
+        #     depth_r = self._depth_image_range / 2
 
-            imgs['depth'] = np.uint8(np.clip(scale_arr(
-                    imgs['depReal'], 
-                    depth_c - depth_r,
-                    depth_c + depth_r, 0, 255), 0, 255))
+        #     imgs['depth'] = np.uint8(np.clip(scale_arr(
+        #             imgs['depReal'], 
+        #             depth_c - depth_r,
+        #             depth_c + depth_r, 0, 255), 0, 255))
 
 
         # imgs = self._no_depth_guess_process(imgs)

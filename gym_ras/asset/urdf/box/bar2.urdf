@@ -1,7 +1,7 @@
 <?xml version="0.0" ?>
 <robot name="sphere">
     <material name="white">
-        <color rgba="0.96 0.96 0.96 1"/>
+        <color rgba="0.0 0.0 0.96 1"/>
     </material>
 
     <link name="baseLink">

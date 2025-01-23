@@ -24,8 +24,12 @@ class GymRegularizer(BaseWrapper):
     
     def _obs_proc(self , obs):
         new_obs = {}
-        for v in self._obs_key:
-            new_obs[v] = obs[v]
+
+        if "all" in self._obs_key:
+            new_obs = obs.copy()
+        else:
+            for v in self._obs_key:
+                new_obs[v] = obs[v]
         return new_obs
 
     @property

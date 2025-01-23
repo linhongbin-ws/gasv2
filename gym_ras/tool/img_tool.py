@@ -4,6 +4,7 @@ import cv2
 import time
 import numpy as np
 import sys
+from gym_ras.tool.common import scale_arr
 
 
 def save_img(img_arr, save_dir, save_file_name, img_format="png"):
@@ -95,6 +96,11 @@ class CV2_Visualizer():
                 elif k.find("depth") >= 0:
                     imgs_dict[k] = np.stack(
                         [v]*3, axis=2) if len(v.shape) == 2 else v
+                elif k.find("depReal") >= 0:
+                    d = scale_arr(v, np.min(v),np.max(v), 0, 255)
+                    d = np.uint8(d)
+                    imgs_dict[k] = np.stack(
+                        [d]*3, axis=2) if len(v.shape) == 2 else d
                 elif k.find("dsa") >= 0:
                     imgs_dict[k] = v
                     for i in range(v.shape[2]):

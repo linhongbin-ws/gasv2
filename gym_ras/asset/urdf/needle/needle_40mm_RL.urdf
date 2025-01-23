@@ -1,7 +1,7 @@
 <?xml version="0.0" ?>
 <robot name="needle">
     <material name="grey">
-        <color rgba="0.85 0.85 0.85 1"/>
+        <color rgba="0.0 0.0 0.85 1"/>
     </material>
 
     <link name="baseLink">

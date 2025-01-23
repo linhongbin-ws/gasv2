@@ -160,10 +160,10 @@ class Occup(BaseWrapper):
                 )
                 if debug: print(f" occup {m_id} {time.time() - start}")
                 occup_mats[self._mask_key[m_id]] = occ_mat
-                z, z_mask = occup2image(occ_mat, image_type="depth",
-                                        background_encoding=255)
+                z, z_mask = occup2image(occ_mat, image_type="depR",
+                                        background_encoding=0)
                 if debug: print(f" occup {m_id} image {time.time() - start}")
-                z = np.uint8(255 - z)
+                z = 1 - z
                 size = imgs["rgb"].shape[0]
                 z = cv2.resize(z, (size,size), interpolation=cv2.INTER_AREA)
                 z_mask = self._resize_bool(z_mask, size)

@@ -38,7 +38,7 @@ class GraspAnyV2(PsmEnv):
         self,
         render_mode=None,
         cid=-1,
-        stuff_name="needle",
+        # stuff_name="needle",
         fix_goal=True,
         oracle_pos_thres=0.1,
         oracle_rot_thres=1,
@@ -53,6 +53,7 @@ class GraspAnyV2(PsmEnv):
         stuff_scaling_high=0.5 * 1.25,
         needle_scaling_low=0.5 * 0.75,
         needle_scaling_high=0.5 * 1.25,
+        needle_prob = 0.5,
         on_plane=False,
         max_grasp_trial=3,
         horizontal_stuff=False,
@@ -65,7 +66,7 @@ class GraspAnyV2(PsmEnv):
         self._init_pose_ratio_high_gripper = init_pose_ratio_high_gripper
         self._init_pose_ratio_low_stuff = init_pose_ratio_low_stuff
         self._init_pose_ratio_high_stuff = init_pose_ratio_high_stuff
-        self._stuff_name = stuff_name
+        # self._stuff_name = stuff_name
         self._stuff_scaling_low = stuff_scaling_low
         self._stuff_scaling_high = stuff_scaling_high
         self._needle_scaling_low = needle_scaling_low
@@ -75,6 +76,7 @@ class GraspAnyV2(PsmEnv):
         self._fix_goal = fix_goal
         self._oracle_discrete = oracle_discrete
         self._horizontal_stuff = horizontal_stuff
+        self._needle_prob = needle_prob
 
         super().__init__(render_mode, cid)
         self._view_param = {
@@ -183,7 +185,8 @@ class GraspAnyV2(PsmEnv):
         # p.changeVisualShape(
         #     obj_id, -1, rgbaColor=[0, 0.7, 0, 1], specularColor=(80, 80, 80))  # green
         self.obj_ids['rigid'].append(obj_id)  # 0
-        self.obj_id, self.obj_link1 = self.obj_ids['rigid'][0], 1 if "needle" in stuff_path else -1
+        self.obj_id = self.obj_ids['rigid'][0]
+        self.obj_link1 = 1 if "needle" in stuff_path else -1
 
     def _sample_goal(self) -> np.ndarray:
         """ Samples a new goal and returns it.
@@ -221,20 +224,29 @@ class GraspAnyV2(PsmEnv):
                 "needle": [
                     "needle_40mm_RL.urdf",
                 ],
-                # "box": ["bar2.urdf", "bar.urdf", "box.urdf"],
+                "box": ["bar2.urdf", "bar.urdf", "box.urdf"],
+                # "box": ["box.urdf"],
                 # "box": ["bar2.urdf"],
                 # "block_haptic.urdf",
             }
         file_dir = {k: [asset_path / k / _v for _v in v] for k, v in file_dir.items()}
 
-        if self._stuff_name == "any":
-            _dirs = []
-            for _, v in file_dir.items():
-                _dirs.extend(v)
-        else:
-            _dirs = file_dir[self._stuff_name]
+        # if self._stuff_name == "any":
+        #     _dirs = []
+        #     for _, v in file_dir.items():
+        #         _dirs.extend(v)
+        # else:
+        #     _dirs = file_dir[self._stuff_name]
 
-        _stuff_dir = _dirs[self._stuff_urdf_rng.randint(len(_dirs))]
+        # _stuff_dir = _dirs[self._stuff_urdf_rng.randint(len(_dirs))]
+        if self._stuff_urdf_rng.uniform(0,1) > self._needle_prob:
+            _rand_flag = "needle"
+        else:
+            _rand_flag = "box"
+
+        _randir = file_dir[_rand_flag]
+        _stuff_dir = _randir[self._stuff_urdf_rng.randint(len(_randir))]
+        self._urdf_file_name = _stuff_dir.name
         _low = (
             self._stuff_scaling_low
             if str(_stuff_dir).find("needle") < 0
@@ -304,7 +316,10 @@ class GraspAnyV2(PsmEnv):
         if not self._on_plane:
             body_pose = p.getBasePositionAndOrientation(self.obj_ids["fixed"][1])
             # body_pose = p.getLinkState(self.obj_ids['fixed'][1], -1)
-            obj_pose = p.getLinkState(self.obj_id, self.obj_link1)
+            if self.obj_link1 == -1:
+                obj_pose =  p.getBasePositionAndOrientation(self.obj_id)
+            else:
+                obj_pose = p.getLinkState(self.obj_id, self.obj_link1)
             world_to_body = p.invertTransform(body_pose[0], body_pose[1])
             obj_to_body = p.multiplyTransforms(world_to_body[0],
                                             world_to_body[1],
@@ -334,9 +349,24 @@ class GraspAnyV2(PsmEnv):
     def _create_waypoint(self):
         for _ in range(100):
             p.stepSimulation()  # wait stable
-        pos_obj, orn_obj = get_link_pose(self.obj_id, self.obj_link1 if self._on_plane  else 2)
-        if not self._on_plane:
+        if self.obj_link1<0:
+            pos_obj, orn_obj =  p.getBasePositionAndOrientation(self.obj_id)
+            pos_obj = list(pos_obj)
+            orn_obj = list(orn_obj)
+        else:
+            pos_obj, orn_obj = get_link_pose(self.obj_id, self.obj_link1 if self._on_plane  else 2)
+        if not self._on_plane and self._urdf_file_name == "needle_40mm_RL.urdf":
             pos_obj[2] += 0.05
+        if not self._on_plane and self._urdf_file_name == "box.urdf":
+            pos_obj[0] -= 0.023
+            pos_obj[1] -= 0.03
+            pos_obj[2] += 0.055
+
+
+                #     "needle": [
+                #     "needle_40mm_RL.urdf",
+                # ],
+                # "box": ["bar2.urdf", "bar.urdf", "box.urdf"],
         orn = p.getEulerFromQuaternion(orn_obj)
         orn_eef = get_link_pose(self.psm1.body, self.psm1.EEF_LINK_INDEX)[1]
         orn_eef = p.getEulerFromQuaternion(orn_eef)

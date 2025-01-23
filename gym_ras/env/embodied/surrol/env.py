@@ -330,22 +330,22 @@ class SurrolEnv(BaseEnv):
                 far = self._project["farVal"]
                 near = self._project["nearVal"]
                 depth = far * near / (far - (far - near) * depth)
+                depth = np.float32(depth)
                 imgs["depReal"+postfix] = depth
-                depth = np.uint8(np.clip(self._scale(
-                    depth, self._depth_remap_range[j][0], self._depth_remap_range[j][1], 0, 255), 0, 255))  # to image
-                imgs["depth"+postfix] = depth
-                if self._no_depth_link:
-                    for k, v in self.client.nodepth_link_ids.items():
-                        _mask = self._get_mask(
-                            in_obj_data, in_link_data, self.client.keyobj_ids[k], v)
-                        if self._no_depth_noise > 0:
-                            _noise = np.random.uniform(-122,
-                                                       122) * self._no_depth_noise
-                            # print("noise", _noise)
-                            imgs["depth"+postfix][_mask] = np.clip(
-                                imgs["depth"+postfix][_mask] + _noise, 0, 255)
-                        else:
-                            imgs["depth"+postfix][_mask] = 0
+
+                # imgs["depth"+postfix] = depth
+                # if self._no_depth_link:
+                #     for k, v in self.client.nodepth_link_ids.items():
+                #         _mask = self._get_mask(
+                #             in_obj_data, in_link_data, self.client.keyobj_ids[k], v)
+                #         if self._no_depth_noise > 0:
+                #             _noise = np.random.uniform(-122,
+                #                                        122) * self._no_depth_noise
+                #             # print("noise", _noise)
+                #             imgs["depth"+postfix][_mask] = np.clip(
+                #                 imgs["depth"+postfix][_mask] + _noise, 0, 255)
+                #         else:
+                #             imgs["depth"+postfix][_mask] = 0
 
             if self._cam_mode.find("m") >= 0:
                 masks = {}

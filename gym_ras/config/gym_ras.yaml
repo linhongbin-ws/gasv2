@@ -26,15 +26,17 @@ default:
         encode_type: occup_depth,
         cv_interpolate: area,
         zoom_box_fix_length_ratio: 0.3,
-        encoding_id_stuff: 50,
-        encoding_id_psm1: 100,
+        zoom_depth_scale: 0.3,
+        zoom_depth_offeset: 0.1,
+        encoding_id_stuff: 70,
+        encoding_id_psm1: 140,
         encoding_id_zoom_box: 30,
         zoom_movement_type: continuous,
         dense_reward: false,
       }
     VirtualClutch: { start: 6 }
     ActionNoise: { noise_scale: 0.01 }
-    DiscreteAction: { pos_action_scale: 0.2, rot_action_scale:  1.0, is_discrete: True}
+    DiscreteAction: { pos_action_scale: 0.3, rot_action_scale:  1.0, is_discrete: True}
     TimeLimit: { max_timestep: 80 }
     DepthProcess: { skip: false, uncert_scale: 1.5, eval: false , erode_kernel: 0, edge_detect_thres: 0.0, depth_image_range: 0.25}
     FSM: { 
@@ -97,12 +99,12 @@ default:
     ImageNoise:
       {
         skip: false,
-        pns_noise_amount: 0.3,
-        pns_noise_balance: 0.5,
-        pns_noise_value: 0.01,
+        pns_noise_amount: 0.0,
+        pns_noise_balance: 0.0,
+        pns_noise_value: 0.0,
         uniform_noise_amount: 0.00,
-        gaussian_blur_kernel: 3,
-        gaussian_blur_sigma: 0.8,
+        gaussian_blur_kernel: 0,
+        gaussian_blur_sigma: 0.0,
         cutout_all_amount_range: [1.0, 1.0],
         cutout_depth_amount_range: [1.0, 1.0],
         cutout_line_num_low: 0,
@@ -146,7 +148,7 @@ default:
         random_obj_vis: false
         depth_distance: 0.2
         on_plane: false
-        oracle_pos_thres: 15e-4
+        oracle_pos_thres: 20e-4
         oracle_rot_thres: 0.5
         max_grasp_trial: 1
         horizontal_stuff: true
@@ -185,8 +187,8 @@ gasv2_dvrk:
   embodied_name: dVRKEnv
   wrapper.PID: {
           control_p: 15.0,
-          phase_thres: [0.02, 0.02, 0.02],
-          err_offset: [0.0,  0.0, -0.02],  
+          phase_thres: [0.015, 0.015, 0.015],
+          err_offset: [0.0,  0.0, -0.005],  
     }
   wrapper.DiscreteAction.pos_action_scale: 0.2
   wrapper.ImageNoise.skip: true
@@ -214,8 +216,19 @@ gasv2_dvrk:
 ################################################
 ## other setting that might not work
 
+dsa_occup2:
+  wrapper.DSA.encode_type: occup_depth2
+
 domain_random_enhance:
-  wrapper.ImageNoise.cutout_all_amount_range: [0.8, 1.0]
+  wrapper.ImageNoise: {
+    cutout_all_amount_range: [0.8, 1.0],
+    pns_noise_amount: 0,
+    pns_noise_balance: 0.5,
+    pns_noise_value: 1,
+    uniform_noise_amount: 0.05,
+    gaussian_blur_kernel: 3,
+    gaussian_blur_sigma: 0.3,
+  }
   embodied.SurrolEnv: {
     pybullet_gui: false,
     cam_target_noise: 0.0,
@@ -275,5 +288,7 @@ no_dsa:
         encode_type: raw,
         }
 
+all_obs:
+  wrapper.GymRegularizer.obs_key: ["all"]
 
 

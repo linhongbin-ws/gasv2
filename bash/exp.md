@@ -1,7 +1,7 @@
 # Training
 GASV2
 ```sh
-python ./run/rl_train.py --baseline-tag gas
+python ./run/rl_train.py --baseline-tag gas no_oracle  --env-tag domain_random_enhance dsa_occup2  
 ```
 GASV1
 ```sh

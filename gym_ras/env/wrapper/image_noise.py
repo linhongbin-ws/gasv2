@@ -75,19 +75,27 @@ class ImageNoise(BaseWrapper):
         return img
 
     def _post_process(self, img):
-        img['depth'] = self._add_pepper_and_salt_nosie(img['depth'], pixel=True, noise_value=self._pns_noise_value*255)
-        img['depth'] = self._add_uniform_noise(img['depth'] )
-        img['depth'] = self._add_gaussian_blur(img['depth'])
+        # img['depth'] = self._add_pepper_and_salt_nosie(img['depth'], pixel=True, noise_value=self._pns_noise_value*255)
+        # img['depth'] = self._add_uniform_noise(img['depth'] )
         
-        img['depReal'] = self._add_pepper_and_salt_nosie(img['depReal'], pixel=False, noise_value=self._pns_noise_value)
+        d_min = self.unwrapped.depth_remap_range[0][0]
+        d_max = self.unwrapped.depth_remap_range[0][1]
+        img['depReal']= np.clip(img['depReal'], d_min, d_max)
+        img['depReal'] = scale_arr(img['depReal'], d_min, d_max, 0 , 1)
+        if  self._pns_noise_amount >0:
+            img['depReal'] = self._add_pepper_and_salt_nosie(img['depReal'], pixel=False, noise_value=1)
+        if self._gaussian_blur_kernel >0:
+            img['depReal'] = self._add_gaussian_blur(img['depReal'])
+        if self._uniform_noise_amount:
+            img['depReal'] = self._add_uniform_noise(img['depReal'], 1)
 
         if self._cutout_all_amount_range[0] < 1:
             img = self._cutout_protocol(
                 img, mask_min=self._cutout_all_amount_range[0], mask_max=self._cutout_all_amount_range[1], only_depth=False)
-        if self._cutout_depth_amount_range[0] < 1:
-            img = self._cutout_protocol(
-                img, mask_min=self._cutout_depth_amount_range[0], mask_max=self._cutout_depth_amount_range[1], only_depth=True)
-
+        # if self._cutout_depth_amount_range[0] < 1:
+        #     img = self._cutout_protocol(
+        #         img, mask_min=self._cutout_depth_amount_range[0], mask_max=self._cutout_depth_amount_range[1], only_depth=True)
+        img['depReal'] = scale_arr(img['depReal'],0,1, d_min, d_max)
         return img
 
     def _cutout_protocol(self, img, mask_min, mask_max=0.9, only_depth=False):
@@ -129,10 +137,10 @@ class ImageNoise(BaseWrapper):
 
         return return_img
 
-    def _add_uniform_noise(self, img):
-        _range_px = self._uniform_noise_amount * 255 / 2
+    def _add_uniform_noise(self, img, range):
+        _range_px = self._uniform_noise_amount * range / 2
         noise = np.random.uniform(-_range_px, _range_px, img.shape)
-        img = np.clip(img+noise, 0, 255).astype(np.uint8)
+        img = img+noise
         return img
 
     def _add_gaussian_blur(self, img):
@@ -222,12 +230,12 @@ class ImageNoise(BaseWrapper):
             args["angle"] = self._image_noise_rng.uniform(low=0, high=1)
             _call = getattr(self, "_draw_line")
 
-        if only_depth:
-            args["rgb_list"] = [0, 0, 0]
-            img["depth"] = _call(image=img["depth"], **args)
-        else:
-            for k in self._image_key:
-                img[k] = _call(image=img[k], **args)
+        # if only_depth:
+        #     args["rgb_list"] = [0, 0, 0]
+        #     img["depth"] = _call(image=img["depth"], **args)
+        # else:
+        #     for k in self._image_key:
+        #         img[k] = _call(image=img[k], **args)
 
         _mask_dict = {}
         args.update({"rgb_list": [0, 0, 0]})
