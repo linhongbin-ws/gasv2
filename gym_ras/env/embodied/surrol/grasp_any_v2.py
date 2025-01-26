@@ -246,6 +246,10 @@ class GraspAnyV2(PsmEnv):
 
         _randir = file_dir[_rand_flag]
         _stuff_dir = _randir[self._stuff_urdf_rng.randint(len(_randir))]
+        # _stuff_dir = Path("./gym_ras/asset/urdf/box/box.urdf")
+        # _stuff_dir = Path("./gym_ras/asset/urdf/box/bar.urdf")
+        _stuff_dir = Path("./gym_ras/asset/urdf/box/bar2.urdf")
+        
         self._urdf_file_name = _stuff_dir.name
         _low = (
             self._stuff_scaling_low
@@ -358,9 +362,23 @@ class GraspAnyV2(PsmEnv):
         if not self._on_plane and self._urdf_file_name == "needle_40mm_RL.urdf":
             pos_obj[2] += 0.05
         if not self._on_plane and self._urdf_file_name == "box.urdf":
-            pos_obj[0] -= 0.023
-            pos_obj[1] -= 0.03
-            pos_obj[2] += 0.055
+            T1 = getT(pos_obj, orn_obj)
+            offset = [0.00, -0.03, 0.06]
+            T2 = getT(offset,[0,0,0], rot_type="euler")
+            T = TxT([T1, T2])
+            pos_obj = T[0:3,3]
+        if not self._on_plane and self._urdf_file_name == "bar.urdf":
+            T1 = getT(pos_obj, orn_obj)
+            offset = [0.00, -0.03, 0.06]
+            T2 = getT(offset,[0,0,0], rot_type="euler")
+            T = TxT([T1, T2])
+            pos_obj = T[0:3,3]
+        if not self._on_plane and self._urdf_file_name == "bar2.urdf":
+            T1 = getT(pos_obj, orn_obj)
+            offset = [0.00, -0.03, 0.06]
+            T2 = getT(offset,[0,0,0], rot_type="euler")
+            T = TxT([T1, T2])
+            pos_obj = T[0:3,3]
 
 
                 #     "needle": [

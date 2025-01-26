@@ -148,7 +148,7 @@ default:
         random_obj_vis: false
         depth_distance: 0.2
         on_plane: false
-        oracle_pos_thres: 20e-4
+        oracle_pos_thres: 25e-4
         oracle_rot_thres: 0.5
         max_grasp_trial: 1
         horizontal_stuff: true
