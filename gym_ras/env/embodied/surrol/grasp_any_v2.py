@@ -462,6 +462,7 @@ class GraspAnyV2(PsmEnv):
         # four waypoints executed in sequential order
         action = np.zeros(5)
         action[4] = -0.5
+        delta_yaw = None
         for i, waypoint in enumerate(self._WAYPOINTS):
             # print("waypoint", i)
             if waypoint is None:
@@ -487,6 +488,8 @@ class GraspAnyV2(PsmEnv):
             ):
                 self._WAYPOINTS[i] = None
             break
+        if delta_yaw is None: 
+            delta_yaw = 0
         if self._oracle_discrete and np.abs(delta_yaw) < self._oracle_rot_thres:
             action[3] = 0
         return action
