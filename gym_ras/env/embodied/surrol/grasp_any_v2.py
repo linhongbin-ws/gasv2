@@ -217,14 +217,14 @@ class GraspAnyV2(PsmEnv):
                 "needle": [
                     "needle_40mm_RL.urdf",
                 ],
-                "box": ["bar2.urdf", "bar.urdf", "box.urdf"],
+                "box": ["bar.urdf", "box.urdf"],
             }
         else:
             file_dir = {
                 "needle": [
                     "needle_40mm_RL.urdf",
                 ],
-                "box": ["bar2.urdf", "bar.urdf", "box.urdf"],
+                "box": ["bar.urdf", "box.urdf"],
                 # "box": ["box.urdf"],
                 # "box": ["bar2.urdf"],
                 # "block_haptic.urdf",
@@ -248,19 +248,33 @@ class GraspAnyV2(PsmEnv):
         _stuff_dir = _randir[self._stuff_urdf_rng.randint(len(_randir))]
         # _stuff_dir = Path("./gym_ras/asset/urdf/box/box.urdf")
         # _stuff_dir = Path("./gym_ras/asset/urdf/box/bar.urdf")
-        _stuff_dir = Path("./gym_ras/asset/urdf/box/bar2.urdf")
+        # _stuff_dir = Path("./gym_ras/asset/urdf/box/bar2.urdf")
+        # _stuff_dir = Path("./gym_ras/asset/urdf/needle/needle_40mm_RL.urdf") 
         
         self._urdf_file_name = _stuff_dir.name
-        _low = (
-            self._stuff_scaling_low
-            if str(_stuff_dir).find("needle") < 0
-            else self._needle_scaling_low
-        )
-        _high = (
-            self._stuff_scaling_high
-            if str(_stuff_dir).find("needle") < 0
-            else self._needle_scaling_high
-        )
+        if self._urdf_file_name == "needle_40mm_RL.urdf":
+            _low = self._needle_scaling_low
+            _high = self._needle_scaling_high
+        elif self._urdf_file_name == "box.urdf":
+            _low = 0.5 * 0.75
+            _high = 0.5 * 1.25
+        if self._urdf_file_name == "bar.urdf":
+            _low = 0.9 * 0.75
+            _high = 0.9 * 1.25
+        if self._urdf_file_name == "bar2.urdf":
+            _low = 0.9 * 0.75
+            _high = 0.9 * 1.25
+        # _low 
+        # _low = (
+        #     self._stuff_scaling_low
+        #     if str(_stuff_dir).find("needle") < 0
+        #     else self._needle_scaling_low
+        # )
+        # _high = (
+        #     self._stuff_scaling_high
+        #     if str(_stuff_dir).find("needle") < 0
+        #     else self._needle_scaling_high
+        # )
         scaling = self._stuff_urdf_rng.uniform(_low, _high)
 
         _tray_dir = asset_path / "tray" / "tray_no_collide.urdf"
@@ -353,32 +367,29 @@ class GraspAnyV2(PsmEnv):
     def _create_waypoint(self):
         for _ in range(100):
             p.stepSimulation()  # wait stable
-        if self.obj_link1<0:
-            pos_obj, orn_obj =  p.getBasePositionAndOrientation(self.obj_id)
-            pos_obj = list(pos_obj)
-            orn_obj = list(orn_obj)
-        else:
-            pos_obj, orn_obj = get_link_pose(self.obj_id, self.obj_link1 if self._on_plane  else 2)
+        # if self.obj_link1<0:
+        #     pos_obj, orn_obj =  p.getBasePositionAndOrientation(self.obj_id)
+        #     pos_obj = list(pos_obj)
+        #     orn_obj = list(orn_obj)
+        # else:
+        #     pos_obj, orn_obj = get_link_pose(self.obj_id, self.obj_link1 if self._on_plane  else 2)
+        pos_obj, orn_obj = get_link_pose(self.obj_id, self.obj_link1)
         if not self._on_plane and self._urdf_file_name == "needle_40mm_RL.urdf":
-            pos_obj[2] += 0.05
-        if not self._on_plane and self._urdf_file_name == "box.urdf":
-            T1 = getT(pos_obj, orn_obj)
-            offset = [0.00, -0.03, 0.06]
-            T2 = getT(offset,[0,0,0], rot_type="euler")
-            T = TxT([T1, T2])
-            pos_obj = T[0:3,3]
+            pos_obj[0] -= 0.03
+            pos_obj[1] += 0.01
+            pos_obj[2] += 0.06
+        elif self._urdf_file_name == "box.urdf":
+            pos_obj[0] -= 0.03
+            pos_obj[1] += 0.008
+            pos_obj[2] += 0.06
         if not self._on_plane and self._urdf_file_name == "bar.urdf":
-            T1 = getT(pos_obj, orn_obj)
-            offset = [0.00, -0.03, 0.06]
-            T2 = getT(offset,[0,0,0], rot_type="euler")
-            T = TxT([T1, T2])
-            pos_obj = T[0:3,3]
+            pos_obj[0] -= 0.03
+            pos_obj[1] += 0.008
+            pos_obj[2] += 0.06
         if not self._on_plane and self._urdf_file_name == "bar2.urdf":
-            T1 = getT(pos_obj, orn_obj)
-            offset = [0.00, -0.03, 0.06]
-            T2 = getT(offset,[0,0,0], rot_type="euler")
-            T = TxT([T1, T2])
-            pos_obj = T[0:3,3]
+            pos_obj[0] -= 0.03
+            pos_obj[1] += 0.008
+            pos_obj[2] += 0.06
 
 
                 #     "needle": [
@@ -435,7 +446,7 @@ class GraspAnyV2(PsmEnv):
 
     def _fsm(self,):
         if self._on_plane:
-            obs = self._get_robot_state(idx=0)  # for psm1
+            obs = self._get_robot_state(idx=0)  # forc psm1
             tip = obs[2]
             if (
                 self._is_grasp_obj()
@@ -490,6 +501,9 @@ class GraspAnyV2(PsmEnv):
                 return self.get_oracle_action(obs)
             delta_pos = (waypoint[:3] - obs["observation"][:3]) / 0.01 / self.SCALING
             delta_yaw = wrapAngle((waypoint[3] - obs["observation"][5]), angle_range=np.pi/2)
+            if not self._urdf_file_name == "needle_40mm_RL.urdf":
+                delta_yaw = 0
+            delta_yaw = 0
             if np.abs(delta_pos).max() > 1:
                 delta_pos /= np.abs(delta_pos).max()
             scale_factor = 0.4
@@ -510,6 +524,7 @@ class GraspAnyV2(PsmEnv):
             delta_yaw = 0
         if self._oracle_discrete and np.abs(delta_yaw) < self._oracle_rot_thres:
             action[3] = 0
+        
         return action
 
     def seed(self, seed=0):

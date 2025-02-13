@@ -42,6 +42,8 @@ if args.eval:
     env.to_eval()
 print("action space: ", env.action_space)
 print("observation space: ", env.observation_space)
+eps_cnt =0 
+eps_success_cnt=0
 for _ in tqdm(range(args.repeat)):
     done = False
     obs = env.reset()
@@ -66,6 +68,15 @@ for _ in tqdm(range(args.repeat)):
             raise NotImplementedError
         # print("step....")
         obs, reward, done, info = env.step(action)
+        if done:
+            eps_cnt +=1 
+            if info['fsm'] == "done_success":
+                eps_success_cnt+=1
+            print("************")
+            print()
+            print(f"fsm state: {info['fsm']}, success/total: ({eps_success_cnt}/{eps_cnt})")
+            print()
+            print("************")
         print_obs = obs.copy()
         print_obs = {k: v.shape if hasattr(v, 'shape') else "" for k, v in print_obs.items()}
         print_obs = [str(k) + ":" + str(v) for k, v in print_obs.items()]

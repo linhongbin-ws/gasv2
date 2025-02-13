@@ -246,6 +246,8 @@ class SurrolEnv(BaseEnv):
             obs["robot_prio"], obs["gripper_state"] = self._get_prio_obs()
             gripper_toggle = np.abs(
                 obs["gripper_state"]-self.step_func_prv[0]["gripper_state"]) > 0.1
+            if gripper_toggle:
+                _, _, _, _ = self.client.step(np.array([0,0,0,0,-1]))
             info = self._fsm(info, gripper_toggle, _is_out)
             if not self.client._is_grasp_obj() and self._stuff_dist:
                 self._disturbance_on_stuff()
