@@ -1,25 +1,25 @@
 # Training
 GASV2
 ```sh
-python ./run/rl_train.py --baseline-tag gas high_oracle3  --env-tag domain_random_enhance dsa_occup2  
+python ./run/rl_train.py  --env-tag domain_random_enhance dsa_occup2  --baseline-tag gas high_oracle3 
 ```
 GASV1
 ```sh
-python ./run/rl_train.py --env-tag gasv1 --baseline-tag gas eval_less
+python ./run/rl_train.py --env-tag domain_random_enhance dsa_occup2  gasv1 --baseline-tag gas eval_less high_oracle3 
 ```
 
 dreamerv2
 ```sh
-python ./run/rl_train.py --env-tag raw_env --baseline-tag gas eval_less
+python ./run/rl_train.py --env-tag  domain_random_enhance dsa_occup2  raw_env --baseline-tag  gas eval_less high_oracle3 
 ```
 
 GASv2-rawRGB
 ```sh
-python ./run/rl_train.py --env-tag no_dsa --baseline-tag gas eval_less
+python ./run/rl_train.py --env-tag  domain_random_enhance dsa_occup2  no_dsa --baseline-tag gas eval_less high_oracle3 
 ```
 GASv2-rawControl
 ```sh
-python ./run/rl_train.py --env-tag no_pid --baseline-tag gas eval_less
+python ./run/rl_train.py --env-tag  domain_random_enhance dsa_occup2  no_pid --baseline-tag gas eval_less high_oracle3
 ```
 
 

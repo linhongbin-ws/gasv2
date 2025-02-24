@@ -358,7 +358,11 @@ class DSA(BaseWrapper):
             layers = [
                 np.zeros(img["rgb" + pfix].shape[0:2], dtype=np.uint8) for i in range(3)
             ]
-            layers[1] = img["depth"+pfix]
+            # print(img.keys())
+            # print(self.unwrapped.depth_remap_range)
+            depth = scale_arr(img["depReal"], self.unwrapped.depth_remap_range[0][0],self.unwrapped.depth_remap_range[0][1], 0,255)
+            depth = np.clip(depth, 0,255)
+            layers[1] = np.uint8(depth)
             for k, v in img["mask"+pfix].items():
                 if k in self._dsa_key:
                     layers[2][v] = self._image_encode_id[k]
