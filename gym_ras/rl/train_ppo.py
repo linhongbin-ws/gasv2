@@ -144,6 +144,8 @@ def train(env, config, is_reload=False, only_eval=False):
         env, verbose=1,
         tensorboard_log=_dir
     )
+    model._prefill_oracle = config.prefill_oracle
+    model._prefill_random = config.prefill_random
     if is_reload:
         model.load(str(Path(config.logdir) / "best_model.zip"),
                    print_system_info=True)

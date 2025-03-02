@@ -1,9 +1,16 @@
 default:
   baseline_name: ppo
   logdir: ""
-  eval_freq: 2e5
-  eval_eps: 50
-  steps: 1820000
+  eval_freq: 4e4
+  eval_eps: 20
+  steps: 2300000
+  prefill_random: 5e4
+  prefill_oracle: 5e4
+
+high_oracle3: 
+  prefill_random: 5e4
+  prefill_oracle: 5e4
+
 dvrk:
   eval_freq: 1
   eval_eps: 50
@@ -11,3 +18,5 @@ dvrk:
 debug:
   eval_eps: 3
   eval_freq: 200
+  prefill_random: 10
+  prefill_oracle: 10

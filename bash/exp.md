@@ -22,6 +22,10 @@ GASv2-rawControl
 python ./run/rl_train.py --env-tag  domain_random_enhance dsa_occup2  no_pid --baseline-tag gas eval_less high_oracle3
 ```
 
+PPO
+```sh
+python ./run/rl_train.py --env-tag domain_random_enhance dsa_occup2  raw_env --baseline ppo --baseline-tag high_oracle3
+```
 
 # eval on dvrk
 python ./run/dvrk_eval.py --reload-dir ./data/agent/2024_12_30-10_58_55@grasp_any_v2@dreamerv2-gasv2@seed0  --reload-envtag  gasv2_dvrk --online-eval --visualize --vis-tag obs rgb dsa mask --online-eps 20 --save-prefix xxx

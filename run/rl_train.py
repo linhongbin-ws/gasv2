@@ -9,7 +9,7 @@ from datetime import datetime
 parser = argparse.ArgumentParser()
 parser.add_argument('--baseline', type=str, default="dreamerv2")
 parser.add_argument('--baseline-tag', type=str,
-                    nargs='+', default=['gasv2'])
+                    nargs='+', default=[])
 parser.add_argument('--env-tag', type=str, nargs='+', default=[])
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--logdir', type=str, default="./log")

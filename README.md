@@ -23,6 +23,30 @@
     pushd ext/dreamerv2/ && python -m pip install -e . && popd # install dreamerv2
     python -m pip install -e . # install gym_ras
     ```
+
+### surrol + PPO
+- Download and install [Miniconda](https://docs.anaconda.com/miniconda/).
+
+- Edit environment variables, go to [init_surrol_ppo.sh](./bash/init_surrol.sh) and edit your environment variables.
+
+- Create virtual environment in anaconda
+    ```sh
+    source bash/init_surrol_ppo.sh 
+    source $ANACONDA_PATH/bin/activate 
+    conda create -n $ENV_NAME python=3.9 -y
+    ```
+
+- Install package 
+    ```sh
+    source bash/init_surrol_ppo.sh
+    pushd ext/SurRoL/ && python -m pip install -e . && popd # install surrol
+    pushd ext/stable-baselines3/ && python -m pip install -e . && popd # install stable-baselines3
+    pushd ext &&  git clone https://github.com/facebookresearch/r3m && cd r3m && python -m pip install -e . && popd # install r3m
+    python -m pip install -e . # install gym_ras
+    ```
+
+
+
 ### dvrk
 - Download and install [Miniconda](https://docs.anaconda.com/miniconda/).
 - Download [pretrain_models](https://mycuhk-my.sharepoint.com/:f:/g/personal/1155097177_link_cuhk_edu_hk/Elg2xxj3URNJhm6cCNf8GzwBVJXCOfrtLiL83xXECN_7VQ?e=do3lV8&download=1) and unzip to current directory
