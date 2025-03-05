@@ -25,7 +25,8 @@ sys.path.append(str(pathlib.Path(__file__).parent))
 sys.path.append(str(pathlib.Path(__file__).parent.parent))
 
 
-def eval_agnt(base_env, config, eval_eps_num, is_visualize=False, max_eps_length=300, save_prefix=""):
+def eval_agnt(base_env, config, eval_eps_num, done_success_id, seed,
+              is_visualize=False, max_eps_length=300, save_prefix=""):
     env = common.GymWrapper(base_env)
     env = common.ResizeImage(env)
     if hasattr(env.act_space['action'], 'n'):
@@ -108,7 +109,7 @@ def eval_agnt(base_env, config, eval_eps_num, is_visualize=False, max_eps_length
         # print(ep['fsm_state'][-1]==2.0)
         print(np.sum(ep['fsm_state'] == 5.0))
         print(ep['fsm_state'])
-        if np.sum(ep['fsm_state'] == 5.0) > 0:
+        if np.sum(ep['fsm_state'][-1] == done_success_id) > 0:
             eval_stat['success_eps'] += 1
             print("+++sucess episode !")
         eps_length = ep['fsm_state'].shape[0] - 1
@@ -162,20 +163,20 @@ def eval_agnt(base_env, config, eval_eps_num, is_visualize=False, max_eps_length
     from datetime import datetime
     _dir = Path("./data") / "exp_result"
     _dir.mkdir(parents=True, exist_ok=True)
-    _file = _dir / (save_prefix + "@" +
+    _file = _dir / (save_prefix + "@seed" + str(seed) + "@" +
                     str(datetime.now().strftime("%Y_%m_%d-%H_%M_%S")) + ".yml")
     for i in tqdm(range(eval_eps_num)):
         eval_driver.reset()
         eval_driver(eval_policy, episodes=1)
         eval_stat['success_rate'] = eval_stat['success_eps'] / \
             eval_stat['total_eps']
+        eval_stat["score_mean"] = np.mean(np.array(eval_stat["score"])).item(0)
+        eval_stat["score_std"] = np.std(np.array(eval_stat["score"])).item(0)
         # logger.add(eval_stat, prefix='eval')
         print("============================")
         print(f"eval success rate: {eval_stat['success_rate']}")
         with open(str(_file), 'w') as yaml_file:
             yl.dump(eval_stat, yaml_file, default_flow_style=False)
-    eval_stat["score_mean"] = np.mean(np.array(eval_stat["score"])).item(0)
-    eval_stat["score_std"] = np.std(np.array(eval_stat["score"])).item(0)
     print(eval_stat)
     with open(str(_file), 'w') as yaml_file:
         yl.dump(eval_stat, yaml_file, default_flow_style=False)

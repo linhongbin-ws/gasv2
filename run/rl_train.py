@@ -17,7 +17,7 @@ parser.add_argument('--reload-dir', type=str, default="")
 parser.add_argument('--reload-envtag', type=str, nargs='+', default=[])
 parser.add_argument('--online-eval', action='store_true')
 parser.add_argument('--online-eps', type=int, default=10)
-parser.add_argument('--visualize', action="store_true")
+parser.add_argument('--novis', action="store_true")
 parser.add_argument('--vis-tag', type=str, nargs='+', default=[])
 parser.add_argument('--save-prefix', type=str, default="")
 args = parser.parse_args()
@@ -88,7 +88,7 @@ else:
     baseline_config.save(str(logdir / "baseline_config.yaml"))
     env_config.save(str(logdir / "env_config.yaml"))
 
-if args.visualize and args.online_eval:
+if not args.novis:
     env = Visualizer(env, update_hz=30, vis_tag=args.vis_tag, keyboard=True)
 
 if baseline_config.baseline_name == "DreamerfD":
@@ -106,7 +106,11 @@ elif baseline_config.baseline_name == "dreamerv2":
         import csv
         env.to_eval()
         eval_stat = eval_dreamerv2.eval_agnt(
-            env, baseline_config, eval_eps_num=args.online_eps, is_visualize=args.visualize, save_prefix=args.save_prefix)
+            env, baseline_config, 
+            seed=args.seed,
+            done_success_id=env.done_success_id,
+            eval_eps_num=args.online_eps, is_visualize=not args.novis, save_prefix=args.save_prefix,
+            max_eps_length=env_config.wrapper.TimeLimit.max_timestep)
 
     else:
         from gym_ras.rl import train_dreamerv2

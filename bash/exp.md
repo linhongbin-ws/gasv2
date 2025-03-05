@@ -27,8 +27,20 @@ PPO
 python ./run/rl_train.py --env-tag domain_random_enhance dsa_occup2  raw_env --baseline ppo --baseline-tag high_oracle3
 ```
 
+
+# eval on surrol
+
+Performance Study
+```sh
+python ./run/rl_train.py --reload-dir ./data/agent/2025_02_13-22_25_34@grasp_any_v2-domain_random_enhance-dsa_occup2@dreamerv2-gas-high_oracle3@seed0  --reload-envtag  domain_random_enhance dsa_occup2  --online-eval --novis --vis-tag obs rgb dsa mask --online-eps 100 --save-prefix xxx --seed 4
+```
+
+
 # eval on dvrk
+```sh
 python ./run/dvrk_eval.py --reload-dir ./data/agent/2024_12_30-10_58_55@grasp_any_v2@dreamerv2-gasv2@seed0  --reload-envtag  gasv2_dvrk --online-eval --visualize --vis-tag obs rgb dsa mask --online-eps 20 --save-prefix xxx
+```
 
-
+```sh
 python ./run/dvrk_eval.py --reload-dir ./log/2025_01_02-14_02_12@grasp_any_v2-action_continuous@dreamerv2-gasv2@seed0/  --reload-envtag  gasv2_dvrk action_continuous --online-eval --visualize --vis-tag obs rgb dsa mask --online-eps 20 --save-prefix xxx
+```
