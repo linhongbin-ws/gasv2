@@ -49,10 +49,9 @@ class GraspAnyV2(PsmEnv):
         init_pose_ratio_low_stuff=[-0.5, -0.5, 0.1, -0.99, -0.99, -0.99],
         init_pose_ratio_high_stuff=[0.5, 0.5, 0.5, 0.99, 0.99, 0.99],
         depth_distance=0.25,
-        stuff_scaling_low=0.5 * 0.75,
-        stuff_scaling_high=0.5 * 1.25,
-        needle_scaling_low=0.5 * 0.75,
-        needle_scaling_high=0.5 * 1.25,
+        object_scaling_low=0.75,
+        object_scaling_high=1.25,
+        object_list = ['needle', "box", "bar"],
         needle_prob = 0.5,
         on_plane=False,
         max_grasp_trial=3,
@@ -66,11 +65,11 @@ class GraspAnyV2(PsmEnv):
         self._init_pose_ratio_high_gripper = init_pose_ratio_high_gripper
         self._init_pose_ratio_low_stuff = init_pose_ratio_low_stuff
         self._init_pose_ratio_high_stuff = init_pose_ratio_high_stuff
-        # self._stuff_name = stuff_name
-        self._stuff_scaling_low = stuff_scaling_low
-        self._stuff_scaling_high = stuff_scaling_high
-        self._needle_scaling_low = needle_scaling_low
-        self._needle_scaling_high = needle_scaling_high
+        self._object_scaling_low = object_scaling_low
+        self._object_scaling_high = object_scaling_high
+        self._object_list = object_list
+
+        
         self._on_plane = on_plane
         self._max_grasp_trial = max_grasp_trial
         self._fix_goal = fix_goal
@@ -221,15 +220,14 @@ class GraspAnyV2(PsmEnv):
             }
         else:
             file_dir = {
-                "needle": [
-                    "needle_40mm_RL.urdf",
-                ],
-                "box": ["bar.urdf", "box.urdf"],
-                # "box": ["box.urdf"],
-                # "box": ["bar2.urdf"],
-                # "block_haptic.urdf",
+                "needle": ["needle_40mm_RL.urdf",],
+                "bar": ["bar.urdf"],
+                "box": ["box.urdf"],
+                "sphere": ["sphere.urdf"],
             }
-        file_dir = {k: [asset_path / k / _v for _v in v] for k, v in file_dir.items()}
+
+        # needle_dir = file_dir['']
+        # file_dir = {k: [asset_path / k / _v for _v in v] for k, v in file_dir.items()}
 
         # if self._stuff_name == "any":
         #     _dirs = []
@@ -239,42 +237,35 @@ class GraspAnyV2(PsmEnv):
         #     _dirs = file_dir[self._stuff_name]
 
         # _stuff_dir = _dirs[self._stuff_urdf_rng.randint(len(_dirs))]
-        if self._stuff_urdf_rng.uniform(0,1) > self._needle_prob:
-            _rand_flag = "needle"
+        if self._stuff_urdf_rng.uniform(0,1) > self._needle_prob and "needle" in self._object_list:
+            _randir = file_dir["needle"]
+            _stuff_file = _randir[self._stuff_urdf_rng.randint(len(_randir))]
+            _stuff_dir = asset_path / "needle" / _stuff_file
         else:
-            _rand_flag = "box"
+            _object_list = [v for v in self._object_list if v!="needle"] 
+            flag = _object_list[self._stuff_urdf_rng.randint(len(_object_list))]
+            flag_list = file_dir[flag]
+            _stuff_file = flag_list[self._stuff_urdf_rng.randint(len(flag_list))]
+            _stuff_dir = asset_path / flag / _stuff_file
 
-        _randir = file_dir[_rand_flag]
-        _stuff_dir = _randir[self._stuff_urdf_rng.randint(len(_randir))]
-        # _stuff_dir = Path("./gym_ras/asset/urdf/box/box.urdf")
-        # _stuff_dir = Path("./gym_ras/asset/urdf/box/bar.urdf")
-        # _stuff_dir = Path("./gym_ras/asset/urdf/box/bar2.urdf")
-        # _stuff_dir = Path("./gym_ras/asset/urdf/needle/needle_40mm_RL.urdf") 
         
         self._urdf_file_name = _stuff_dir.name
         if self._urdf_file_name == "needle_40mm_RL.urdf":
-            _low = self._needle_scaling_low
-            _high = self._needle_scaling_high
+            _low = 0.5 * self._object_scaling_low
+            _high = 0.5 * self._object_scaling_high
         elif self._urdf_file_name == "box.urdf":
-            _low = 0.5 * 0.75
-            _high = 0.5 * 1.25
-        if self._urdf_file_name == "bar.urdf":
-            _low = 0.9 * 0.75
-            _high = 0.9 * 1.25
-        if self._urdf_file_name == "bar2.urdf":
-            _low = 0.9 * 0.75
-            _high = 0.9 * 1.25
-        # _low 
-        # _low = (
-        #     self._stuff_scaling_low
-        #     if str(_stuff_dir).find("needle") < 0
-        #     else self._needle_scaling_low
-        # )
-        # _high = (
-        #     self._stuff_scaling_high
-        #     if str(_stuff_dir).find("needle") < 0
-        #     else self._needle_scaling_high
-        # )
+            _low = 0.5 * self._object_scaling_low
+            _high = 0.5 * self._object_scaling_high
+        elif self._urdf_file_name == "bar.urdf":
+            _low = 0.9 * self._object_scaling_low
+            _high = 0.9 * self._object_scaling_high
+        elif self._urdf_file_name == "sphere.urdf":
+            _low = 0.3 * self._object_scaling_low
+            _high = 0.3 * self._object_scaling_high
+        else:
+            _low = self._object_scaling_low
+            _high = self._object_scaling_high
+
         scaling = self._stuff_urdf_rng.uniform(_low, _high)
 
         _tray_dir = asset_path / "tray" / "tray_no_collide.urdf"

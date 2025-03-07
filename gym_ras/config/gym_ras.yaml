@@ -152,6 +152,10 @@ default:
         oracle_rot_thres: 0.5
         max_grasp_trial: 1
         horizontal_stuff: true
+        object_scaling_low: 0.75
+        object_scaling_high: 1.25
+        object_list: ['needle', "box", "bar"]
+        needle_prob: 0.5
     dVRKEnv:
       robot_type: 'dvrk'
       grasp_any_v2:
@@ -238,9 +242,45 @@ domain_random_enhance:
     cam_roll_noise: 3,
     cam_up_axis_noise: 1
     }
+######################################
+# evaluation settings
+
+# generality
+object_scale1:
+  embodied.SurrolEnv.grasp_any_v2:
+      {
+        object_scaling_low: 1.5,
+        object_scaling_high: 2.0,
+        object_list: ['needle', "box", "bar"],
+        needle_prob: 0.5,
+      }
+object_scale2:
+  embodied.SurrolEnv.grasp_any_v2:
+      {
+        object_scaling_low: 1.5,
+        object_scaling_high: 2.0,
+        object_list: ['needle', "box", "bar"],
+        needle_prob: 0.5,
+      }
+object_type1:
+  embodied.SurrolEnv.grasp_any_v2:
+      {
+        # object_scaling_low: 1.5,
+        # object_scaling_high: 2.0,
+        object_list: ["sphere"],
+        # needle_prob: 0.5,
+      }
+
+# robust
+regrasp:
+  embodied.SurrolEnv.grasp_any_v2.max_grasp_trial: 2
+dynamic_cam:
+  embodied.SurrolEnv.cam_dynamic_noise_scale: 0.1
+
 
   
-
+########################
+# other
 psm2:
   embodied.dVRKEnv.grasp_any_v2.arm_names: ["PSM2"]
 
@@ -290,5 +330,6 @@ no_dsa:
 
 all_obs:
   wrapper.GymRegularizer.obs_key: ["all"]
+
 
 
