@@ -31,3 +31,5 @@ csr_install/
 pretrained_models/
 
 logdir/
+
+ext/python_stereo_camera_calibrate

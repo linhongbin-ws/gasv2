@@ -1,3 +1,30 @@
+# Prepare
+
+put object in the view of camera
+```sh
+python ./run/cam_test.py
+```
+
+calibrate cam distance to center of workspace
+```sh
+python ./run/calibrate_cam_dis.py 
+```
+
+calibrate workspace limit
+```sh
+python ./run/calibrate_dvrk_ws.py 
+```
+
+label segmentation
+```sh
+python ./run/label_dvrk.py
+```
+
+env play
+```sh
+python ./run/env_play.py  --env-tag domain_random_enhance dsa_occup2 gasv2_dvrk --oracle keyboard --action oracle
+```
+
 # Training
 GASV2
 ```sh
@@ -43,4 +70,6 @@ python ./run/dvrk_eval.py --reload-dir ./data/agent/2024_12_30-10_58_55@grasp_an
 
 ```sh
 python ./run/dvrk_eval.py --reload-dir ./log/2025_01_02-14_02_12@grasp_any_v2-action_continuous@dreamerv2-gasv2@seed0/  --reload-envtag  gasv2_dvrk action_continuous --online-eval --visualize --vis-tag obs rgb dsa mask --online-eps 20 --save-prefix xxx
-```
+
+
+python ./run/dvrk_eval.py --reload-dir ./data/agent/2025_02_13-22_25_34@grasp_any_v2-domain_random_enhance-dsa_occup2@dreamerv2-gas-high_oracle3@seed0  --reload-envtag  domain_random_enhance dsa_occup2 gasv2_dvrk --online-eval --visualize --vis-tag obs rgb dsa mask --online-eps 20 --save-prefix xxx

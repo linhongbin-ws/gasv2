@@ -6,7 +6,7 @@ import numpy as np
 import cv2
 from gym_ras.tool.common import getT, invT, TxT
 import time
-
+from gym_ras.tool.config import load_yaml
 
 class Occup(BaseWrapper):
     def __init__(
@@ -29,6 +29,7 @@ class Occup(BaseWrapper):
         cam_cal_file='',
         psm_outlier_rm_radius=0.001,
         psm_outlier_rm_pts=30,
+        cam_dis_file="",
         skip=False,
         **kwargs
     ):
@@ -52,6 +53,7 @@ class Occup(BaseWrapper):
         self._cam_cal_file = cam_cal_file
         self._psm_outlier_rm_radius=psm_outlier_rm_radius
         self._psm_outlier_rm_pts=psm_outlier_rm_pts
+        
         self._skip = skip
         if cam_cal_file != "":
             fs = cv2.FileStorage(cam_cal_file, cv2.FILE_STORAGE_READ)
@@ -71,6 +73,10 @@ class Occup(BaseWrapper):
             print(f"read cam_cal_file {cam_cal_file}, K: {self._K}")
         else:
             self._K = self.unwrapped.instrinsic_K
+        if cam_dis_file != "":
+            _args = load_yaml(cam_dis_file)
+            self._cam_offset_z = -_args['cam_dis']
+            print(f"load {cam_dis_file}, update cam_offset_z: {self._cam_offset_z}")
 
     @property
     def occup_pc_range(self):

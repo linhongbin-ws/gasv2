@@ -76,10 +76,13 @@ default:
         cam_fov: 45,    
         psm_outlier_rm_radius: 0.0,
         psm_outlier_rm_pts: 0,
+        cam_dis_file: "",
     }
     PID: {
           obs_type: occup,
-          control_p: 10.0,
+          control_px: 10.0,
+          control_py: 10.0,
+          control_pz: 10.0,
           phase_thres: [0.1, 0.1, 0.1],
           err_offset: [0.0,  0.0, -0.1],  
           skip: false,
@@ -189,12 +192,16 @@ default:
 gasv2_dvrk:
   task_name: grasp_any_v2
   embodied_name: dVRKEnv
+  embodied.dVRKEnv.grasp_any_v2.psm_max_step_pos: 0.03
   wrapper.PID: {
-          control_p: 15.0,
+          control_px: 15.0,
+          control_py: 15.0,
+          control_pz: 1,
           phase_thres: [0.015, 0.015, 0.015],
-          err_offset: [0.0,  0.0, -0.005],  
+          # err_offset: [0.0,  0.0, -0.005],  
+          err_offset: [0.0,  0.0, -0.01],  
     }
-  wrapper.DiscreteAction.pos_action_scale: 0.2
+  wrapper.DiscreteAction.pos_action_scale: 0.1
   wrapper.ImageNoise.skip: true
   wrapper.ActionNoise.noise_scale: 0.0
   wrapper.DepthProcess.eval: true
@@ -205,13 +212,14 @@ gasv2_dvrk:
         pc_y_max: 0.1,
         pc_z_min: -0.1,
         pc_z_max: 0.1,    
-        cam_offset_z: -0.13548762, 
+        cam_offset_z: -0.1460121, 
         cam_offset_rx: 160,
         cam_offset_ry: 0.0,
         cam_offset_rz: -90.0,     
         cam_cal_file: './config/cam_cal.yaml',   
         psm_outlier_rm_radius: 0.001,
         psm_outlier_rm_pts: 30,
+        cam_dis_file: "./data/dvrk_cal/cam_dis.yaml",
   }
 
 

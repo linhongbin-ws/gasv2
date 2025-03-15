@@ -7,7 +7,9 @@ class PID(BaseWrapper):
     def __init__(
         self, env,
         obs_type='occup',
-        control_p=10,
+        control_px=10,
+        control_py=10,
+        control_pz=10,
         phase_thres=[0.1, 0.1, 0.05],
         err_offset=[0.0, 0.0, 0.10],
         fsm_z_err_min=-0.02,
@@ -18,7 +20,9 @@ class PID(BaseWrapper):
     ):
         super().__init__(env, **kwargs)
         self._obs_type = obs_type
-        self._control_p = control_p
+        self._control_px = control_px
+        self._control_py = control_py
+        self._control_pz = control_pz
         self._phase_thres = phase_thres
         self._err_offset = err_offset
         self._fsm_z_err_min = fsm_z_err_min
@@ -94,16 +98,16 @@ class PID(BaseWrapper):
 
     def _get_pid_action(self, obs, x_phase, y_phase, z_phase):
         x_err, y_err, z_err = obs['err'][0], obs['err'][1], obs['err'][2]
-        action = np.array([-self._control_p * (x_err+self._err_offset[0]) if x_phase else 0,
-                           -self._control_p *
+        action = np.array([-self._control_px * (x_err+self._err_offset[0]) if x_phase else 0,
+                           -self._control_py *
                            (y_err+self._err_offset[1]) if y_phase else 0,
-                           -self._control_p *
+                           -self._control_pz *
                            (z_err+self._err_offset[2]) if z_phase else 0,
                            0,
                            1,])
         # action = np.array([0,0,2,0,0])
         action = np.clip(action, -np.ones(action.shape), np.ones(action.shape))
-        # print("action is ", action)
+        print("action is ", action , "px,py,pz", self._control_px,self._control_py,self._control_pz)
         return action
 
     @property

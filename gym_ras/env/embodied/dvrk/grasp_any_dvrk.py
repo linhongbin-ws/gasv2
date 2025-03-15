@@ -97,7 +97,7 @@ class GraspAny(gym.Env):
             self._done_device = None
         elif done_device == "keyboard":
             from gym_ras.tool.keyboard import Keyboard
-            self._done_device = Keyboard(blocking=False)
+            self._done_device = Keyboard(blocking=True)
         elif done_device == "ds":
             from gym_ras.tool.ds import DS_Controller
             self._done_device = DS_Controller(wait_hz=10, only_press=True)
@@ -125,21 +125,24 @@ class GraspAny(gym.Env):
         return obs, reward, done, info
 
     def _fsm(self, info):
-        if self._done_device is not None:
-            if self._done_device_name == "keyboard":
-                ch = self._done_device.get_char()
-                self._done_device.reset_char_buffer()
-                is_grasp = ch == "g"
+        # if self._done_device is not None:
+        #     if self._done_device_name == "keyboard":
+        #         ch = self._done_device.get_char()
+        #         self._done_device.reset_char_buffer()
+        #         is_grasp = ch == "g"
 
-        else:
-            if self._done_jaw_thres == -1.0 or self._done_tip_z_thres == -1.0:
-                return False
+        # else:
+        #     if self._done_jaw_thres == -1.0 or self._done_tip_z_thres == -1.0:
+        #         return False
 
-            _psm = self._arms[self._arm_names[0]]
-            # f = _psm.jaw_force
-            # is_grasp = np.abs(f)>np.abs(self._done_jaw_thres)
-            f = np.rad2deg(_psm.jaw_pos)
-            is_grasp = np.abs(f) < np.abs(self._done_jaw_thres)
+        #     _psm = self._arms[self._arm_names[0]]
+        #     # f = _psm.jaw_force
+        #     # is_grasp = np.abs(f)>np.abs(self._done_jaw_thres)
+        #     f = np.rad2deg(_psm.jaw_pos)
+        #     is_grasp = np.abs(f) < np.abs(self._done_jaw_thres)
+        _psm = self._arms[self._arm_names[0]]
+        jaw_pos = np.rad2deg(_psm.jaw_pos)
+        is_grasp = jaw_pos < 5
 
         ws = self.workspace_limit
         _low = ws[:, 0]
@@ -149,6 +152,11 @@ class GraspAny(gym.Env):
         # print(z_current, _z_low, z_current - _z_low)
         # print("Grasp:",is_grasp, " is_lift:" , is_lift)
         done = is_grasp
+        if done:
+            _psm = self._arms[self._arm_names[0]]
+            _psm.motion_lift(0.03, jaw_close=True)
+            ch = self._done_device.get_char()
+            _psm.open_gripper()
         info['fsm'] = "done_success" if done else "prog_norm"
         return info
 

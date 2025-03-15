@@ -581,8 +581,10 @@ class VisPlayer(nn.Module):
         # self._load_policy_model(filepath='./pretrained_models/csr_ar_policy.pt')
         # self._load_fastsam()
 
-        self.cap_0=VideoCapture("/dev/video2") # left 708
-        self.cap_2=VideoCapture("/dev/video0") # right 708
+        # self.cap_0=VideoCapture("/dev/video2") # left 708
+        # self.cap_2=VideoCapture("/dev/video0") # right 708
+        self.cap_0=VideoCapture("/dev/video0") # left 708
+        self.cap_2=VideoCapture("/dev/video2") # right 708
         print("kkkkkkkkkk")
         # init
         # open jaw

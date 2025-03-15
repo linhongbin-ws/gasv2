@@ -146,6 +146,16 @@ class SinglePSM():
     def open_gripper(self,):
         self._psm.jaw.move_jp(np.deg2rad(self._open_gripper_deg)).wait()
 
+    def motion_lift(self, lift_height, jaw_close=True):
+        self._gripper_pos[2] = self._gripper_pos[2] + lift_height
+        T = self._get_T_from_pos_yaw()
+        self.moveT(T, interp_num=-1, block=False)
+        if jaw_close:
+            self._psm.jaw.close().wait()
+        else:
+            self._psm.jaw.move_jp(np.deg2rad(self._open_gripper_deg)).wait()
+
+
     @property
     def workspace_limit(self):
         return np.array([self._ws_x, self._ws_y, self._ws_z])
