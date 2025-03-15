@@ -170,8 +170,8 @@ default:
         psm_reset_q: [0.0, 0.0, 0.12, 0.0, 0.0, 0.0]
         psm_open_gripper_deg: 40.0
         psm_init_gripper_quat: [7.07106781e-01, 7.07106781e-01, 0.0, 0.0]
-        psm_init_pose_low_gripper: [0.0, 0.0, 0.0, 0.0]
-        psm_init_pose_high_gripper: [0.0, 0.0, 0.0, 0.0]
+        psm_init_pose_low_gripper: [-0.8, -0.8, 0.8, 0.0]
+        psm_init_pose_high_gripper: [0.8, 0.8, 0.9, 0.0]
         psm_max_step_pos: 0.01
         psm_max_step_rot: 45.0
         cam_image_height: 600
@@ -198,8 +198,9 @@ gasv2_dvrk:
           control_py: 15.0,
           control_pz: 1,
           phase_thres: [0.015, 0.015, 0.015],
-          # err_offset: [0.0,  0.0, -0.005],  
-          err_offset: [0.0,  0.0, -0.01],  
+          err_offset: [0.0,  0.0, -0.005],  
+          # err_offset: [0.0,  0.0, -0.01],  
+          fsm_z_err_min: -0.001,
     }
   wrapper.DiscreteAction.pos_action_scale: 0.1
   wrapper.ImageNoise.skip: true

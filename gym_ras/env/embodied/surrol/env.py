@@ -43,6 +43,7 @@ class SurrolEnv(BaseEnv):
                  support_o3d = False,
                  **kwargs,
                  ):
+        self.robot_type = "surrol"
         self._cam_width = cam_width
         self._cam_height = cam_height
         self._gripper_toggle_anolamy = gripper_toggle_anolamy

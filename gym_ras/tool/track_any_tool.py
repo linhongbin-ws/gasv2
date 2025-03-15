@@ -890,8 +890,14 @@ def demo2():
             from gym_ras.rl import eval_dreamerv2
             import csv
             env.to_eval()
-            eval_stat = eval_dreamerv2.eval_agnt(env, baseline_config, eval_eps_num=args.online_eps, is_visualize=args.visualize,save_prefix=args.save_prefix)
-
+            eval_stat = eval_dreamerv2.eval_agnt(env, 
+                                                 baseline_config, 
+                                                seed=args.seed,
+                                                done_success_id=env.done_success_id,
+                                                 eval_eps_num=args.online_eps, 
+                                                 is_visualize=args.visualize,
+                                                 save_prefix=args.save_prefix,
+                                                  max_eps_length=env_config.wrapper.TimeLimit.max_timestep)
 
 
         else:

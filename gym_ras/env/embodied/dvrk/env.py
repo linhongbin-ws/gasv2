@@ -12,6 +12,7 @@ class dVRKEnv(BaseEnv):
                  robot_type='dvrk',
                  **kwargs,
                  ):
+        self.robot_type = "dvrk"
         if task == "grasp_any_v2" and robot_type == 'dvrk':
             from gym_ras.env.embodied.dvrk.grasp_any_dvrk import GraspAny
             client = GraspAny(**kwargs)
