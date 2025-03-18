@@ -38,7 +38,15 @@ default:
     ActionNoise: { noise_scale: 0.01 }
     DiscreteAction: { pos_action_scale: 0.3, rot_action_scale:  1.0, is_discrete: True}
     TimeLimit: { max_timestep: 80 }
-    DepthProcess: { skip: false, uncert_scale: 1.5, eval: false , erode_kernel: 0, edge_detect_thres: 0.0, depth_image_range: 0.25}
+    DepthProcess: { 
+        skip: false, 
+        uncert_scale: 1.5, 
+        eval: false , 
+        erode_kernel: 0, 
+        edge_detect_thres: 0.0, 
+        depth_image_range: 0.25,
+        depth_dict: false
+        }
     FSM: { 
       states: [
               "done_fail",  # done, failure case
@@ -72,7 +80,7 @@ default:
         cam_offset_rx: 160.0,
         cam_offset_ry: 0.0,
         cam_offset_rz: -90.0,     
-        cam_cal_file: './config/cam_cal.yaml',   
+        cam_cal_file: '',   
         cam_fov: 45,    
         psm_outlier_rm_radius: 0.0,
         psm_outlier_rm_pts: 0,
@@ -183,6 +191,11 @@ default:
         cam_mask_noisy_link: true
         done_device: "keyboard"
         reset_random_pose: false
+    
+    DummyEnv:
+      robot_type: "dummy"
+      grasp_any_v2:
+        xxx: 0
 
 
 
@@ -242,6 +255,10 @@ domain_random_enhance:
     cam_roll_noise: 3,
     cam_up_axis_noise: 1
     }
+
+sym:
+  wrapper.DepthProcess.depth_dict: true
+  wrapper.GymRegularizer.obs_key: ['image','vector','fsm_state', 'occup_zimage', 'mask','points'] 
 ######################################
 # evaluation settings
 
@@ -280,6 +297,22 @@ dynamic_cam:
 
   
 ########################
+# dummy
+dummy:
+  embodied_name: DummyEnv
+  wrapper.pipeline: [
+        'Occup',
+        "DSA",
+        "ObsImage",
+        'PID',
+        "DiscreteAction",
+        "TimeLimit",
+        "FSM",
+        "ObsVector",
+        "GymRegularizer",
+      ]
+
+
 # other
 psm2:
   embodied.dVRKEnv.grasp_any_v2.arm_names: ["PSM2"]
@@ -299,6 +332,9 @@ no_pid:
 
 no_clutch:
   wrapper.VirtualClutch.start: 0
+
+no_action_noise:
+  wrapper.ActionNoise.noise_scale: 0
 
 action_continuous:
   wrapper.DiscreteAction.is_discrete: False  

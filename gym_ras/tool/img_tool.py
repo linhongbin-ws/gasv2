@@ -6,6 +6,18 @@ import numpy as np
 import sys
 from gym_ras.tool.common import scale_arr
 
+def bool_resize(bool_mask, shape, method=cv2.INTER_NEAREST, reverse=False):
+    if reverse:
+        arr = np.ones(bool_mask.shape, dtype=np.uint8,)*255
+        arr[bool_mask] = 0
+        arr_new = cv2.resize(arr, shape, method)
+        return arr_new==0
+    else:
+        arr = np.zeros(bool_mask.shape, dtype=np.uint8,)
+        arr[bool_mask] = 255
+        arr_new = cv2.resize(arr, shape, method)
+        return arr_new!=0
+
 
 def save_img(img_arr, save_dir, save_file_name, img_format="png"):
     from pathlib import Path

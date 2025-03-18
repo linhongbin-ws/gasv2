@@ -46,6 +46,10 @@ class DiscreteAction(BaseWrapper):
 
     def _reset_vars(self):
         self._is_gripper_close = False
+    
+    def action_dis2con(self, action):
+        return self._action_prim[self._action_strs[self._action_idx[action]]]
+
 
     def step(self, action):
         # print(action)

@@ -4,11 +4,6 @@ import matplotlib
 import numpy as np
 
 
-from matplotlib.pyplot import imshow, subplot, axis, cm, show
-import matplotlib.pyplot as plt
-import matplotlib
-import numpy as np
-
 
 def plot_img(imgs_2d, big_axes_title=[]):
     row_size = np.max(np.array([len(k) for k in imgs_2d]))
@@ -29,7 +24,6 @@ def plot_img(imgs_2d, big_axes_title=[]):
             ax = subplot(len(imgs_2d), row_size, plt_cnt)
             if isinstance(img, dict):
                 imshow(img['image'])
-                plt.grid(False)
                 if "title" in img:
                     plt.title(img['title'])
             else:
@@ -42,9 +36,53 @@ def plot_img(imgs_2d, big_axes_title=[]):
     # if not  no_show:
     show()
 
+def plot_traj(
+    point_mats,
+    elev=45,
+    azim=45,
+    roll=45,
+):
+    fig = plt.figure()
+    ax = plt.axes(projection="3d")
+    # ax.axes.set_xlim3d(left=range_min[0], right=range_max[0])
+    # ax.axes.set_ylim3d(bottom=range_min[1], top=range_max[1])
+    # ax.axes.set_zlim3d(bottom=range_min[2], top=range_max[2])
+
+    ax.set_xlabel("$X$")
+    ax.set_ylabel("$Y$")
+    ax.set_zlabel("$Z$")
+    # if legend_txt == None:
+    pc_min = None
+    pc_max = None
+    for point_mat in point_mats:
+        pc = point_mat['mat']
+        args = point_mat.copy()
+        args.pop('mat', None)
+        ax.plot3D(
+            pc[:, 0].tolist(),
+            pc[:, 1].tolist(),
+            pc[:, 2].tolist(),
+            **args,
+        )
+        _min = np.min(pc, axis=0)
+        _max = np.max(pc, axis=0)
+        pc_min = _min if pc_min is None else np.minimum(pc_min, _min)
+        pc_max = _max if pc_max is None else np.maximum(pc_max, _max)
+    _range = np.max(pc_max- pc_min)
+
+    plt.legend(loc="best")
+    ax.view_init(elev=elev, azim=azim, roll=roll)
+    ax.axes.set_xlim3d(left=pc_min[0], right=pc_min[0]+_range)
+    ax.axes.set_ylim3d(bottom=pc_min[1], top=pc_min[1]+_range)
+    ax.axes.set_zlim3d(bottom=pc_min[2], top=pc_min[2]+_range)
+    show()
+
 
 def get_backend():
     return matplotlib.get_backend()
 
 def use_backend(backend):
     matplotlib.use(backend)
+
+
+    

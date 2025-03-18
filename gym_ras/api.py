@@ -24,6 +24,9 @@ def make_env(env_config=None, tags=[], seed=0):
     elif config.embodied_name == "dVRKEnv":
         from gym_ras.env.embodied.dvrk import dVRKEnv
         _call = dVRKEnv
+    elif config.embodied_name == "DummyEnv":
+        from gym_ras.env.embodied.dummy import DummyEnv
+        _call = DummyEnv
     else:
         raise NotImplementedError
     # print(config)

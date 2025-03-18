@@ -233,6 +233,7 @@ class SurrolEnv(BaseEnv):
         return obs
 
     def step(self, action):
+        print(action)
         self.timestep += 1
         if not self.skip:
             if self._cam_dynamic_noise_scale > 0:
