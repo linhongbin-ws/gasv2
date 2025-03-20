@@ -469,9 +469,9 @@ def generate_sym3(obs, origin_actions,
         dummy_env.set_current_points(start_ob['points'])
         _ = dummy_env.reset()
         new_acts = origin_actions[:sym_start_step].copy()
+        new_acts = [discrete_action_sym(_a, i) for _a in new_acts]
         new_acts = [_a for _a in reversed(new_acts)]
         new_acts = [discrete_action_inverse(_a) for _a in new_acts]
-        new_acts = [discrete_action_sym(_a, i) for _a in new_acts]
         _obs_short = []
         _as_short = []
         for _a in new_acts:
