@@ -11,7 +11,7 @@ args = parser.parse_args()
 env, env_config = make_env(tags=['gasv2_dvrk'], seed=0)
 
 if args.reset:
-    env.unwrapped.client.reset_pose()
+    env.unwrapped.client.psm_reset_pose()
 
 print("start tracker....")
 tracker = Tracker(sam=True, xmem=False)

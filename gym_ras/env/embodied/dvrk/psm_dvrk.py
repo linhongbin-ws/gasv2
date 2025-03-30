@@ -90,8 +90,8 @@ class SinglePSM():
     def reset_pose(self):
         q = np.deg2rad(np.array(self._reset_q))
         q[2] = self._reset_q[2]
-        self._psm.jaw.move_jp(np.deg2rad(self._open_gripper_deg)).wait()
         self._psm.move_jp(q).wait()
+        self._psm.jaw.move_jp(np.deg2rad(self._open_gripper_deg)).wait()
 
     def _set_action(self, action):
         assert len(action) == self.ACTION_SIZE, "The action should have the save dim with the ACTION_SIZE"

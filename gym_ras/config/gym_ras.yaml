@@ -196,7 +196,7 @@ gasv2_dvrk:
   wrapper.PID: {
           control_px: 15.0,
           control_py: 15.0,
-          control_pz: 1,
+          control_pz: 4,
           phase_thres: [0.015, 0.015, 0.015],
           err_offset: [0.0,  0.0, -0.005],  
           # err_offset: [0.0,  0.0, -0.01],  

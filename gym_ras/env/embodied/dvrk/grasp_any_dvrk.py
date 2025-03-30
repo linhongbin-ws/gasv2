@@ -151,14 +151,27 @@ class GraspAny(gym.Env):
         is_lift = z_current - _z_low > self._done_tip_z_thres
         # print(z_current, _z_low, z_current - _z_low)
         # print("Grasp:",is_grasp, " is_lift:" , is_lift)
+        info['fsm'] = "prog_norm"
         done = is_grasp
         if done:
             _psm = self._arms[self._arm_names[0]]
             _psm.motion_lift(0.03, jaw_close=True)
-            ch = self._done_device.get_char()
+            while True:
+                ch = self._done_device.get_char()
+                if ch in ["f","j"]:
+                    if ch == "f":
+                        info['fsm'] = "done_success"
+                    else:
+                        info['fsm'] = "done_fail"
+                    break
             _psm.open_gripper()
-        info['fsm'] = "done_success" if done else "prog_norm"
+            ch = self._done_device.get_char() # wait for manual reset
+        
         return info
+    
+    def psm_reset_pose(self):
+        _psm = self._arms[self._arm_names[0]]
+        _psm.reset_pose()
 
     def reset_pose(self):
         _psm = self._arms[self._arm_names[0]]
@@ -168,6 +181,7 @@ class GraspAny(gym.Env):
     def reset(self,):
         _psm = self._arms[self._arm_names[0]]
         _psm.reset_pose()
+        time.sleep(1)
         self._cam_device._segment.reset()
         _psm.move_gripper_init_pose()
         return _psm.get_obs()

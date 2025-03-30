@@ -62,7 +62,7 @@ class PID(BaseWrapper):
         return obs, reward, done, info
 
     def _fsm(self, info, pid_obs, ):
-        if pid_obs['err'][2] < self._fsm_z_err_min:
+        if pid_obs['err'][2] < self._fsm_z_err_min and not np.isnan(pid_obs['err'][2]):
             if info['fsm'].find("done") < 0:
                 info['fsm'] =  self._fsm_z_err_state
                 if self.unwrapped.robot_type == "dvrk":
@@ -111,7 +111,7 @@ class PID(BaseWrapper):
                            1,])
         # action = np.array([0,0,2,0,0])
         action = np.clip(action, -np.ones(action.shape), np.ones(action.shape))
-        print("action is ", action , "px,py,pz", self._control_px,self._control_py,self._control_pz)
+        # print("action is ", action , "px,py,pz", self._control_px,self._control_py,self._control_pz)
         return action
 
     @property
