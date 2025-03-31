@@ -12,6 +12,7 @@ class RGBD_CAM():
                  segment_tool="",
                  segment_model_dir="",
                  mask_noisy_link=True,
+                 cam_dis_file = "./data/dvrk_cal/cam_dis.yaml"
                  ):
         self._image_height = image_height
         self._image_width = image_width
@@ -26,7 +27,14 @@ class RGBD_CAM():
                                             depth_remap_range=depth_remap_range,)
         elif device == "stereo":
             from gym_ras.tool.stereo_dvrk import VisPlayer
-            self._device = VisPlayer()
+            from gym_ras.tool.config import load_yaml
+            if cam_dis_file != "":
+                _args = load_yaml(cam_dis_file)
+                _cam_offset_z = _args['cam_dis']
+            else:
+                _cam_offset_z = 0.2
+            self._device = VisPlayer(depth_center=_cam_offset_z,
+                 depth_range=0.1,)
             self._device.init_run()
         else:
             raise NotImplementedError
@@ -93,7 +101,7 @@ class RGBD_CAM():
             if len(masks) > 0:
                 _mask_dict.update(
                     {self._segment_id_map[k]: v[0] for k, v in masks.items()})
-            img['depth'] = self._process_depth(img['depth'], _mask_dict)
+            # img['depth'] = self._process_depth(img['depth'], _mask_dict)
 
             _dsa_mask_dict = {}
             for k, v in self._env_mask_mapping.items():

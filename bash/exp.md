@@ -22,7 +22,7 @@ python ./run/label_dvrk.py
 
 env play
 ```sh
-python ./run/env_play.py  --env-tag domain_random_enhance dsa_occup2 gasv2_dvrk --oracle keyboard --action oracle
+python ./run/env_play.py  --env-tag domain_random_enhance dsa_occup2 gasv2_dvrk --oracle keyboard --action oracle --vis-tag rgb depth mask
 ```
 
 # Training

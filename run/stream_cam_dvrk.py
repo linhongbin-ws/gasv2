@@ -11,7 +11,7 @@ parser.add_argument('--depth-c', type=float, default="0.3")
 parser.add_argument('--depth-r', type=float, default="0.1")
 parser.add_argument('--seg', action="store_true")
 parser.add_argument('--vis-nodepth', type=str, default="")
-parser.add_argument('--vis-tag', type=str, nargs='+', default=[])
+parser.add_argument('--vis-tag', type=str, nargs='+', default=["rgb","depth"])
 parser.add_argument("--cam", type=str, default="stereo")
 
 args = parser.parse_args()
@@ -20,7 +20,15 @@ kb = Keyboard(blocking=False)
 
 if args.cam == "stereo":
     from gym_ras.tool.stereo_dvrk import VisPlayer
-    engine = VisPlayer()
+    from gym_ras.tool.config import load_yaml
+    cam_dis_file = "./data/dvrk_cal/cam_dis.yaml"
+    if cam_dis_file != "":
+        _args = load_yaml(cam_dis_file)
+        _cam_offset_z = _args['cam_dis']
+    else:
+        _cam_offset_z = 0.2
+    engine = VisPlayer(depth_center=_cam_offset_z,
+                 depth_range=0.1,)
     engine.init_run()
     print("finish init")
 if args.seg:
