@@ -213,7 +213,7 @@ gym_ras_np:
   video_every: 3e5
 
 gas:
-  steps: 23e5
+  steps: 11e5
   eval_every: 1e4
   encoder: { mlp_keys: "$^", cnn_keys: "image" }
   decoder: { mlp_keys: "$^", cnn_keys: "image" }

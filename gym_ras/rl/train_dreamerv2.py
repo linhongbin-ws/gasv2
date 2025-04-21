@@ -149,13 +149,14 @@ def train(origin_env, config, success_id=5.0, max_eps_length=300):
     def eval_sucess_stat(ep):
         eval_stat['total_eps'] += 1
         # print(ep['fsm_state'][-1]==2.0)
+        eps_length = ep['fsm_state'].shape[0] - 1
         if ep['fsm_state'][-1] == success_id:
             # print(f"ep['fsm_state'][-1]:{ep['fsm_state'][-1]}, success_id {success_id}")
             eval_stat['success_eps'] += 1
             score = (max_eps_length - eps_length) / max_eps_length
         else:
             score = 0
-        eps_length = ep['fsm_state'].shape[0] - 1
+        
         eval_stat['score'].append(score)
         # print(f"sucess/progress/total: ({eval_stat['sucess_eps_count']}/ {eval_stat['eps_cnt']} ")
     eval_driver.on_episode(eval_sucess_stat)
