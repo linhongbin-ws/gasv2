@@ -121,9 +121,12 @@ def eval_ppo(env, config, n_eval_episodes, save_prefix):
         if info[0]['fsm'] == "done_success":
             eval_stat['success_eps'] += 1
             print("+++sucess episode !")
+            score = (max_eps_length - eps_length) / max_eps_length
+        else:
+            score = 0
 
         eval_stat['total_eps'] += 1
-        score = (max_eps_length - eps_length) / max_eps_length
+        
         eval_stat['score'].append(score)
         eval_stat['success_rate'] = eval_stat['success_eps'] / \
             eval_stat['total_eps']
