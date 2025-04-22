@@ -97,10 +97,12 @@ class DSA(BaseWrapper):
             return img_dsa
         zoom_mask = img["mask"+pfix][self._zoom_box_obj]
 
-        if not np.any(zoom_mask):  # all mask have to be no zero
-            return img_dsa
+        if not self._encode_type in ["occup_depth", "occup_depth2"]:
+            if not np.any(zoom_mask):  # all mask have to be no zero
+                return img_dsa
 
-        zoom_box_x, zoom_box_y, _, _ = self._get_box_from_masks(zoom_mask)
+            zoom_box_x, zoom_box_y, _, _ = self._get_box_from_masks(zoom_mask)
+
         if self._encode_type == "IROS2023":
             zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max = zoom_box_x[
                 0], zoom_box_x[1], zoom_box_y[0], zoom_box_y[1]
@@ -311,6 +313,9 @@ class DSA(BaseWrapper):
 
 
             zoom_mask = img["occup_zimage"]["psm1"][1]
+            if not np.any(zoom_mask):  # zoom_mask need to not all zeros
+                return np.stack(layers, axis=2)
+            
             zoom_box_x, zoom_box_y, _, _ = self._get_box_from_masks(zoom_mask)
             zoom_box_length = self._zoom_box_fix_length_ratio * min(
                 zoom_mask.shape[0], zoom_mask.shape[1]

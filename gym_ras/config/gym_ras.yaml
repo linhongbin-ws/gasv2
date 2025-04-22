@@ -17,7 +17,7 @@ default:
         "GymRegularizer",
       ]
     GymRegularizer: {
-      obs_key: ['image','vector','fsm_state'],
+      obs_key: ['image','vector','fsm_state', "controller_state"],
     }
     ActionSmooth: { skip: true, window: 3, smooth_type: ema }
     DSA:
@@ -258,7 +258,7 @@ domain_random_enhance:
 
 sym:
   wrapper.DepthProcess.depth_dict: true
-  wrapper.GymRegularizer.obs_key: ['image','vector','fsm_state', 'occup_zimage', 'mask','points'] 
+  wrapper.GymRegularizer.obs_key: ['image','vector','fsm_state', 'occup_zimage', 'mask','points', 'controller_state'] 
 ######################################
 # evaluation settings
 

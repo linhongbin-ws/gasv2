@@ -5,25 +5,27 @@ from gym_ras.tool.sym import generate_sym3, get_sym_params,a2T_discrete, discret
 from gym_ras.tool.plt import use_backend, plot_img, plot_traj
 import numpy as np
 
-tags = ['domain_random_enhance', 'dsa_occup2','sym','no_clutch', 'no_pid','no_action_noise']
+tags = ['domain_random_enhance', 'dsa_occup2','sym',]
 env, env_config = make_env(tags=tags)
 obs = env.reset()
 obss_origin = []
 obss_origin.append(obs)
 actions_origin = []
 done = False
-sym_start_step = 13
+# sym_start_step = 4
+# sym_end_step = 13
 while not done:
     action = env.get_oracle_action()
     obs,reward, done, info = env.step(action)
     obss_origin.append(obs)
     actions_origin.append(action)
 
+
+
 print(obs.keys())
 dummy_env, env_config = make_env(tags=tags +['dummy',])
 # dummy_env.set_current_points(obs['points'])
-new_sym_obss, new_sym_actionss = generate_sym3(obss_origin,actions_origin, sym_start_step=sym_start_step,dummy_env=dummy_env)
-
+new_sym_obss, new_sym_actionss = generate_sym3(obss_origin,actions_origin, dummy_env=dummy_env)
 
 imgss = []
 imgss.append([{"image": np.minimum(v['occup_zimage']['psm1'][0],v['occup_zimage']['stuff'][0]), "title": f"GT step {i}"} for i, v in enumerate(obss_origin)])
@@ -31,6 +33,16 @@ for _new_obs in new_sym_obss:
     imgss.append([{"image": np.minimum(v['occup_zimage']['psm1'][0],v['occup_zimage']['stuff'][0]), "title": f"Sym step {i}"} for i, v in enumerate(_new_obs)])
 
 plot_img(imgss)
+
+imgss = []
+imgss.append([{"image": v['image'][:,:,2], "title": f"GT step {i}"} for i, v in enumerate(obss_origin)])
+for _new_obs in new_sym_obss:
+    imgss.append([{"image":  v['image'][:,:,2], "title": f"Sym step {i}"} for i, v in enumerate(_new_obs)])
+import matplotlib.pyplot as plt
+plt.rcParams['figure.figsize'] = [50, 40]
+plot_img(imgss)
+
+
 
 imgss = []
 imgss.append([{"image": v['image'][:,:,2], "title": f"GT step {i}"} for i, v in enumerate(obss_origin)])

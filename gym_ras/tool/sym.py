@@ -457,18 +457,33 @@ def generate_sym2(obs, origin_actions,
 
 
 def generate_sym3(obs, origin_actions,
-                  sym_start_step,
                   dummy_env,
+                 sym_start_step=None,
+                  sym_end_step=None,
+                  sym_cover_origin_traj=False,
                   ):
-    
-    start_ob = obs[sym_start_step]
+    if sym_start_step is None:
+        ids = [(i,o["controller_state"]) for i, o in enumerate(obs)]
+        for _o in [_k for _k in reversed(ids)]:
+            if _o[1]==1:
+                break
+        sym_start_step = _o[0]
+    if sym_end_step is None:
+        sym_end_step = len(obs) -1 - 5
+    assert sym_start_step <= sym_end_step
+
+
+    start_ob = obs[sym_end_step]
     ang_group_num = 4
     new_sym_obss = []
     new_sym_actionss = []
     for i in range(ang_group_num):
+        if not sym_cover_origin_traj:
+            if i ==1:
+                continue
         dummy_env.set_current_points(start_ob['points'])
         _ = dummy_env.reset()
-        new_acts = origin_actions[:sym_start_step].copy()
+        new_acts = origin_actions[sym_start_step:sym_end_step].copy()
         new_acts = [discrete_action_sym(_a, i) for _a in new_acts]
         new_acts = [_a for _a in reversed(new_acts)]
         new_acts = [discrete_action_inverse(_a) for _a in new_acts]
@@ -478,8 +493,8 @@ def generate_sym3(obs, origin_actions,
             _obs,_,_,_ = dummy_env.step(_a)
             _obs_short.append(_obs)
             _as_short.append(_a)
-        new_sym_obs = [_o for _o in reversed(_obs_short)] + obs[sym_start_step:]
-        new_sym_actions = [discrete_action_inverse(_a) for _a in reversed(_as_short)] + origin_actions[sym_start_step:]
+        new_sym_obs = obs[:sym_start_step] + [_o for _o in reversed(_obs_short)] + obs[sym_end_step:]
+        new_sym_actions = origin_actions[:sym_start_step] + [discrete_action_inverse(_a) for _a in reversed(_as_short)] + origin_actions[sym_end_step:]
         new_sym_obss.append(new_sym_obs)
         new_sym_actionss.append(new_sym_actions)
  
