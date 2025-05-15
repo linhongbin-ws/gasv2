@@ -17,7 +17,7 @@ python ./run/calibrate_dvrk_ws.py
 
 label segmentation
 ```sh
-python ./run/label_dvrk.py
+python ./run/label_dvrk.py --reset
 ```
 
 env play
@@ -65,9 +65,28 @@ python ./run/rl_train.py --reload-dir ./data/agent/2025_02_13-22_25_34@grasp_any
 
 
 # eval on dvrk
+GASv2
 ```sh
 python ./run/dvrk_eval.py --reload-dir ./data/agent/gasv2/2025_03_06-22_11_33@grasp_any_v2-domain_random_enhance-dsa_occup2@dreamerv2-gas-high_oracle3@seed0/1.8m/  --reload-envtag  domain_random_enhance dsa_occup2 gasv2_dvrk --online-eval --visualize --vis-tag obs rgb dsa mask depth --online-eps 20 --save-prefix dVRK-Performance-GASV2 --seed 1
 ```
+
+
+GASv1
+```sh
+python ./run/dvrk_eval.py --reload-dir ./data/agent/gasv1/2025_02_25-15_00_30@grasp_any_v2-domain_random_enhance-dsa_occup2-gasv1@dreamerv2-gas-eval_less-high_oracle3@seed0  --reload-envtag  domain_random_enhance dsa_occup2 gasv2_dvrk gasv1 --online-eval --visualize --vis-tag obs rgb dsa mask depth --online-eps 20 --save-prefix dVRK-Performance-GASV1 --seed 1
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
 ```sh
 python ./run/dvrk_eval.py --reload-dir ./log/2025_01_02-14_02_12@grasp_any_v2-action_continuous@dreamerv2-gasv2@seed0/  --reload-envtag  gasv2_dvrk action_continuous --online-eval --visualize --vis-tag obs rgb dsa mask --online-eps 20 --save-prefix xxx

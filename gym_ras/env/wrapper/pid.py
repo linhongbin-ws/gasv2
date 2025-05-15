@@ -69,6 +69,9 @@ class PID(BaseWrapper):
                     _err = self._fsm_z_err_min - pid_obs['err'][2]
                     _psm = self.unwrapped.client._arms[self.unwrapped.client._arm_names[0]]
                     _psm.motion_lift(_err, jaw_close=False)
+        if np.isnan(pid_obs['err'][2]):
+            _psm = self.unwrapped.client._arms[self.unwrapped.client._arm_names[0]]
+            _psm.motion_lift(0.003, jaw_close=False)
         if self._debug: print(f"exceed z err, err: {pid_obs['err'][2]}, thres: {self._fsm_z_err_min}")
         return info
 
@@ -102,11 +105,11 @@ class PID(BaseWrapper):
 
     def _get_pid_action(self, obs, x_phase, y_phase, z_phase):
         x_err, y_err, z_err = obs['err'][0], obs['err'][1], obs['err'][2]
-        action = np.array([-self._control_px * (x_err+self._err_offset[0]) if x_phase else 0,
+        action = np.array([-self._control_px * (x_err) if x_phase else 0,
                            -self._control_py *
-                           (y_err+self._err_offset[1]) if y_phase else 0,
+                           (y_err) if y_phase else 0,
                            -self._control_pz *
-                           (z_err+self._err_offset[2]) if z_phase else 0,
+                           (z_err) if z_phase else 0,
                            0,
                            1,])
         # action = np.array([0,0,2,0,0])

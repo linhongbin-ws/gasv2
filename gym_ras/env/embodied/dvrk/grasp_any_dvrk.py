@@ -33,11 +33,13 @@ class GraspAny(gym.Env):
                  done_cal_file='',
                  cam_mask_noisy_link=True,
                  reset_random_pose=True,
+                 grasp_lift=0.03,
                  ):
         self._arm_names = arm_names
         self._arms = {}
         self._seed = 0
         self._reset_random_pose = reset_random_pose
+        self._grasp_lift = grasp_lift
         if done_cal_file == '':
             self._done_tip_z_thres = -1.0
             self._done_jaw_thres = -1.0
@@ -155,7 +157,7 @@ class GraspAny(gym.Env):
         done = is_grasp
         if done:
             _psm = self._arms[self._arm_names[0]]
-            _psm.motion_lift(0.03, jaw_close=True)
+            _psm.motion_lift(self._grasp_lift, jaw_close=True)
             while True:
                 ch = self._done_device.get_char()
                 if ch in ["f","j"]:
