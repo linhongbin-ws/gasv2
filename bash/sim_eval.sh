@@ -4,7 +4,7 @@ online_eps=${2:-100} # second bash argument
 evaltag=${3:-""} # second bash argument 
 
 
-
+SECONDS=0 
 
 
 
@@ -46,8 +46,8 @@ python ./run/rl_train.py  --online-eval --novis --vis-tag obs rgb dsa mask --onl
  --reload-dir data/agent/gasv2-raw_rgb/2025_02_25-15_01_30@grasp_any_v2-domain_random_enhance-dsa_occup2-no_dsa@dreamerv2-gas-eval_less-high_oracle3@seed0 \
  --reload-envtag domain_random_enhance dsa_occup2 no_dsa ${evaltag} 
 
-
-
+echo "****************elapse time**************************"
+echo $SECONDS
 # # PPO
 # python ./run/rl_train.py  --online-eval --novis --vis-tag obs rgb dsa mask --online-eps ${online_eps} --save-prefix surrol-performance-PPO --seed ${seed}\
 #  --reload-dir data/agent/ppo/2025_03_02-18_04_18@grasp_any_v2-domain_random_enhance-dsa_occup2-raw_env@ppo-high_oracle3@seed0
