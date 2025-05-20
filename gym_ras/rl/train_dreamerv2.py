@@ -25,7 +25,7 @@ sys.path.append(str(pathlib.Path(__file__).parent))
 sys.path.append(str(pathlib.Path(__file__).parent.parent))
 
 
-def train(origin_env, config, success_id=5.0, max_eps_length=300):
+def train(origin_env, config, success_id=5.0, max_eps_length=300, is_sym=False):
     env = common.GymWrapper(origin_env)
     env = common.ResizeImage(env)
     if hasattr(env.act_space['action'], 'n'):
@@ -100,6 +100,16 @@ def train(origin_env, config, success_id=5.0, max_eps_length=300):
     #   env = common.TimeLimit(env, config.time_limit)
     #   return env
 
+
+
+    def sym_gen(ep, add_eps_func):
+        if ep['sym_state'][0]!=0:
+            ep['action'] = np.zeros(ep['action'].shape, dtype=ep['action'].dtype)
+            for i in range(1, ep['sym_action'].shape[0]):
+                ep['action'][i][ep['sym_action'][i]] = 1
+        add_eps_func(ep)
+
+
     def per_episode(ep, mode):
         length = len(ep['reward']) - 1
         score = float(ep['reward'].astype(np.float64).sum())
@@ -135,9 +145,10 @@ def train(origin_env, config, success_id=5.0, max_eps_length=300):
     obs_space = env.obs_space
     train_driver = common.Driver([env])
     train_driver.on_episode(lambda ep: per_episode(ep, mode='train'))
+    train_driver.on_episode(lambda ep: sym_gen(ep, train_replay.add_episode))
     train_driver.on_step(lambda tran, worker: step.increment())
-    train_driver.on_step(train_replay.add_step)
-    train_driver.on_reset(train_replay.add_step)
+    # train_driver.on_step(train_replay.add_step)
+    # train_driver.on_reset(train_replay.add_step)
     eval_driver = common.Driver([env])
     eval_driver.on_episode(lambda ep: per_episode(ep, mode='eval'))
     eval_driver.on_episode(eval_replay.add_episode)

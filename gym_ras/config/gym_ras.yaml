@@ -257,8 +257,23 @@ domain_random_enhance:
     }
 
 sym:
+  wrapper.pipeline: [
+        "ActionNoise",
+        "VirtualClutch",
+        "ImageNoise",
+        "DepthProcess",
+        'Occup',
+        "DSA",
+        "ObsImage",
+        'PID',
+        "DiscreteAction",
+        "TimeLimit",
+        "FSM",
+        "ObsVector",
+        # "GymRegularizer",
+      ]
   wrapper.DepthProcess.depth_dict: true
-  wrapper.GymRegularizer.obs_key: ['image','vector','fsm_state', 'occup_zimage', 'mask','points', 'controller_state'] 
+  # wrapper.GymRegularizer.obs_key: ['image','vector','fsm_state', 'occup_zimage', 'mask','points', 'controller_state'] 
 ######################################
 # evaluation settings
 

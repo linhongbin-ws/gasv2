@@ -33,7 +33,7 @@ class DummyEnv(BaseEnv):
         pass
     def step(self, action):
         _transform_dict = {}
-        print(action)
+        # print(action)
         _transform_dict['psm1'] = getT(action[:3]*self._delta_transl, [0,0,0],rot_type="euler") 
         _transform_dict['stuff'] = getT([0,0,0], [0,0,0],rot_type="euler") 
 

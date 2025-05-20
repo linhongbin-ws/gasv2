@@ -20,6 +20,7 @@ parser.add_argument('--online-eps', type=int, default=10)
 parser.add_argument('--novis', action="store_true")
 parser.add_argument('--vis-tag', type=str, nargs='+', default=[])
 parser.add_argument('--save-prefix', type=str, default="")
+parser.add_argument('--sym', action='store_true')
 args = parser.parse_args()
 
 if args.baseline in ["dreamerv2"]:
@@ -30,7 +31,13 @@ if args.online_eval:
 
 
 if args.reload_dir == "":
-    env, env_config = make_env(tags=args.env_tag, seed=args.seed)
+    from gym_ras.env.wrapper import Sym, GymRegularizer
+    args.env_tag.append("sym")
+    env, env_config = make_env(tags=args.env_tag,seed=args.seed)
+    dummy_env, env_config = make_env(tags=args.env_tag +['dummy',])
+    env = Sym(env, dummy_env)
+    env = GymRegularizer(env, obs_key=['image','vector','fsm_state', "controller_state","sym_action", "sym_state"])
+    # env, env_config = make_env(tags=args.env_tag, seed=args.seed)
     method_config_dir = Path(".")
     method_config_dir = method_config_dir / 'gym_ras' / \
         'config' / str(args.baseline + ".yaml")
@@ -114,7 +121,8 @@ elif baseline_config.baseline_name == "dreamerv2":
 
     else:
         from gym_ras.rl import train_dreamerv2
-        train_dreamerv2.train(env, baseline_config, success_id=env.done_success_id)
+
+        train_dreamerv2.train(env, baseline_config, success_id=env.done_success_id, is_sym=args.sym)
 
 elif baseline_config.baseline_name == "ppo":
     if args.online_eval:

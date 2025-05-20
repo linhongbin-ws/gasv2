@@ -3,18 +3,25 @@ from gym_ras.api import make_env
 from gym_ras.tool.depth import get_intrinsic_matrix, projection_matrix_to_K
 from gym_ras.tool.sym import generate_sym3, get_sym_params,a2T_discrete, discrete_action_inverse, aggregate_Ts
 from gym_ras.tool.plt import use_backend, plot_img, plot_traj
+from gym_ras.env.wrapper.sym import Sym
 import numpy as np
 
 tags = ['domain_random_enhance', 'dsa_occup2','sym',]
 env, env_config = make_env(tags=tags,seed=0)
+dummy_env, env_config = make_env(tags=tags +['dummy',])
+env = Sym(env, dummy_env)
+
+
+
 obs = env.reset()
 obss_origin = []
 obss_origin.append(obs)
 actions_origin = []
 done = False
-# sym_start_step = 4
-# sym_end_step = 13
+step = 0
 while not done:
+    print(f"{step}")
+    step+=1
     action = env.get_oracle_action()
     obs,reward, done, info = env.step(action)
     obss_origin.append(obs)
@@ -22,12 +29,28 @@ while not done:
 
 
 
-print(obs.keys())
-dummy_env, env_config = make_env(tags=tags +['dummy',])
-# dummy_env.set_current_points(obs['points'])
-new_sym_obss, new_sym_actionss = generate_sym3(obss_origin,actions_origin, dummy_env=dummy_env)
 
+new_sym_obss = []
+new_sym_actionss = []
 
+for i in range(3):
+    new_sym_obs = []
+    new_sym_actions = []
+    obs = env.reset()
+    new_sym_obs.append(obs)
+    done = False
+    step = 0
+    while not done:
+        print(f"{step}")
+        step+=1
+        action = env.get_oracle_action()
+        obs,reward, done, info = env.step(action)
+        new_sym_obs.append(obs)
+        new_sym_actions.append(obs['sym_action']
+                               )
+    print(new_sym_actions)
+    new_sym_obss.append(new_sym_obs)
+    new_sym_actionss.append(new_sym_actions)
 
 print("len obss_origin", len(obss_origin))
 
@@ -48,13 +71,13 @@ plot_img(imgss)
 
 
 
-imgss = []
-imgss.append([{"image": v['image'][:,:,2], "title": f"GT step {i}"} for i, v in enumerate(obss_origin)])
-for _new_obs in new_sym_obss:
-    imgss.append([{"image":  v['image'][:,:,2], "title": f"Sym step {i}"} for i, v in enumerate(_new_obs)])
-import matplotlib.pyplot as plt
-plt.rcParams['figure.figsize'] = [50, 40]
-plot_img(imgss)
+# imgss = []
+# imgss.append([{"image": v['image'][:,:,2], "title": f"GT step {i}"} for i, v in enumerate(obss_origin)])
+# for _new_obs in new_sym_obss:
+#     imgss.append([{"image":  v['image'][:,:,2], "title": f"Sym step {i}"} for i, v in enumerate(_new_obs)])
+# import matplotlib.pyplot as plt
+# plt.rcParams['figure.figsize'] = [50, 40]
+# plot_img(imgss)
 
 
 

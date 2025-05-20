@@ -15,3 +15,4 @@ from gym_ras.env.wrapper.track import Track
 from gym_ras.env.wrapper.occup import Occup
 from gym_ras.env.wrapper.pid import PID
 from gym_ras.env.wrapper.gym_regularizer import GymRegularizer
+from gym_ras.env.wrapper.sym import Sym
