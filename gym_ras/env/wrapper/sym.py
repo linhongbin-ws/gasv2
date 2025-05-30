@@ -20,35 +20,40 @@ class Sym(BaseWrapper):
 
     def reset(self,):
         self._step = 0
-        if len(self._sym_eps) == 0 and self._is_sym:
-            obs = self.env.reset()
-            reward, done, info, action = None, None, None, 0
-            self._eps_buffer.append((cp(obs), cp(reward), cp(done), cp(info), cp(action)))
-            obs['sym_action'] = action
-            obs['sym_state'] = 0
-            return obs
-        else:
+        if len(self._sym_eps) != 0 and self._is_sym:
             obs,reward, done, info, action = self._sym_eps[0][self._step]
             obs['sym_state'] = 1
             return obs
+        else:
+            obs = self.env.reset()
+            reward, done, info, action = None, None, None, 0
+            if self._is_sym:
+                self._eps_buffer = []
+                self._eps_buffer.append((cp(obs), cp(reward), cp(done), cp(info), cp(action)))
+            obs['sym_action'] = action
+            obs['sym_state'] = 0
+            return obs
+
 
 
     def step(self, action):
         self._step += 1
-        if len(self._sym_eps) == 0 and self._is_sym:
-            obs, reward, done, info = self.env.step(action)
-            obs['sym_action'] = action
-            obs['sym_state'] = 0
-            self._eps_buffer.append((cp(obs), cp(reward), cp(done), cp(info), cp(action)))
-            if done:
-                self._on_end_gt_eps()
-            return obs, reward, done, info
-
-        else:
+        if len(self._sym_eps) != 0 and self._is_sym:
             obs,reward, done, info, action = self._sym_eps[0][self._step]
             obs['sym_state'] = 1
             if done:
                 self._sym_eps = self._sym_eps[1:]
+        else:
+            obs, reward, done, info = self.env.step(action)
+            obs['sym_action'] = action
+            obs['sym_state'] = 0
+            if self._is_sym:
+                self._eps_buffer.append((cp(obs), cp(reward), cp(done), cp(info), cp(action)))
+                if done:
+                    self._on_end_gt_eps()
+            return obs, reward, done, info
+
+
         return obs, reward, done, info
 
     
@@ -73,6 +78,7 @@ class Sym(BaseWrapper):
 
     def set_sym(self, is_sym):
         self._is_sym = is_sym
+
 
 
     @property

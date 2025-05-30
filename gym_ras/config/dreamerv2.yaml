@@ -200,7 +200,7 @@ debug:
   replay: { minlen: 10, maxlen: 30 }
   dataset: { batch: 10, length: 10 }
   eval_eps: 2
-  prefill: { random: 3e2, oracle: 1e2 }
+  prefill: { oracle: 1e2, random: 3e2, }
 
 gym_ras_np:
   eval_every: 3e4
@@ -223,7 +223,7 @@ gas:
   video_every: 3e5
   # high_oracle:
   # prefill: { random: 1e4}
-  prefill: { random: 7e3, oracle: 3e3 }
+  prefill: { oracle: 3e3, random: 7e3}
   dataset: { batch: 100, length: 6 }
   replay: {
       capacity: 5e5, # limit ram usage
@@ -250,20 +250,22 @@ low_ram3:
   replay.capacity: 4e5 # limit ram usage
 
 no_oracle:
-  prefill: { random: 1e4, oracle: 0 }
+  prefill: { oracle: 0, random: 1e4,}
 low_oracle:
-  prefill: { random: 97e2, oracle: 3e2 }
+  prefill: { oracle: 3e2,random: 97e2, }
 mid_oracle:
-  prefill: { random: 7e3, oracle: 3e3 }
+  prefill: { oracle: 3e3, random: 7e3, }
 high_oracle:
-  prefill: { random: 7e3, oracle: 3e4 }
+  prefill: { oracle: 3e4, random: 7e3, }
 high_oracle2:
-  prefill: { random: 1e0, oracle: 5e3 }
+  prefill: { oracle: 5e3, random: 1e0, }
 high_oracle3:
-  prefill: { random: 5e4, oracle: 5e4}
+  prefill: { oracle: 5e4, random: 5e4}
+high_oracle4:
+  prefill: { oracle: 1e4, random: 5e4}
 
 debug_prefill:
-  prefill: { random: 10, oracle: 10 }
+  prefill: { oracle: 10, random: 10, }
   eval_eps: 2
 
 oracle_1e3:

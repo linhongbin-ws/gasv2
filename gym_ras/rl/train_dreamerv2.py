@@ -26,6 +26,7 @@ sys.path.append(str(pathlib.Path(__file__).parent.parent))
 
 
 def train(origin_env, config, success_id=5.0, max_eps_length=300, is_sym=False):
+    origin_env.set_sym(True)
     env = common.GymWrapper(origin_env)
     env = common.ResizeImage(env)
     if hasattr(env.act_space['action'], 'n'):
@@ -100,7 +101,9 @@ def train(origin_env, config, success_id=5.0, max_eps_length=300, is_sym=False):
     #   env = common.TimeLimit(env, config.time_limit)
     #   return env
 
-
+    def step_cnt(tran, step_increment):
+        if tran['sym_state']==0:
+            step_increment()
 
     def sym_gen(ep, add_eps_func):
         if ep['sym_state'][0]!=0:
@@ -146,7 +149,7 @@ def train(origin_env, config, success_id=5.0, max_eps_length=300, is_sym=False):
     train_driver = common.Driver([env])
     train_driver.on_episode(lambda ep: per_episode(ep, mode='train'))
     train_driver.on_episode(lambda ep: sym_gen(ep, train_replay.add_episode))
-    train_driver.on_step(lambda tran, worker: step.increment())
+    train_driver.on_step(lambda tran, worker: step_cnt(tran, step.increment))
     # train_driver.on_step(train_replay.add_step)
     # train_driver.on_reset(train_replay.add_step)
     eval_driver = common.Driver([env])
@@ -175,20 +178,26 @@ def train(origin_env, config, success_id=5.0, max_eps_length=300, is_sym=False):
     if prefill_total:
         print(f'Prefill dataset ({prefill_total} steps).')
         prefill_remain = prefill_total
+        new_prefill_config = {}
+        new_prefill_config['oracle'] = prefill_config['oracle']
         for k, v in prefill_config.items():
+            if k!="oracle":
+                new_prefill_config[k] = v
+        for k, v in new_prefill_config.items():
             if k == "random":
                 prefill_agent = common.RandomAgent(act_space)
+                origin_env.set_sym(False)
+                fill_step = v
             elif k == "oracle":
                 prefill_agent = common.OracleAgent(act_space, env=env)
+                origin_env.set_sym(True)
+                fill_step = 4*v if is_sym else v
             else:
                 raise NotImplementedError
-            to_prefill = min(prefill_remain, v)
-            if to_prefill <= 0:
-                break
-            train_driver(prefill_agent, steps=to_prefill, episodes=1)
+            train_driver(prefill_agent, steps=fill_step, episodes=1)
             train_driver.reset()
-            prefill_remain -= to_prefill
 
+    origin_env.set_sym(False)
     prefill_agent = common.RandomAgent(act_space)
     eval_driver(prefill_agent, episodes=1)
     eval_driver.reset()
