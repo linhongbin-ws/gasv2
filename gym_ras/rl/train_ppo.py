@@ -105,7 +105,7 @@ def eval_ppo(env, config, n_eval_episodes, save_prefix):
     from datetime import datetime
     _dir = Path("./data") / "exp_result"
     _dir.mkdir(parents=True, exist_ok=True)
-    _file = _dir / (save_prefix + "@" +
+    _file = _dir / (save_prefix + "@seed" + str(env.seed) + "@" +
                     str(datetime.now().strftime("%Y_%m_%d-%H_%M_%S")) + ".yml")
 
     for j in range(n_eval_episodes):

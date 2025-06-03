@@ -257,8 +257,8 @@ object_scale1:
 object_scale2:
   embodied.SurrolEnv.grasp_any_v2:
       {
-        object_scaling_low: 1.5,
-        object_scaling_high: 2.0,
+        object_scaling_low: 0.5,
+        object_scaling_high: 0.75,
         object_list: ['needle', "box", "bar"],
         needle_prob: 0.5,
       }
