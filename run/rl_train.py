@@ -21,6 +21,9 @@ parser.add_argument('--novis', action="store_true")
 parser.add_argument('--vis-tag', type=str, nargs='+', default=[])
 parser.add_argument('--save-prefix', type=str, default="")
 parser.add_argument('--sym', action='store_true')
+parser.add_argument('--mea-eps', type=int, default=12)
+parser.add_argument('--sym-action-noise', type=float, default=0.3)
+
 args = parser.parse_args()
 
 if args.baseline in ["dreamerv2"]:
@@ -35,7 +38,7 @@ if args.reload_dir == "":
     args.env_tag.append("sym")
     env, env_config = make_env(tags=args.env_tag,seed=args.seed)
     dummy_env, env_config = make_env(tags=args.env_tag +['dummy',])
-    env = Sym(env, dummy_env)
+    env = Sym(env, dummy_env, sym_aug_new_eps=args.mea_eps, sym_action_noise=args.sym_action_noise)
     env = GymRegularizer(env, obs_key=['image','vector','fsm_state', "controller_state","sym_action", "sym_state"])
     # env, env_config = make_env(tags=args.env_tag, seed=args.seed)
     method_config_dir = Path(".")

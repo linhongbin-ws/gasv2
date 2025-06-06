@@ -324,7 +324,7 @@ dummy:
         "TimeLimit",
         "FSM",
         "ObsVector",
-        "GymRegularizer",
+        # "GymRegularizer",
       ]
 
 

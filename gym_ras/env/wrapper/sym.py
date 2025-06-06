@@ -9,6 +9,8 @@ class Sym(BaseWrapper):
 
     def __init__(self, env,
                  dummy_env,
+                 sym_action_noise=0.3,
+                 sym_aug_new_eps=12,
                  **kwargs,
                  ):
         super().__init__(env)
@@ -17,6 +19,8 @@ class Sym(BaseWrapper):
         self._eps_buffer = []
         self._is_sym = True
         self._step = 0
+        self._sym_action_noise = sym_action_noise
+        self._sym_aug_new_eps = sym_aug_new_eps
 
     def reset(self,):
         self._step = 0
@@ -61,8 +65,18 @@ class Sym(BaseWrapper):
         obss_origin = [v[0] for v in self._eps_buffer]
         actions_origin = [v[4] for v in self._eps_buffer]
         actions_origin = actions_origin[1:]
-        new_sym_obss, new_sym_actionss = generate_sym3(obss_origin,actions_origin, dummy_env=self._dummy_env,
-                                                       sym_start_step=0)
+
+        new_sym_obss = []
+        new_sym_actionss = []
+        for _ in range(self._sym_aug_new_eps):
+            new_sym_obs, new_sym_actions = generate_sym3(obss_origin,actions_origin,
+                                                         sym_action_noise = self._sym_action_noise,
+                                                          dummy_env=self._dummy_env,
+                                                       sym_start_step=0,)
+            new_sym_obss.append(new_sym_obs)
+            new_sym_actionss.append(new_sym_actions)
+
+
         for i in range(len(new_sym_obss)):
             _ep = []
             for j in range(len(self._eps_buffer)):
@@ -91,3 +105,9 @@ class Sym(BaseWrapper):
         return gym.spaces.Dict(obs)
         
 
+    def mea_rollouts(self, eps):
+        self._sym_aug_new_eps = eps
+    
+    @property
+    def sym_aug_new_eps(self):
+        return self._sym_aug_new_eps

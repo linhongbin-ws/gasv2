@@ -1,0 +1,118 @@
+import sys
+from gym_ras.api import make_env
+from gym_ras.tool.depth import get_intrinsic_matrix, projection_matrix_to_K
+from gym_ras.tool.sym import generate_sym3, get_sym_params,a2T_discrete, discrete_action_inverse, aggregate_Ts
+from gym_ras.tool.plt import use_backend, plot_img, plot_traj
+import numpy as np
+
+
+mea_eps = 6 
+sym_action_noise = 0.3
+
+tags = ['domain_random_enhance', 'dsa_occup2','sym',]
+from gym_ras.env.wrapper import Sym, GymRegularizer
+env, env_config = make_env(tags=tags,seed=0)
+dummy_env, env_config = make_env(tags=tags +['dummy',])
+env = Sym(env, dummy_env,sym_action_noise=sym_action_noise)
+obs = env.reset()
+obss_origin = []
+obss_origin.append(obs)
+actions_origin = []
+done = False
+
+env.mea_rollouts(mea_eps)
+
+while not done:
+    action = env.get_oracle_action()
+    obs,reward, done, info = env.step(action)
+    obss_origin.append(obs)
+    actions_origin.append(action)
+
+
+new_sym_obss = []
+new_sym_actionss = []
+for i in range(mea_eps):
+    obs = env.reset()
+    new_sym_obs = []
+    new_sym_obs.append(obs)
+    new_sym_actions = []
+    done = False
+
+
+    # sym_start_step = 4
+    # sym_end_step = 13
+    while not done:
+        action = env.action_space.sample()
+        obs,reward, done, info = env.step(action)
+        new_sym_obs.append(obs)
+        new_sym_actions.append(obs['sym_action'])
+    
+    new_sym_obss.append(new_sym_obs)
+    new_sym_actionss.append(new_sym_actions)
+
+
+print(obs.keys())
+
+
+
+# print("len obss_origin", len(obss_origin))
+
+# imgss = []
+# imgss.append([{"image": np.minimum(v['occup_zimage']['psm1'][0],v['occup_zimage']['stuff'][0]), "title": f"GT step {i}"} for i, v in enumerate(obss_origin)])
+# for _new_obs in new_sym_obss:
+#     imgss.append([{"image": np.minimum(v['occup_zimage']['psm1'][0],v['occup_zimage']['stuff'][0]), "title": f"Sym step {i}"} for i, v in enumerate(_new_obs)])
+
+# plot_img(imgss)
+
+# imgss = []
+# imgss.append([{"image": v['image'][:,:,2], "title": f"GT step {i}"} for i, v in enumerate(obss_origin)])
+# for _new_obs in new_sym_obss:
+#     imgss.append([{"image":  v['image'][:,:,2], "title": f"Sym step {i}"} for i, v in enumerate(_new_obs)])
+# import matplotlib.pyplot as plt
+# plt.rcParams['figure.figsize'] = [50, 40]
+# plot_img(imgss)
+
+
+for idx in range(3):
+    imgss = []
+    imgss.append([{"image": v['image'][:,:,idx], "title": f"GT step {i}"} for i, v in enumerate(obss_origin[-10:])])
+    for _new_obs in new_sym_obss:
+        imgss.append([{"image":  v['image'][:,:,idx], "title": f"Sym step {i}"} for i, v in enumerate(_new_obs[-10:])])
+    import matplotlib.pyplot as plt
+    plt.rcParams['figure.figsize'] = [50, 40]
+    plot_img(imgss)
+
+
+
+
+
+
+
+
+points_mats = []
+trajTs = [a2T_discrete(discrete_action_inverse(a), 0.03) for a in reversed(actions_origin)]
+trajTs = aggregate_Ts(trajTs)
+points_mats = []
+pc_mat = {}
+print(trajTs[0])
+pc_mat["mat"] = np.array([[t[0][3], t[1][3], t[2][3]] for t in trajTs])
+pc_mat["linewidth"] = 4
+pc_mat["alpha"] = 1
+pc_mat["label"] = f"original traj"
+pc_mat["color"] = "k"
+points_mats.append(pc_mat)
+
+for i, new_actions in enumerate(new_sym_actionss):
+    new_trajTs = [a2T_discrete(discrete_action_inverse(a), 0.03) for a in reversed(new_actions)]
+    new_trajTs = aggregate_Ts(new_trajTs)
+    pc_mat = {}
+    pc_mat["mat"] = np.array([[t[0][3], t[1][3], t[2][3]] for t in new_trajTs])
+    pc_mat["linewidth"] = 4
+    pc_mat["alpha"] = 0.5
+    pc_mat["label"] = f"traj {i+1}"
+    points_mats.append(pc_mat)
+import matplotlib.pyplot as plt
+plt.rcParams['figure.figsize'] = [50, 40]   
+plot_traj(points_mats, elev=45, azim=135, roll=0)
+
+

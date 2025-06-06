@@ -176,22 +176,27 @@ def train(origin_env, config, success_id=5.0, max_eps_length=300, is_sym=False):
     prefill_total = sum([v for k, v in prefill_config.items()])
     prefill_total = max(0, prefill_total - train_replay.stats['total_steps'])
     if prefill_total:
-        print(f'Prefill dataset ({prefill_total} steps).')
+        # print(f'Prefill dataset ({prefill_total} steps).')
         prefill_remain = prefill_total
         new_prefill_config = {}
+
+        # make sure oracle at the first key
         new_prefill_config['oracle'] = prefill_config['oracle']
         for k, v in prefill_config.items():
             if k!="oracle":
                 new_prefill_config[k] = v
+            
         for k, v in new_prefill_config.items():
             if k == "random":
                 prefill_agent = common.RandomAgent(act_space)
                 origin_env.set_sym(False)
                 fill_step = v
+                print(f"fill {fill_step} random steps")
             elif k == "oracle":
                 prefill_agent = common.OracleAgent(act_space, env=env)
                 origin_env.set_sym(True)
-                fill_step = 4*v if is_sym else v
+                fill_step = (origin_env.sym_aug_new_eps +1) * v if is_sym else v
+                print(f"fill {fill_step} oracle steps, gt steps {v}, sym steps {origin_env.sym_aug_new_eps * v}")
             else:
                 raise NotImplementedError
             train_driver(prefill_agent, steps=fill_step, episodes=1)
