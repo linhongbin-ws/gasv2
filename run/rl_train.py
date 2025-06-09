@@ -38,7 +38,7 @@ if args.reload_dir == "":
     args.env_tag.append("sym")
     env, env_config = make_env(tags=args.env_tag,seed=args.seed)
     dummy_env, env_config = make_env(tags=args.env_tag +['dummy',])
-    env = Sym(env, dummy_env, sym_aug_new_eps=args.mea_eps, sym_action_noise=args.sym_action_noise)
+    env = Sym(env, dummy_env, sym_aug_new_eps=args.mea_eps, sym_action_noise=args.sym_action_noise, keep_sym_obs_key=['image','vector','fsm_state', "controller_state"])
     env = GymRegularizer(env, obs_key=['image','vector','fsm_state', "controller_state","sym_action", "sym_state"])
     # env, env_config = make_env(tags=args.env_tag, seed=args.seed)
     method_config_dir = Path(".")

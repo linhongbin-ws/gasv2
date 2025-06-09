@@ -11,6 +11,7 @@ class Sym(BaseWrapper):
                  dummy_env,
                  sym_action_noise=0.3,
                  sym_aug_new_eps=12,
+                 keep_sym_obs_key = None,
                  **kwargs,
                  ):
         super().__init__(env)
@@ -21,6 +22,7 @@ class Sym(BaseWrapper):
         self._step = 0
         self._sym_action_noise = sym_action_noise
         self._sym_aug_new_eps = sym_aug_new_eps
+        self._keep_sym_obs_key = keep_sym_obs_key
 
     def reset(self,):
         self._step = 0
@@ -73,6 +75,10 @@ class Sym(BaseWrapper):
                                                          sym_action_noise = self._sym_action_noise,
                                                           dummy_env=self._dummy_env,
                                                        sym_start_step=0,)
+            if self._keep_sym_obs_key is not None:
+                _keep_key = self._keep_sym_obs_key 
+                new_sym_obs = [ {_k: _o[_k] for _k in _keep_key} for _o in new_sym_obs]
+            print("len new_sym_obss:", len(new_sym_obss))
             new_sym_obss.append(new_sym_obs)
             new_sym_actionss.append(new_sym_actions)
 
@@ -88,6 +94,7 @@ class Sym(BaseWrapper):
                 obs['sym_action']  = action
                 _ep.append((obs, reward, done, info, action,))
             self._sym_eps.append(_ep)
+            
         self._eps_buffer = []
 
     def set_sym(self, is_sym):
