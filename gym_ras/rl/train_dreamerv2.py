@@ -79,6 +79,10 @@ def train(origin_env, config, success_id=5.0, max_eps_length=300, is_sym=False):
     should_video_eval = common.Every(config.video_every)
     should_expl = common.Until(config.expl_until // config.action_repeat)
 
+    is_ensure_success = False
+    global prefill_oracle_cnt
+    prefill_oracle_cnt = 0
+
     # def make_env(mode):
     #   suite, task = config.task.split('_', 1)
     #   if suite == 'dmc':
@@ -110,7 +114,13 @@ def train(origin_env, config, success_id=5.0, max_eps_length=300, is_sym=False):
             ep['action'] = np.zeros(ep['action'].shape, dtype=ep['action'].dtype)
             for i in range(1, ep['sym_action'].shape[0]):
                 ep['action'][i][ep['sym_action'][i]] = 1
-        add_eps_func(ep)
+        if (not is_ensure_success):
+            add_eps_func(ep)
+        if (is_ensure_success and ep['fsm_state'][-1] == success_id):
+            add_eps_func(ep)
+            global prefill_oracle_cnt
+            prefill_oracle_cnt+=1
+            print("add 1 success eps to buffer")
 
 
     def per_episode(ep, mode):
@@ -190,18 +200,29 @@ def train(origin_env, config, success_id=5.0, max_eps_length=300, is_sym=False):
             if k == "random":
                 prefill_agent = common.RandomAgent(act_space)
                 origin_env.set_sym(False)
+                is_ensure_success = False
                 fill_step = v
                 print(f"fill {fill_step} random steps")
+                train_driver(prefill_agent, steps=fill_step, episodes=1)
+                train_driver.reset()
             elif k == "oracle":
                 prefill_agent = common.OracleAgent(act_space, env=env)
                 origin_env.set_sym(True)
-                fill_step = (origin_env.sym_aug_new_eps +1) * v if is_sym else v
-                print(f"fill {fill_step} oracle steps, gt steps {v}, sym steps {origin_env.sym_aug_new_eps * v}")
+                fill_eps = (origin_env.sym_aug_new_eps +1) * v if is_sym else v
+                is_ensure_success = True
+                print(f"fill {fill_eps} oracle eps, gt eps {v}, sym eps {origin_env.sym_aug_new_eps * v}")
+                print("origin_env.sym_aug_new_eps", origin_env.sym_aug_new_eps)
+                print("v", v)
+                while True:
+                    train_driver(prefill_agent, steps=0, episodes=1)
+                    train_driver.reset()
+                    if prefill_oracle_cnt >= fill_eps:
+                        break
             else:
                 raise NotImplementedError
-            train_driver(prefill_agent, steps=fill_step, episodes=1)
-            train_driver.reset()
 
+
+    is_ensure_success = False
     origin_env.set_sym(False)
     prefill_agent = common.RandomAgent(act_space)
     eval_driver(prefill_agent, episodes=1)

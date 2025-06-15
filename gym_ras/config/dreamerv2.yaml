@@ -269,6 +269,8 @@ high_oracle5:
   prefill: { oracle: 2e3, random: 5e4}
 high_oracle6:
   prefill: { oracle: 1e3, random: 5e4}
+low_oracle3:
+  prefill: { oracle: 10, random: 9e3, }
 
 
 debug_prefill:
