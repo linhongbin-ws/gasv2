@@ -1,5 +1,5 @@
 
-from dvrk import psm
+# from dvrk import psm
 from gym_ras.tool.common import TxT, invT, getT, T2Quat, scale_arr, M2Euler, wrapAngleRange, Euler2M, printT, Quat2M, M2Quat, T2Euler
 from gym_ras.tool.kdl_tool import Frame2T, Quaternion2Frame, gen_interpolate_frames, T2Frame
 import numpy as np
@@ -32,7 +32,9 @@ class SinglePSM():
             self.YAW_LOW = -270
             self.YAW_HIGH = -90
 
-        self._psm = psm(arm_name)
+        import crtk, dvrk
+        ral = crtk.ral('dvrk_python_node')
+        self._psm = dvrk.psm(ral, arm_name)
         self._action_mode = action_mode
         self._world2base = getT([0, 0, 0], [0, 0, world2base_yaw],
                                 rot_type="euler", euler_convension="xyz", euler_Degrees=True)
@@ -42,7 +44,7 @@ class SinglePSM():
         self._ws_y = ws_y
         self._ws_z = ws_z
         self._reset_q = reset_q
-        self._open_gripper_deg = open_gripper_deg
+        self._open_gripper_deg = np.array([open_gripper_deg])
         self._init_gripper_quat = init_gripper_quat
         self._init_pose_low_gripper = init_pose_low_gripper
         self._init_pose_high_gripper = init_pose_high_gripper
@@ -143,6 +145,7 @@ class SinglePSM():
         return obs
     def close_gripper(self,):
         self._psm.jaw.close().wait()
+
     def open_gripper(self,):
         self._psm.jaw.move_jp(np.deg2rad(self._open_gripper_deg)).wait()
 
@@ -152,6 +155,7 @@ class SinglePSM():
         self.moveT(T, interp_num=-1, block=False)
         if jaw_close:
             self._psm.jaw.close().wait()
+
         else:
             self._psm.jaw.move_jp(np.deg2rad(self._open_gripper_deg)).wait()
 

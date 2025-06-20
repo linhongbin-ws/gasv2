@@ -109,13 +109,14 @@ def eval_agnt(base_env, config, eval_eps_num, done_success_id, seed,
         # print(ep['fsm_state'][-1]==2.0)
         print(np.sum(ep['fsm_state'] == 5.0))
         print(ep['fsm_state'])
+        eps_length = ep['fsm_state'].shape[0] - 1
         if np.sum(ep['fsm_state'][-1] == done_success_id) > 0:
             eval_stat['success_eps'] += 1
             print("+++sucess episode !")
             score = (max_eps_length - eps_length) / max_eps_length
         else:
             score = 0
-        eps_length = ep['fsm_state'].shape[0] - 1
+        
         eval_stat['score'].append(score)
         # print(f"sucess/progress/total: ({e
         # print(f"sucess/progress/total: ({eval_stat['sucess_eps_count']}/ {eval_stat['eps_cnt']} ")

@@ -1,7 +1,7 @@
 ####################################
 ## modify to your setting
 ANACONDA_PATH="$HOME/miniconda3"
-ENV_NAME=gasv2_dvrk
+ENV_NAME=gasv2_dvrk_ppo
 # ROS_DISTRO=melodic
 ######################
 

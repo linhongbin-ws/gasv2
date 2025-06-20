@@ -341,6 +341,37 @@ no_pid:
 no_clutch:
   wrapper.VirtualClutch.start: 0
 
+no_dr:
+  # no cam pose noise
+  embodied.SurrolEnv: {
+    pybullet_gui: false,
+    cam_target_noise: 0.0,
+    cam_distance_noise: 0.00,
+    # cam_yaw_noise: 5
+    cam_pitch_noise: 0,
+    cam_roll_noise: 0,
+    cam_up_axis_noise: 0
+    }
+  # no action noise
+  wrapper.ActionNoise.noise_scale: 0.0
+  # no image noise
+  wrapper.ImageNoise: {
+    cutout_all_amount_range: [1.0, 1.0],
+    pns_noise_amount: 0,
+    pns_noise_balance: 0.5,
+    pns_noise_value: 1,
+    uniform_noise_amount: 0.000,
+    gaussian_blur_kernel: 0,
+    # gaussian_blur_sigma: 0.3,
+  }
+  # no scaling
+  embodied.SurrolEnv.grasp_any_v2:
+    {
+      object_scaling_low: 1.0,
+      object_scaling_high: 1.0,
+    }
+
+
 action_continuous:
   wrapper.DiscreteAction.is_discrete: False  
 
@@ -374,3 +405,18 @@ all_obs:
 
 
 
+# robustness study
+
+action_noise:
+  wrapper.ActionNoise: { noise_scale: 0.01 }
+
+image_noise:
+  wrapper.ImageNoise: {
+    cutout_all_amount_range: [0.8, 1.0],
+    pns_noise_amount: 0,
+    pns_noise_balance: 0.5,
+    pns_noise_value: 1,
+    uniform_noise_amount: 0.005,
+    gaussian_blur_kernel: 3,
+    gaussian_blur_sigma: 0.3,
+  }

@@ -11,7 +11,10 @@ parser.add_argument('--input', type=str, default='keyboard')
 parser.add_argument('--savedir', type=str, default='./data/dvrk_cal')
 args = parser.parse_args()
 assert args.arm in ["PSM1", "PSM2"]
-arm1 = dvrk.psm(args.arm)
+
+import crtk, dvrk
+ral = crtk.ral('dvrk_python_node')
+arm1 = dvrk.psm(ral, args.arm)
 
 if args.input == 'ds':
     from gym_ras.tool.ds import DS_Controller
