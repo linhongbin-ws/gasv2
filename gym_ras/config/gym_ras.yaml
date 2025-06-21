@@ -77,6 +77,12 @@ default:
         psm_outlier_rm_radius: 0.0,
         psm_outlier_rm_pts: 0,
         cam_dis_file: "",
+        cam_offset_x_ns: 0.0,
+        cam_offset_y_ns: 0.0,
+        cam_offset_z_ns: 0.0,
+        cam_offset_rx_ns: 0.0,
+        cam_offset_ry_ns: 0.0,
+        cam_offset_rz_ns: 0.0,   
     }
     PID: {
           obs_type: occup,
@@ -187,6 +193,7 @@ default:
         done_device: "keyboard"
         reset_random_pose: false
         grasp_lift: 0.03
+        max_grasp: 1
 
 
 
@@ -420,3 +427,16 @@ image_noise:
     gaussian_blur_kernel: 3,
     gaussian_blur_sigma: 0.3,
   }
+
+grasp_trial_2:
+  embodied.dVRKEnv.grasp_any_v2: {
+    # grasp_lift: 0.003, 
+    max_grasp: 2
+  }
+
+cam_pose_noise:
+  wrapper.Occup: {
+      cam_offset_z_ns: 0.01,
+      cam_offset_rx_ns: 3,
+      cam_offset_ry_ns: 3,
+      cam_offset_rz_ns: 1,   }

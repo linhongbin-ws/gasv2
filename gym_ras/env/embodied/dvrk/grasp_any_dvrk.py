@@ -34,12 +34,15 @@ class GraspAny(gym.Env):
                  cam_mask_noisy_link=True,
                  reset_random_pose=True,
                  grasp_lift=0.03,
+                 max_grasp=1
                  ):
         self._arm_names = arm_names
         self._arms = {}
         self._seed = 0
         self._reset_random_pose = reset_random_pose
         self._grasp_lift = grasp_lift
+        self._max_grasp = max_grasp
+        self._grasp_cnt = 0
         if done_cal_file == '':
             self._done_tip_z_thres = -1.0
             self._done_jaw_thres = -1.0
@@ -154,8 +157,11 @@ class GraspAny(gym.Env):
         # print(z_current, _z_low, z_current - _z_low)
         # print("Grasp:",is_grasp, " is_lift:" , is_lift)
         info['fsm'] = "prog_norm"
-        done = is_grasp
-        if done:
+        if is_grasp:
+            self._grasp_cnt +=1
+
+
+        if is_grasp:
             _psm = self._arms[self._arm_names[0]]
             _psm.motion_lift(self._grasp_lift, jaw_close=True)
             while True:
@@ -164,7 +170,10 @@ class GraspAny(gym.Env):
                     if ch == "f":
                         info['fsm'] = "done_success"
                     else:
-                        info['fsm'] = "done_fail"
+                        if self._grasp_cnt >= self._max_grasp:
+                            info['fsm'] = "done_fail"
+                        else:
+                            info['fsm'] = "prog_norm"
                     break
             _psm.open_gripper()
             ch = self._done_device.get_char() # wait for manual reset
@@ -181,6 +190,7 @@ class GraspAny(gym.Env):
         _psm.move_gripper_init_pose()
 
     def reset(self,):
+        self._grasp_cnt = 0
         _psm = self._arms[self._arm_names[0]]
         _psm.reset_pose()
         time.sleep(1)
@@ -193,7 +203,7 @@ class GraspAny(gym.Env):
         space = self._arms[self._arm_names[0]].obs_space
         obs = {}
         obs['gripper_state'] = gym.spaces.Box(
-            space['gripper_state'][0], space['gripper_state'][1], (1,), dtype=np.float32)
+            -1, 1, (1,), dtype=np.float32)
         ws = space['tip_pos']
         _low = ws[:, 0]
         _high = ws[:, 1]
@@ -207,6 +217,13 @@ class GraspAny(gym.Env):
     def get_prio_obs(self):
         _psm = self._arms[self._arm_names[0]]
         obs = _psm.get_obs()
+        gripper_state = obs['gripper_state']
+        if gripper_state > 22:  # discrete
+            gripper_state = 1.0
+        else:
+            gripper_state = -1.0
+        obs['gripper_state'] = gripper_state
+        # print("obs['gripper_state'] ", obs['gripper_state'] )
         return obs
 
     @property

@@ -149,8 +149,13 @@ class SinglePSM():
     def open_gripper(self,):
         self._psm.jaw.move_jp(np.deg2rad(self._open_gripper_deg)).wait()
 
-    def motion_lift(self, lift_height, jaw_close=True):
+    def motion_lift(self, lift_height, jaw_close=True, x_offset=None, y_offset=None):
         self._gripper_pos[2] = self._gripper_pos[2] + lift_height
+        if x_offset is not None:
+            self._gripper_pos[0] += x_offset
+        if y_offset is not None:
+            self._gripper_pos[1] += y_offset
+
         T = self._get_T_from_pos_yaw()
         self.moveT(T, interp_num=-1, block=False)
         if jaw_close:

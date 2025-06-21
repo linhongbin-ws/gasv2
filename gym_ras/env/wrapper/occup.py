@@ -30,6 +30,12 @@ class Occup(BaseWrapper):
         psm_outlier_rm_radius=0.001,
         psm_outlier_rm_pts=30,
         cam_dis_file="",
+        cam_offset_x_ns=0,
+        cam_offset_y_ns=0,
+        cam_offset_z_ns=0,
+        cam_offset_rx_ns=0,
+        cam_offset_ry_ns=0,
+        cam_offset_rz_ns=0,       
         skip=False,
         **kwargs
     ):
@@ -53,6 +59,13 @@ class Occup(BaseWrapper):
         self._cam_cal_file = cam_cal_file
         self._psm_outlier_rm_radius=psm_outlier_rm_radius
         self._psm_outlier_rm_pts=psm_outlier_rm_pts
+
+        self._cam_offset_x_ns = cam_offset_x_ns
+        self._cam_offset_y_ns = cam_offset_y_ns
+        self._cam_offset_z_ns = cam_offset_z_ns
+        self._cam_offset_rx_ns = cam_offset_rx_ns
+        self._cam_offset_ry_ns = cam_offset_ry_ns
+        self._cam_offset_rz_ns = cam_offset_rz_ns
         
         self._skip = skip
         if cam_cal_file != "":
@@ -123,13 +136,15 @@ class Occup(BaseWrapper):
                 cam_offset_z = self._cam_offset_z
             if self._K is None:
                 self._K = self.unwrapped.instrinsic_K
-            T1 = getT([-self._cam_offset_x,
-                    -self._cam_offset_y,
-                    -cam_offset_z,], [0, 0, 0], rot_type="euler")
+            T1 = getT([-self._cam_offset_x + self._cam_offset_x_ns * np.random.uniform(-1, 1),
+                    -self._cam_offset_y    + self._cam_offset_y_ns * np.random.uniform(-1, 1),
+                    -cam_offset_z          + self._cam_offset_z_ns * np.random.uniform(-1, 1)], 
+                    [0, 0, 0], rot_type="euler")
             T2 = getT([0, 0, 0],
-                    [-self._cam_offset_rx,
-                    -self._cam_offset_ry,
-                    -self._cam_offset_rz,], rot_type="euler", euler_Degrees=True)
+                    [-self._cam_offset_rx + self._cam_offset_rx_ns * np.random.uniform(-1, 1),
+                    -self._cam_offset_ry  + self._cam_offset_ry_ns * np.random.uniform(-1, 1),
+                    -self._cam_offset_rz  + self._cam_offset_rz_ns * np.random.uniform(-1, 1),], 
+                    rot_type="euler", euler_Degrees=True)
             ones = np.ones((points.shape[0], 1))
             P = np.concatenate((points[:, :3], ones), axis=1)
             points[:, :3] = np.matmul(
