@@ -271,11 +271,11 @@ multi_level_height:
     }
   wrapper.PID: { 
         fsm_z_err_min: -0.001,
-        control_px: 15.0,
-        control_py: 15.0,
-        control_pz: 4,
-        phase_thres: [0.015, 0.015, 0.015],
-        err_offset: [0.008,  0.0, -0.005],  
+        # control_px: 15.0,
+        # control_py: 15.0,
+        # control_pz: 4,
+        # phase_thres: [0.015, 0.015, 0.015],
+        # err_offset: [0.008,  0.0, -0.005],  
         # err_offset: [0.0,  0.0, -0.01],  
   }
 
@@ -440,3 +440,26 @@ cam_pose_noise:
       cam_offset_rx_ns: 3,
       cam_offset_ry_ns: 3,
       cam_offset_rz_ns: 1,   }
+
+
+# general
+
+cam_pose_1: # perpendicular to ground
+  wrapper.Occup: {
+        cam_offset_x: 0.0,
+        cam_offset_y: 0.0,
+        cam_offset_z: -1.0, 
+        cam_offset_rx: 180.0,
+        cam_offset_ry: 0.0,
+        cam_offset_rz: -90.0, 
+  }
+
+cam_pose_2: # perpendicular to ground
+  wrapper.Occup: {
+        cam_offset_x: 0.0,
+        cam_offset_y: 0.0,
+        cam_offset_z: -1.0, 
+        cam_offset_rx: 140.0,
+        cam_offset_ry: 0.0,
+        cam_offset_rz: -90.0, 
+  }

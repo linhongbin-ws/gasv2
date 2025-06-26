@@ -6,7 +6,7 @@ online_eps=${3:-10} # second bash argument
 
 
 # # dvrk performance
-# GASv2
+# #### GASv2
 # python ./run/dvrk_eval.py \
 #  --online-eval --vis-tag obs rgb dsa mask depth --online-eps ${online_eps}  \
 #  --save-prefix dvrk-${evaltag}-GASv2 --seed ${seed} \
@@ -106,10 +106,95 @@ online_eps=${3:-10} # second bash argument
 #  --visualize 
 
 
- # # image noise
- python ./run/dvrk_eval.py \
- --online-eval --vis-tag obs rgb dsa mask depth --online-eps ${online_eps}  \
+#  # # image noise
+#  python ./run/dvrk_eval.py \
+#  --online-eval --vis-tag obs rgb dsa mask depth --online-eps ${online_eps}  \
+#  --save-prefix dvrk-${evaltag}-GASv2 --seed ${seed} \
+#  --reload-dir ./data/agent/gasv2/2025_03_06-22_11_33@grasp_any_v2-domain_random_enhance-dsa_occup2@dreamerv2-gas-high_oracle3@seed0/achive/1.8m/  \
+#  --reload-envtag domain_random_enhance dsa_occup2 gasv2_dvrk image_noise \
+#  --visualize 
+
+
+# #  # # grasp trial 2
+# python ./run/dvrk_eval.py \
+#  --online-eval --vis-tag obs rgb dsa mask depth image --online-eps ${online_eps}  \
+#  --save-prefix dvrk-${evaltag}-GASv2 --seed ${seed} \
+#  --reload-dir ./data/agent/gasv2/2025_03_06-22_11_33@grasp_any_v2-domain_random_enhance-dsa_occup2@dreamerv2-gas-high_oracle3@seed0/achive/1.8m/  \
+#  --reload-envtag domain_random_enhance dsa_occup2 gasv2_dvrk grasp_trial_2 \
+#  --visualize 
+
+
+# #### cam pose noise
+# python ./run/dvrk_eval.py \
+#  --online-eval --vis-tag obs rgb dsa mask depth --online-eps ${online_eps}  \
+#  --save-prefix dvrk-${evaltag}-GASv2 --seed ${seed} \
+#  --reload-dir ./data/agent/gasv2/2025_03_06-22_11_33@grasp_any_v2-domain_random_enhance-dsa_occup2@dreamerv2-gas-high_oracle3@seed0/achive/1.8m/  \
+#  --reload-envtag domain_random_enhance dsa_occup2 gasv2_dvrk cam_pose_noise \
+#  --visualize 
+
+
+
+
+# ################ gas sym exp
+
+# #### GASv2 with MEA
+# python ./run/dvrk_eval.py \
+#  --online-eval --vis-tag obs rgb dsa mask depth --online-eps ${online_eps}  \
+#  --save-prefix dvrk-${evaltag}-GASv2 --seed ${seed} \
+#  --reload-dir ./data/gas-sym-exp/gasv2-mea/2025_06_14-17_37_29@grasp_any_v2-domain_random_enhance-dsa_occup2-sym@dreamerv2-gas-low_oracle3@seed0/1.6m/  \
+#  --reload-envtag domain_random_enhance dsa_occup2 gasv2_dvrk \
+#  --visualize 
+
+
+
+# #### GASv2 without Aug
+# python ./run/dvrk_eval.py \
+#  --online-eval --vis-tag obs rgb dsa mask depth --online-eps ${online_eps}  \
+#  --save-prefix dvrk-${evaltag}-GASv2 --seed ${seed} \
+#  --reload-dir ./data/gas-sym-exp/gasv2-noaug/2025_06_15-12_06_42@grasp_any_v2-domain_random_enhance-dsa_occup2-sym@dreamerv2-gas-low_oracle3@seed0 \
+#  --reload-envtag domain_random_enhance dsa_occup2 gasv2_dvrk \
+#  --visualize 
+
+
+
+######### general #######
+
+# ####   novel cam pose 1
+# python ./run/dvrk_eval.py \
+#  --online-eval --vis-tag obs rgb dsa mask depth --online-eps ${online_eps}  \
+#  --save-prefix dvrk-${evaltag}-GASv2 --seed ${seed} \
+#  --reload-dir ./data/agent/gasv2/2025_03_06-22_11_33@grasp_any_v2-domain_random_enhance-dsa_occup2@dreamerv2-gas-high_oracle3@seed0/achive/1.8m/  \
+#  --reload-envtag domain_random_enhance dsa_occup2 gasv2_dvrk cam_pose_1 \
+#  --visualize 
+
+
+# ####   novel cam pose 2
+# python ./run/dvrk_eval.py \
+#  --online-eval --vis-tag obs rgb dsa mask depth --online-eps ${online_eps}  \
+#  --save-prefix dvrk-${evaltag}-GASv2 --seed ${seed} \
+#  --reload-dir ./data/agent/gasv2/2025_03_06-22_11_33@grasp_any_v2-domain_random_enhance-dsa_occup2@dreamerv2-gas-high_oracle3@seed0/achive/1.8m/  \
+#  --reload-envtag domain_random_enhance dsa_occup2 gasv2_dvrk cam_pose_2 \
+#  --visualize 
+
+
+
+
+# #### multi-level
+# python ./run/dvrk_eval.py \
+#  --online-eval --vis-tag obs rgb dsa mask depth --online-eps ${online_eps}  \
+#  --save-prefix dvrk-${evaltag}-GASv2 --seed ${seed} \
+#  --reload-dir ./data/agent/gasv2/2025_03_06-22_11_33@grasp_any_v2-domain_random_enhance-dsa_occup2@dreamerv2-gas-high_oracle3@seed0/achive/1.8m/  \
+#  --reload-envtag domain_random_enhance dsa_occup2 gasv2_dvrk   \
+#  --visualize 
+
+# visualize
+#### rgb depth
+python ./run/dvrk_eval.py \
+ --online-eval --vis-tag rgb depth --online-eps ${online_eps}  \
  --save-prefix dvrk-${evaltag}-GASv2 --seed ${seed} \
  --reload-dir ./data/agent/gasv2/2025_03_06-22_11_33@grasp_any_v2-domain_random_enhance-dsa_occup2@dreamerv2-gas-high_oracle3@seed0/achive/1.8m/  \
- --reload-envtag domain_random_enhance dsa_occup2 gasv2_dvrk image_noise \
+ --reload-envtag domain_random_enhance dsa_occup2 gasv2_dvrk \
  --visualize 
+
+
+
