@@ -14,7 +14,7 @@ class PID(BaseWrapper):
         err_offset=[0.0, 0.0, 0.10],
         fsm_z_err_min=-0.02,
         fsm_z_err_state='prog_abnorm_1',
-        debug=True,
+        debug=False,
         skip=False,
         **kwargs
     ):
