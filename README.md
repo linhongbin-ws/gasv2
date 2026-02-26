@@ -1,9 +1,16 @@
 # gasv2
 
-
 ## 2.2. Download and Install
 
-### surrol
+- Download gasv2
+
+    ```sh
+    git clone git@github.com:linhongbin-ws/gasv2.git
+    cd gasv2
+    git submodule update --init --recursive
+    ```
+
+### Simulation for baselines (except for PPO)
 - Download and install [Miniconda](https://docs.anaconda.com/miniconda/).
 
 - Edit environment variables, go to [init_surrol.sh](./bash/init_surrol.sh) and edit your environment variables.
@@ -24,7 +31,7 @@
     python -m pip install -e . # install gym_ras
     ```
 
-### surrol + PPO
+### Simulation for PPO
 - Download and install [Miniconda](https://docs.anaconda.com/miniconda/).
 
 - Edit environment variables, go to [init_surrol_ppo.sh](./bash/init_surrol.sh) and edit your environment variables.
@@ -47,7 +54,7 @@
 
 
 
-### dvrk
+### Real-robot experiment on dVRK
 - Download and install [Miniconda](https://docs.anaconda.com/miniconda/).
 - Download [pretrain_models](https://mycuhk-my.sharepoint.com/:f:/g/personal/1155097177_link_cuhk_edu_hk/Elg2xxj3URNJhm6cCNf8GzwBVJXCOfrtLiL83xXECN_7VQ?e=do3lV8&download=1) and unzip to current directory
 
