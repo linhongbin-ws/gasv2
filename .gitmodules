@@ -13,3 +13,6 @@
 [submodule "ext/dreamerv3"]
 	path = ext/dreamerv3
 	url = https://github.com/danijar/dreamerv3.git
+[submodule "ext/DreamerfD"]
+	path = ext/DreamerfD
+	url = git@github.com:linhongbin/DreamerfD.git

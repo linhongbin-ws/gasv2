@@ -1,0 +1,216 @@
+default:
+  action_repeat: 1
+  actor:
+    act: elu
+    dist: auto
+    layers: 4
+    min_std: 0.1
+    norm: none
+    units: 400
+  actor_ent: 2e-3
+  actor_grad: auto
+  actor_grad_mix: 0.1
+  actor_grad_weight: 0.0
+  actor_opt:
+    clip: 100
+    eps: 1e-5
+    lr: 8e-5
+    opt: adam
+    wd: 1e-6
+  actor_type: ActorCritic
+  atari_grayscale: True
+  baseline_name: dreamerv2_bc
+  bc_agent_retrain: True
+  bc_dir: oracle
+  bc_grad_weight: 1.0
+  bc_loss: True
+  bc_skip_start_step_num: 2
+  bc_wm_retrain: True
+  clip_rewards: tanh
+  critic:
+    act: elu
+    dist: mse
+    layers: 4
+    norm: none
+    units: 400
+  critic_opt:
+    clip: 100
+    eps: 1e-5
+    lr: 2e-4
+    opt: adam
+    wd: 1e-6
+  dataset:
+    batch: 16
+    length: 50
+  decoder:
+    act: elu
+    cnn_depth: 48
+    cnn_kernels: [5, 5, 6, 6]
+    cnn_keys: ".*"
+    mlp_keys: ".*"
+    mlp_layers: [400, 400, 400, 400]
+    norm: none
+  disag_action_cond: True
+  disag_log: False
+  disag_models: 10
+  disag_offset: 1
+  disag_target: stoch
+  discount: 0.99
+  discount_head:
+    act: elu
+    dist: binary
+    layers: 4
+    norm: none
+    units: 400
+  discount_lambda: 0.95
+  dmc_camera: -1
+  encoder:
+    act: elu
+    cnn_depth: 48
+    cnn_kernels: [4, 4, 4, 4]
+    cnn_keys: ".*"
+    mlp_keys: ".*"
+    mlp_layers: [400, 400, 400, 400]
+    norm: none
+  envs: 1
+  envs_parallel: none
+  eval_eps: 1
+  eval_every: 1e5
+  eval_noise: 0.0
+  eval_state_mean: False
+  eval_success_reward: 0.99
+  expl_behavior: greedy
+  expl_extr_scale: 0.0
+  expl_head:
+    act: elu
+    dist: mse
+    layers: 4
+    norm: none
+    units: 400
+  expl_intr_scale: 1.0
+  expl_model_loss: kl
+  expl_noise: 0.0
+  expl_opt:
+    clip: 100
+    eps: 1e-5
+    lr: 3e-4
+    opt: adam
+    wd: 1e-6
+  expl_reward_norm:
+    eps: 1e-8
+    momentum: 1.0
+    scale: 1.0
+  expl_until: 0
+  grad_extra_image_channel_scale: [0.0, 0.0, 0.0]
+  grad_heads: [decoder, reward, discount]
+  grad_uniform_image: True
+  imag_horizon: 15
+  is_pure_datagen: False
+  is_pure_train: False
+  jit: True
+  kl:
+    balance: 0.8
+    forward: False
+    free: 0.0
+    free_avg: True
+  log_every: 1e4
+  log_keys_max: "^$"
+  log_keys_mean: "^$"
+  log_keys_sum: "^$"
+  log_keys_video: ["image"]
+  logdir: /dev/null
+  loss_scales:
+    discount: 1.0
+    kl: 1.0
+    proprio: 1.0
+    reward: 1.0
+  model_opt:
+    clip: 100
+    eps: 1e-5
+    lr: 1e-4
+    opt: adam
+    wd: 1e-6
+  offline_step: 20000000
+  planner:
+    type: none
+  precision: 16
+  pred_discount: True
+  prefill:
+    oracle: 1e3
+    random: 9e3
+  pretrain: 1
+  render_size: [64, 64]
+  replay:
+    capacity: 2e6
+    maxlen: 50
+    minlen: 50
+    ongoing: False
+    prioritize_ends: True
+  reward_head:
+    act: elu
+    dist: mse
+    layers: 4
+    norm: none
+    units: 400
+  reward_norm:
+    eps: 1e-8
+    momentum: 1.0
+    scale: 1.0
+  reward_norm_skip: False
+  rssm:
+    act: elu
+    deter: 1024
+    discrete: 32
+    ensemble: 1
+    hidden: 1024
+    min_std: 0.1
+    norm: none
+    std_act: sigmoid2
+    stoch: 32
+  save_sucess_eps_filter_rate: 0.7
+  seed: 0
+  slow_baseline: True
+  slow_target: True
+  slow_target_fraction: 1
+  slow_target_update: 100
+  steps: 1e8
+  task: dmc_walker_walk
+  time_limit: 0
+  train_carrystate: True
+  train_every: 5
+  train_mcts_batch_size: 16
+  train_mcts_c_puct: 5
+  train_mcts_gen_traj_every: 20
+  train_mcts_n_playout: 20
+  train_only_wm_steps: 0
+  train_seq_buffer: 1000
+  train_steps: 1
+  video_every: 1e5
+
+
+gas:
+  steps: 11e5
+  eval_every: 1e4
+  encoder: { mlp_keys: "$^", cnn_keys: "image" }
+  decoder: { mlp_keys: "$^", cnn_keys: "image" }
+  eval_eps: 20
+  # prefill: {random: 9e3, oracle: 1e3}
+  log_keys_video: ["image"]
+  video_every: 3e5
+  # high_oracle:
+  # prefill: { random: 1e4}
+  prefill: { random: 0, oracle: 5e4 }
+  dataset: { batch: 100, length: 6 }
+  replay: {
+      capacity: 5e5, # limit ram usage
+      minlen: 6,
+      maxlen: 6,
+    }
+  train_every: 2
+
+eval_less:
+  eval_every: 4e4
+
+debug:
+  prefill: { random: 0, oracle: 100 }
+  eval_eps: 2

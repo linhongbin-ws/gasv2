@@ -22,12 +22,12 @@ parser.add_argument('--vis-tag', type=str, nargs='+', default=[])
 parser.add_argument('--save-prefix', type=str, default="")
 args = parser.parse_args()
 
-if args.baseline in ["dreamerv2"]:
+assert args.baseline in ["dreamerv2", "dreamerv2_bc", "ppo"]
+if args.baseline in ["dreamerv2", "dreamerv2_bc"]:
     import tensorflow as tf  # need to first "import tf" and "import torch" after, otherwise will cause error, see https://discuss.pytorch.org/t/use-tensorflow-and-pytorch-in-same-code-caused-error/34537
 
 if args.online_eval:
     assert args.reload_dir != ""
-
 
 if args.reload_dir == "":
     env, env_config = make_env(tags=args.env_tag, seed=args.seed)
@@ -57,9 +57,9 @@ if args.reload_dir == "":
                  '@seed' + str(args.seed)))
     logdir = Path(logdir).expanduser()
     logdir.mkdir(parents=True, exist_ok=True)
-    if args.baseline == "DreamerfD":
+    if args.baseline == "dreamerv2_bc":
         baseline_config = baseline_config.update({
-            'bc_dir': str(logdir + '/train_episodes/oracle'),
+            'bc_dir': str(logdir / 'train_episodes/oracle'),
             'logdir': str(logdir), })
     else:
         baseline_config = baseline_config.update({
@@ -91,15 +91,9 @@ else:
 if not args.novis:
     env = Visualizer(env, update_hz=30, vis_tag=args.vis_tag, keyboard=True)
 
-if baseline_config.baseline_name == "DreamerfD":
-    if args.online_eval:
-        # from gym_ras.rl import train_DreamerfD
-        # train_DreamerfD.train(env, config, is_pure_train=False, is_pure_datagen=False,)
-        raise NotImplementedError
-    else:
-        from gym_ras.rl import train_DreamerfD
-        train_DreamerfD.train(
-            env, config, is_pure_train=False, is_pure_datagen=False)
+if baseline_config.baseline_name == "dreamerv2_bc":
+    from gym_ras.rl import train_DreamerfD
+    train_DreamerfD.train(env, baseline_config, success_id=env.done_success_id)
 elif baseline_config.baseline_name == "dreamerv2":
     if args.online_eval:
         from gym_ras.rl import eval_dreamerv2

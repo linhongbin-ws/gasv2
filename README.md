@@ -1,9 +1,23 @@
 # gasv2
 
+miniconda
+```
+wget https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-py39_4.12.0-Linux-x86_64.sh
+sudo chmox +x Miniconda3-xx.sh
+./Miniconda3-xx.sh
+```
 
-## 2.2. Download and Install
 
-### surrol
+```sh
+git clone https://github.com/linhongbin-ws/gasv2.git -b sim
+cd gasv2
+git submodule update --init --recursive
+```
+
+
+## 2.2. Simulation
+
+### surrol + baselines (except PPO, GASv2-BC)
 - Download and install [Miniconda](https://docs.anaconda.com/miniconda/).
 
 - Edit environment variables, go to [init_surrol.sh](./bash/init_surrol.sh) and edit your environment variables.
@@ -45,8 +59,22 @@
     python -m pip install -e . # install gym_ras
     ```
 
+### surrol + GASv2-BC
+- install
+
+    ```sh
+    source ~/miniconda3/bin/activate
+    conda create -n dreamer_fd python=3.7 -y
+    conda activate dreamer_fd
+    conda install cudnn=8.2 cudatoolkit=11.3 -c anaconda -y
+    pushd ext/SurRoL/ && python -m pip install -e . && popd # install surrol
+    pip install tensorflow==2.9.0 tensorflow_probability==0.17.0 protobuf==3.20.1
+    pushd ext/DreamerfD/ && python -m pip install -e . && popd # install DreamerfD
+    python -m pip install -e .
+    ```
 
 
+## Real Robot
 ### dvrk
 - Download and install [Miniconda](https://docs.anaconda.com/miniconda/).
 - Download [pretrain_models](https://mycuhk-my.sharepoint.com/:f:/g/personal/1155097177_link_cuhk_edu_hk/Elg2xxj3URNJhm6cCNf8GzwBVJXCOfrtLiL83xXECN_7VQ?e=do3lV8&download=1) and unzip to current directory
@@ -128,8 +156,58 @@
 
 # Run
 
-## Evaluate on dVRK
+## Training
+
+if you need to specifc which GPU, you need to put `CUDA_VISIBLE_DEVICES=0` in fronnt of training command
+
+- GASV2
+    ```sh
+    python ./run/rl_train.py  --env-tag domain_random_enhance dsa_occup2  --baseline-tag gas high_oracle3 
+    ```
+- GASV1
+    ```sh
+    python ./run/rl_train.py --env-tag domain_random_enhance dsa_occup2  gasv1 --baseline-tag gas eval_less high_oracle3 
+    ```
+
+- dreamerv2
+    ```sh
+    python ./run/rl_train.py --env-tag  domain_random_enhance dsa_occup2  raw_env --baseline-tag  gas eval_less high_oracle3 
+    ```
+
+- GASv2-rawRGB
+    ```sh
+    python ./run/rl_train.py --env-tag  domain_random_enhance dsa_occup2  no_dsa --baseline-tag gas eval_less high_oracle3 
+    ```
+- GASv2-rawControl
+    ```sh
+    python ./run/rl_train.py --env-tag  domain_random_enhance dsa_occup2  no_pid --baseline-tag gas eval_less high_oracle3
+    ```
+
+- PPO
+    ```sh
+    python ./run/rl_train.py --env-tag domain_random_enhance dsa_occup2  raw_env --baseline ppo --baseline-tag high_oracle3
+    ```
+
+- GASv2-BC
+    ```sh
+    python ./run/rl_train.py  --env-tag domain_random_enhance dsa_occup2  --baseline-tag gas --baseline dreamerv2_bc
+    ```
+
+
+## eval on surrol
+
+- Performance Study
+    ```sh
+    python ./run/rl_train.py --reload-dir ./data/agent/2025_02_13-22_25_34@grasp_any_v2-domain_random_enhance-dsa_occup2@dreamerv2-gas-high_oracle3@seed0  --reload-envtag  domain_random_enhance dsa_occup2  --online-eval --novis --vis-tag obs rgb dsa mask --online-eps 100 --save-prefix xxx --seed 4
+    ```
+
+
+## eval on dvrk
+```sh
+python ./run/dvrk_eval.py --reload-dir ./data/agent/2024_12_30-10_58_55@grasp_any_v2@dreamerv2-gasv2@seed0  --reload-envtag  gasv2_dvrk --online-eval --visualize --vis-tag obs rgb dsa mask --online-eps 20 --save-prefix xxx
+```
 
 ```sh
-python ./run/dvrk_eval.py --reload-dir ./log/2024_10_02-19_18_51@ras-gasv2_surrol-dsa1@dreamerv2-gasv2-high_oracle-train_every1@seed0  --reload-envtag gasv2_dvrk dsa1 --online-eval --visualize --vis-tag obs rgb dsa mask --online-eps 20 --save-prefix xxx
+python ./run/dvrk_eval.py --reload-dir ./log/2025_01_02-14_02_12@grasp_any_v2-action_continuous@dreamerv2-gasv2@seed0/  --reload-envtag  gasv2_dvrk action_continuous --online-eval --visualize --vis-tag obs rgb dsa mask --online-eps 20 --save-prefix xxx
 ```
+

@@ -1,4 +1,5 @@
 # Training
+CUDA_VISIBLE_DEVICES=0
 GASV2
 ```sh
 python ./run/rl_train.py  --env-tag domain_random_enhance dsa_occup2  --baseline-tag gas high_oracle3 
@@ -25,6 +26,11 @@ python ./run/rl_train.py --env-tag  domain_random_enhance dsa_occup2  no_pid --b
 PPO
 ```sh
 python ./run/rl_train.py --env-tag domain_random_enhance dsa_occup2  raw_env --baseline ppo --baseline-tag high_oracle3
+```
+
+GASv2-BC
+```sh
+python ./run/rl_train.py  --env-tag domain_random_enhance dsa_occup2  --baseline-tag gas --baseline dreamerv2_bc
 ```
 
 
