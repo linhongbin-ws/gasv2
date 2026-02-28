@@ -1,0 +1,1 @@
+usr/share/doc/temp-throttle/license.txt

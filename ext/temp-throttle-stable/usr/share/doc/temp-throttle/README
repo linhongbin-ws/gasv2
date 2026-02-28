@@ -1,0 +1,44 @@
+temp-throttle
+=============
+
+Linux shell script for throttling system CPU frequency based on a desired
+maximum temperature (celsius).
+
+Set a maximum temperature for your system using this script. If the maximum
+temperature is exceeded, the script will limit the speed of your CPU cores
+incrementally until the system is again below your desired maximum temperature.
+(If your system remains above maximum temperature after completely limiting
+your CPU cores, it will simply stay limited until temperatures drop below the
+maximum desired.)
+
+
+This script must be run with root privileges. Only Celsius temperatures
+are supported. The configuration file is expected to be at
+/etc/temp-throttle.conf
+
+    sudo ./temp-throttle
+
+Configuration file may be given eith the -c argument.
+
+    sudo ./temp-throttle -c ./etc/temp-throttle.conf
+
+More Instructions= see the included sample configuration file. Also see here:
+http://seperohacker.blogspot.com/2012/10/linux-keep-your-cpu-cool-with-frequency.html
+
+
+$ MONERO DONATIONS $
+44xdpakBFpEdSkxFnasyjvK46njiuiKxfMwR2sK6dwHZ5RsKi1iYbp81Dk9uQwzztHDHbTyBGVpMWAvSCZE9uvNEMfnqfbJ
+
+Other Crypto Currencies can easily and anonymously be converted to Monero at
+any of the following sites:
+https://exch.cx/
+http://coinswap.click/
+http://boltz.exchange/
+https://secureshift.io
+
+Author: Sepero (sepero 111 @ gmx . com)
+
+Links: http://github.com/Sepero/temp-throttle/  
+Links: http://seperohacker.blogspot.com/2012/10/linux-keep-your-cpu-cool-with-frequency.html  
+
+License: GNU GPL 2.0

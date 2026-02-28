@@ -1,0 +1,226 @@
+#!/usr/bin/env bash
+
+# Usage: temp-throttle # No arguments will default read from /etc/temp-throttle.conf
+# Usage: temp-throttle [-t MAX_TEMP] [-c CONFIG_FILE] [-k CORE] [-f TEMP_FILE] [-i INTERVAL] [-l LOG_FILE]
+
+VERSION="3.02"
+
+cat << EOF
+Author: Sepero 2012- sepero 111 @ gmx . com
+URL: http://github.com/Sepero/temp-throttle/
+EOF
+
+# Additional Links
+# http://seperohacker.blogspot.com/2012/10/linux-keep-your-cpu-cool-with-frequency.html
+
+# License: GNU GPL 2.0
+#set -x
+
+# Try to return frequency to max before exiting.
+user_exit () {
+  echo "Restoring to max CPU frequency."
+	for((i=0; i < 50; i++)); do
+		[[ CURRENT_FREQ -eq 1 ]] && break
+		unthrottle 2> /dev/null
+	done
+	exit
+}
+trap user_exit EXIT SIGINT SIGTERM
+#trap user_exit EXIT SIGINT SIGTERM
+
+# Generic  function for printing an error and exiting.
+err_exit () {
+	echo ""
+	echo -e "Error: $@" 1>&2
+	echo -e "Errors may be reported at: http://github.com/Sepero/temp-throttle/issues" 1>&2
+	exit 128
+}
+
+### START GET CONFIGURATIOM ARGUMENTS.
+
+MAX_TEMP=""    # Maximum desired CPU temperature.
+CONFIG_FILE="/etc/temp-throttle.conf" # Optional configuration file.
+TEMP_FILE=""   # Optional file to force read CPU temperature from.
+INTERVAL=3     # Optional seconds between checking CPU temperature. Default 3.
+LOG_FILE="-"   # Optional log file. Default output to standard out.
+CORE="0"       # Optional CPU Core to read frequency information from. Default 0.
+
+parse_config_line () { # Interprets values from a line of config file.
+  case "$1" in
+    MAX_TEMP|TEMP_FILE|INTERVAL|LOG_FILE|CORE) eval "$1=$2";;
+    *) err_exit "Unknown option in config file $1. (Options must be all capital letters.";;
+  esac
+}
+
+parse_config_file () {
+  [ -r "$CONFIG_FILE" ] || err_exit "Config file cannot be read: $CONFIG_FILE"
+  while read -r LINE; do
+    parse_config_line $(echo "$LINE" | tr '=' ' ')
+  done < <(grep -oE "^[ \t]*[^=#]+=[^#]*" "$CONFIG_FILE")
+}
+
+if [ $# -eq 0 ]; then
+  parse_config_file
+elif [ $# -eq 1 ]; then # Accept only MAX_TEMP for backwards compatibility.
+  MAX_TEMP="$1"; shift
+fi
+
+# Parse command arguments.
+while [ -n "$1" ]; do
+  case "$1" in
+    -t) shift && MAX_TEMP="$1"  && shift;;
+    -f) shift && TEMP_FILE="$1" && shift;;
+    -i) shift && INTERVAL="$1"  && shift;;
+    -l) shift && LOG_FILE="$1"  && shift;;
+    -k) shift && CORE="$1"      && shift;;
+    -c) shift && CONFIG_FILE="$1" && shift && parse_config_file;;
+    *) err_exit "Unknown command line argument: $1";;
+  esac
+done
+
+# Begin redirecting output to log.
+[[ -n $LOG_FILE && "$LOG_FILE" != "-" ]] && {
+	echo "Further output redirecting to logfile: $LOG_FILE"
+	exec 1>> "$LOG_FILE"; exec 2>&1; echo "$INFO";
+}
+
+# Verify max temperature was set.
+[ -n $MAX_TEMP ] ||
+err_exit "MAX_TEMP not given. Please supply the maximum desired temperature in Celsius."
+
+# Verify temperature is an integer.
+[[ $MAX_TEMP =~ ^[0-9]+$ ]] ||
+err_exit "Maximum temperature $MAX_TEMP must be an integer."
+
+# Verify interval is an integer.
+[[ $INTERVAL =~ ^[0-9]+$ ]] ||
+err_exit "Seconds interval for checking temperature must be an integer."
+
+[[ $CORE =~ ^[0-9]+$ ]] ||
+err_exit "Seconds interval for checking temperature must be an integer."
+
+echo "Maximum temperature set to:   ${MAX_TEMP}C"
+echo -n "INTERVAL ${INTERVAL}. CORE $CORE."
+[ -n "$TEMP_FILE" ] && echo -n " TEMP_FILE=$TEMP_FILE"
+echo
+
+### END GET CONFIGURATIOM ARGUMENTS.
+
+
+### START INITIALIZE GLOBAL VARIABLES.
+
+# The frequency will unthrottle when low temperature is reached.
+LOW_TEMP=$((MAX_TEMP - 3)) # Formerly 5 degrees less.
+
+CORES=$(nproc) # Get total number of CPU cores.
+printf "%s %2s\n" "Number of CPU cores detected:" $CORES
+CORES=$((CORES - 1)) # Subtract 1 from $CORES for easier counting later.
+
+# Temperatures internally are calculated to the thousandth.
+MAX_TEMP=${MAX_TEMP}000
+LOW_TEMP=${LOW_TEMP}000
+
+FREQ_FILE="/sys/devices/system/cpu/cpu$CORE/cpufreq/scaling_available_frequencies"
+FREQ_MIN="/sys/devices/system/cpu/cpu$CORE/cpufreq/cpuinfo_min_freq"
+FREQ_MAX="/sys/devices/system/cpu/cpu$CORE/cpufreq/cpuinfo_max_freq"
+
+# Store available cpu frequencies in a space separated string FREQ_LIST.
+if [[ -f $FREQ_FILE ]]; then
+	# If $FREQ_FILE exists, get frequencies from it + sort highest to lowest..
+	FREQ_LIST="$(cat $FREQ_FILE | xargs -n1 | sort -urn)" || err_exit "Could not read available cpu frequencies from file $FREQ_FILE"
+elif [[ -f $FREQ_MIN && -f $FREQ_MAX ]]; then
+	# Else if $FREQ_MIN and $FREQ_MAX exist, try generate a list of frequencies between them.
+	FREQ_LIST=$(seq $(cat $FREQ_MAX) -100000 $(cat $FREQ_MIN)) || err_exit "Could not compute available cpu frequencies"
+else
+	err_exit "Could not determine available cpu frequencies"
+fi
+
+FREQ_LIST_LEN=$(echo $FREQ_LIST | wc -w)
+
+# Use a temperature file set from configuration.
+if [ -n "$TEMP_FILE" ]; then
+  [ -r "$TEMP_FILE" ] || err_exit "Temperature file cannot be read. $TEMP_FILE"
+else
+  # Rare case devices (SoC) need to find cpu-thermal in type.
+  for i in {0..9}; do
+    [ -f "/sys/class/thermal/thermal_zone$i/type" ] &&
+      [ "$(cat /sys/class/thermal/thermal_zone$i/type)" == "cpu-thermal" ] &&
+        TEMP_FILE="/sys/class/thermal/thermal_zone$i/temp" && break
+  done
+fi
+
+# If TEMP_FILE is set, then it is used. Otherwise this line changes nothing.
+TEMPERATURE_FILES="$TEMP_FILE"
+# If temperature file location not set, then we autodetect.
+if [ -z "$TEMP_FILE" ]; then
+  # Generate a list of possible locations to read the current system temperature. Must add (ls) in order.
+  TEMPERATURE_FILES="$(ls /sys/class/thermal/thermal_zone*/temp 2> /dev/null)"
+  TEMPERATURE_FILES+="$(ls /sys/class/hwmon/hwmon*/temp*_input 2> /dev/null)"
+  TEMPERATURE_FILES+="$(ls /sys/class/hwmon/hwmon*/device/temp*_input 2> /dev/null)"
+
+  # If no temperature sensor exists, then exit with error.
+  [ -z "$TEMPERATURE_FILES" ] && err_exit "A location for temperature reading was not found.\nPlease reference bug #7: https://github.com/Sepero/temp-throttle/issues/7"
+fi
+
+### END INITIALIZE GLOBAL VARIABLES.
+
+
+### START DEFINE PRIMARY FUNCTIONS.
+
+# Modify the frequency for all cpu cores.
+set_freq () {
+	# From the string FREQ_LIST, we choose the item at index CURRENT_FREQ.
+	FREQ_TO_SET=$(echo $FREQ_LIST | cut -d " " -f $CURRENT_FREQ)
+	printf " %5s Mhz\n" ${FREQ_TO_SET%???} # Print the Mhz frequency padded to 5 vharacters length.
+	for i in $(seq 0 $CORES); do
+		# Try to set core frequency by writing to /sys/devices.
+		{ echo $FREQ_TO_SET 2> /dev/null > /sys/devices/system/cpu/cpu$i/cpufreq/scaling_max_freq; } ||
+		# Else, try to set core frequency using command cpufreq-set.
+		{ cpufreq-set -c $i --max $FREQ_TO_SET > /dev/null; } ||
+		# Else, return error message.
+		{ err_exit "Failed to set frequency CPU core$i. Run script as Root user. Some systems may require installing the package cpufrequtils."; }
+	done
+}
+
+# Will reduce the frequency of cpus if possible.
+throttle () {
+	CURRENT_FREQ=$((CURRENT_FREQ + 1))
+	printf "%s %3sC %10s" "$(date -Iseconds)" "${TEMP%???}" "throttle"
+	set_freq $CURRENT_FREQ
+}
+
+# Will increase the frequency of cpus if possible.
+unthrottle () {
+	CURRENT_FREQ=$((CURRENT_FREQ - 1))
+	printf "%s %3sC %10s" "$(date -Iseconds)" "${TEMP%???}" "unthrottle"
+	set_freq $CURRENT_FREQ
+}
+
+# Get the temperature from selected sources, and find the highest temp.
+get_temp () {
+	TEMP="$(cat $TEMPERATURE_FILES 2>/dev/null | xargs -n1 | sort -gr | head -1)"
+}
+
+### END DEFINE PRIMARY FUNCTIONS.
+
+# CURRENT_FREQ will keep the index of the currently used frequency in FREQ_LIST.
+CURRENT_FREQ=2
+get_temp
+echo "Initialize to max CPU frequency"
+unthrottle  # Will unthrottle CURRENT_FREQ to 1. Max Frequency.
+
+# START MAIN LOOP.
+while true; do
+	get_temp # Gets the current temperature and set it to the variable TEMP.
+	if   [[ $TEMP -gt $MAX_TEMP && $CURRENT_FREQ -lt $FREQ_LIST_LEN ]]; then
+	  # Throttle if too hot.
+		throttle
+		sleep 0.5; continue # Fast react when temperature overheating.
+	elif [[ $TEMP -le $LOW_TEMP && $CURRENT_FREQ -ne 1 ]]; then
+	  # Unthrottle if cool.
+		unthrottle
+		sleep 0.5 # Fast react when temperature cooling.
+	fi
+	# Sleep wait between checking temperatures.
+	sleep $INTERVAL || err_exit "Sleep wait INTERVAL must be an integer or float value: $INTERVAL"
+done
