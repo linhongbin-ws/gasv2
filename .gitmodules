@@ -15,4 +15,4 @@
 	url = https://github.com/danijar/dreamerv3.git
 [submodule "ext/DreamerfD"]
 	path = ext/DreamerfD
-	url = git@github.com:linhongbin/DreamerfD.git
+	url = https://github.com/linhongbin/DreamerfD.git

@@ -177,11 +177,11 @@ def train(env, config, is_reload=False, only_eval=False):
 #         tensorboard_log=_dir
 #         )
 
-    eval_callback = EvalCallback(env, best_model_save_path=_dir,
-                                 log_path=_dir,
-                                 #  eval_freq=3e4,
-                                 eval_freq=1e2,
-                                 deterministic=True,
-                                 render=False)
+    # eval_callback = EvalCallback(env, best_model_save_path=_dir,
+    #                              log_path=_dir,
+    #                              #  eval_freq=3e4,
+    #                              eval_freq=1e2,
+    #                              deterministic=True,
+    #                              render=False)
 
     model.learn(total_timesteps=1e6, callback=[eval_callback, checkpoint_cb])

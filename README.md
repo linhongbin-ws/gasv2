@@ -57,6 +57,7 @@ git submodule update --init --recursive
     pushd ext/stable-baselines3/ && python -m pip install -e . && popd # install stable-baselines3
     pushd ext &&  git clone https://github.com/facebookresearch/r3m && cd r3m && python -m pip install -e . && popd # install r3m
     python -m pip install -e . # install gym_ras
+    python -m pip install tensorboard
     ```
 
 ### surrol + GASv2-BC
