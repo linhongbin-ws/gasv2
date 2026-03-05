@@ -246,9 +246,10 @@ def train(origin_env, config, success_id=5.0, max_eps_length=300):
         print(f"eval success rate: {eval_stat['success_rate']}")
 
         print('Start training.')
-        origin_env.to_train()
-        train_driver.reset()
-        train_driver(train_policy, steps=config.eval_every)
+        for _ in range(config.eval_every):
+            step.increment()
+            train_step(None, None)
+
 
         agnt.save(logdir / 'variables.pkl')
     env.close()
