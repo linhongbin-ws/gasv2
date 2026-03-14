@@ -33,6 +33,16 @@ GASv2-BC
 python ./run/rl_train.py  --env-tag domain_random_enhance dsa_occup2  --baseline-tag gas --baseline dreamerv2_bc
 ```
 
+GASv2-NoClutch
+```sh
+python ./run/rl_train.py  --env-tag domain_random_enhance dsa_occup2 no_clutch  --baseline-tag gas high_oracle3  
+```
+
+GASv2-DM
+```sh
+python ./run/rl_train.py  --env-tag domain_random_enhance dsa_occup2 no_dr  --baseline-tag gas high_oracle3  
+```
+
 
 # eval on surrol
 

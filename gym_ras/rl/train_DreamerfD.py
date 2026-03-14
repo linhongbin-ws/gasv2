@@ -246,7 +246,7 @@ def train(origin_env, config, success_id=5.0, max_eps_length=300):
         print(f"eval success rate: {eval_stat['success_rate']}")
 
         print('Start training.')
-        for _ in range(config.eval_every):
+        for _ in range(int(config.eval_every)):
             step.increment()
             train_step(None, None)
 
