@@ -92,8 +92,19 @@ if not args.novis:
     env = Visualizer(env, update_hz=30, vis_tag=args.vis_tag, keyboard=True)
 
 if baseline_config.baseline_name == "dreamerv2_bc":
-    from gym_ras.rl import train_DreamerfD
-    train_DreamerfD.train(env, baseline_config, success_id=env.done_success_id)
+    if args.online_eval:
+        from gym_ras.rl import eval_dreamerv2
+        import csv
+        env.to_eval()
+        eval_stat = eval_dreamerv2.eval_agnt(
+            env, baseline_config, 
+            seed=args.seed,
+            done_success_id=env.done_success_id,
+            eval_eps_num=args.online_eps, is_visualize=not args.novis, save_prefix=args.save_prefix,
+            max_eps_length=env_config.wrapper.TimeLimit.max_timestep)
+    else:
+        from gym_ras.rl import train_DreamerfD
+        train_DreamerfD.train(env, baseline_config, success_id=env.done_success_id)
 elif baseline_config.baseline_name == "dreamerv2":
     if args.online_eval:
         from gym_ras.rl import eval_dreamerv2

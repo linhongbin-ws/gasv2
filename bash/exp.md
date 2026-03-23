@@ -38,7 +38,7 @@ GASv2-NoClutch
 python ./run/rl_train.py  --env-tag domain_random_enhance dsa_occup2 no_clutch  --baseline-tag gas high_oracle3  
 ```
 
-GASv2-DM
+GASv2-DR
 ```sh
 python ./run/rl_train.py  --env-tag domain_random_enhance dsa_occup2 no_dr  --baseline-tag gas high_oracle3  
 ```
