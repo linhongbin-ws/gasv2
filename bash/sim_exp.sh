@@ -58,14 +58,14 @@ source bash/init_surrol.sh
 #   --reload-envtag  domain_random_enhance dsa_occup2 raw_env ${evaltag}  --online-eval --novis --vis-tag obs rgb dsa mask --online-eps ${online_eps} --save-prefix "${evaltag:+${evaltag}-}DreamerV2-s1" --seed ${seed}
 
 
-#===== GASv2-Idle
-run_with_time python ./run/rl_train.py --reload-dir \
-${root_dir}gasv2-noclutch/2025_04_26-16_50_38@grasp_any_v2-domain_random_enhance-dsa_occup2-no_clutch@dreamerv2-gas-eval_less-high_oracle3@seed0\
-  --reload-envtag  domain_random_enhance dsa_occup2 no_clutch ${evaltag}  --online-eval --novis --vis-tag obs rgb dsa mask --online-eps ${online_eps} --save-prefix "${evaltag:+${evaltag}-}GASv2-Idle-s0" --seed ${seed}
+# #===== GASv2-Idle
+# run_with_time python ./run/rl_train.py --reload-dir \
+# ${root_dir}gasv2-noclutch/2025_04_26-16_50_38@grasp_any_v2-domain_random_enhance-dsa_occup2-no_clutch@dreamerv2-gas-eval_less-high_oracle3@seed0\
+#   --reload-envtag  domain_random_enhance dsa_occup2 no_clutch ${evaltag}  --online-eval --novis --vis-tag obs rgb dsa mask --online-eps ${online_eps} --save-prefix "${evaltag:+${evaltag}-}GASv2-Idle-s0" --seed ${seed}
 
-run_with_time python ./run/rl_train.py --reload-dir \
-${root_dir}gasv2-noclutch/2026_03_09-02_34_52@grasp_any_v2-domain_random_enhance-dsa_occup2-no_clutch@dreamerv2-gas-high_oracle3@seed1\
-  --reload-envtag  domain_random_enhance dsa_occup2 no_clutch ${evaltag}  --online-eval --novis --vis-tag obs rgb dsa mask --online-eps ${online_eps} --save-prefix "${evaltag:+${evaltag}-}GASv2-Idle-s1" --seed ${seed}
+# run_with_time python ./run/rl_train.py --reload-dir \
+# ${root_dir}gasv2-noclutch/2026_03_09-02_34_52@grasp_any_v2-domain_random_enhance-dsa_occup2-no_clutch@dreamerv2-gas-high_oracle3@seed1\
+#   --reload-envtag  domain_random_enhance dsa_occup2 no_clutch ${evaltag}  --online-eval --novis --vis-tag obs rgb dsa mask --online-eps ${online_eps} --save-prefix "${evaltag:+${evaltag}-}GASv2-Idle-s1" --seed ${seed}
 
 
 # #====  GASv2-PID
