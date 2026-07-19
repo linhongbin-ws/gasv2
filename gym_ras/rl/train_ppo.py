@@ -1,5 +1,7 @@
 import gym
 import numpy as np
+import shutil
+from datetime import datetime
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import EvalCallback, CheckpointCallback
 import stable_baselines3
@@ -87,14 +89,12 @@ class Env:
 def eval_ppo(env, config, n_eval_episodes, save_prefix):
     _dir = config.logdir
     env = Env(env)
-    model = PPO(
-        stable_baselines3.common.policies.MultiInputActorCriticPolicy,
-        env, verbose=10,
-        tensorboard_log=_dir
-    )
-    from pathlib import Path
-    model.load(str(Path(config.logdir) / "best_model.zip"),
-               print_system_info=True)
+    # NOTE: PPO.load is a classmethod, it returns a new model;
+    # calling model.load() in-place does NOT load weights
+    model = PPO.load(str(Path(config.logdir) / "best_model.zip"),
+                     env=env, verbose=10,
+                     tensorboard_log=_dir,
+                     print_system_info=True)
     vec_env = DummyVecEnv([lambda: env])
     eval_stat = {'success_eps': 0, 'success_rate': 0,
                  'total_eps': 0, "score": []}
@@ -105,7 +105,7 @@ def eval_ppo(env, config, n_eval_episodes, save_prefix):
     from datetime import datetime
     _dir = Path("./data") / "exp_result"
     _dir.mkdir(parents=True, exist_ok=True)
-    _file = _dir / (save_prefix + "@seed" + str(env.seed) + "@" +
+    _file = _dir / (save_prefix + "@seed" + str(env.env.seed) + "@" +
                     str(datetime.now().strftime("%Y_%m_%d-%H_%M_%S")) + ".yml")
 
     for j in range(n_eval_episodes):
@@ -139,19 +139,44 @@ def eval_ppo(env, config, n_eval_episodes, save_prefix):
     return eval_stat
 
 
+def _backup_reload_files(logdir):
+    # resuming overwrites best_model.zip / evaluations.npz (EvalCallback
+    # restarts with best_mean_reward=-inf and clobbers eval history) and
+    # checkpoint.zip; keep a copy tagged with a unique id per resume
+    backup_id = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+    for fname in ("best_model.zip", "evaluations.npz", "checkpoint.zip"):
+        f = Path(logdir) / fname
+        if f.is_file():
+            dst = f.with_name(f"{f.stem}@bak-{backup_id}{f.suffix}")
+            shutil.copy2(str(f), str(dst))
+            print(f"backup {fname} -> {dst.name}")
+
+
 def train(env, config, is_reload=False, only_eval=False):
     _dir = config.logdir
     env = Env(env)
-    model = PPO(
-        stable_baselines3.common.policies.MultiInputActorCriticPolicy,
-        env, verbose=1,
-        tensorboard_log=_dir
-    )
+    if is_reload:
+        _backup_reload_files(config.logdir)
+        # prefer the latest checkpoint over best_model for resuming
+        ckpt = Path(config.logdir) / "checkpoint.zip"
+        if not ckpt.is_file():
+            ckpt = Path(config.logdir) / "best_model.zip"
+        # NOTE: PPO.load is a classmethod, it returns a new model;
+        # calling model.load() in-place does NOT load weights.
+        # num_timesteps is restored from the checkpoint, so the
+        # oracle/random prefill stage will not re-trigger on resume.
+        model = PPO.load(str(ckpt), env=env, verbose=1,
+                         tensorboard_log=_dir,
+                         print_system_info=True)
+        print(f"reload from {ckpt}, resume at timestep {model.num_timesteps}")
+    else:
+        model = PPO(
+            stable_baselines3.common.policies.MultiInputActorCriticPolicy,
+            env, verbose=1,
+            tensorboard_log=_dir
+        )
     model._prefill_oracle = config.prefill_oracle
     model._prefill_random = config.prefill_random
-    if is_reload:
-        model.load(str(Path(config.logdir) / "best_model.zip"),
-                   print_system_info=True)
 
     eval_callback = EvalCallback(env, best_model_save_path=_dir,
                                  log_path=_dir if not only_eval else str(
@@ -163,7 +188,7 @@ def train(env, config, is_reload=False, only_eval=False):
     cbs = [eval_callback]
     if not only_eval:
         checkpoint_cb = MyCheckpointCallback(
-            save_freq=config.eval_eps, save_path=_dir, name_prefix="checkpoint", verbose=1,)
+            save_freq=config.eval_freq, save_path=_dir, name_prefix="checkpoint", verbose=1,)
         cbs.append(checkpoint_cb)
 
 
@@ -184,4 +209,7 @@ def train(env, config, is_reload=False, only_eval=False):
     #                              deterministic=True,
     #                              render=False)
 
-    model.learn(total_timesteps=1e6, callback=[eval_callback, checkpoint_cb])
+    # reset_num_timesteps=False on reload: keep the restored step counter so
+    # tensorboard/checkpoint steps continue and prefill does not re-trigger
+    model.learn(total_timesteps=1e6, callback=cbs,
+                reset_num_timesteps=not is_reload)
