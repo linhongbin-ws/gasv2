@@ -3,6 +3,7 @@ default:
   logdir: ""
   eval_freq: 4e4
   eval_eps: 20
+  ckpt_freq: 1e4
   steps: 13e5
   prefill_random: 5e4
   prefill_oracle: 5e4

@@ -1,9 +1,10 @@
 import gym
 import numpy as np
 import shutil
+import time
 from datetime import datetime
 from stable_baselines3 import PPO
-from stable_baselines3.common.callbacks import EvalCallback, CheckpointCallback
+from stable_baselines3.common.callbacks import EvalCallback, CheckpointCallback, BaseCallback
 import stable_baselines3
 import torch
 from r3m import load_r3m
@@ -20,12 +21,48 @@ class MyCheckpointCallback(CheckpointCallback):
         if self.n_calls % self.save_freq == 0:
             print("")
             print(
-                f"=============timestep {self.n_calls} =============================")
+                f"=============timestep {self.num_timesteps} =============================")
             print("")
             path = os.path.join(self.save_path, f"{self.name_prefix}")
             self.model.save(path)
             if self.verbose > 1:
                 print(f"Saving model checkpoint to {path}")
+        return True
+
+
+class ProgressCallback(BaseCallback):
+    """heartbeat print so long silent stretches are visible in the terminal"""
+
+    def __init__(self, print_freq=100, verbose=0):
+        super().__init__(verbose)
+        self.print_freq = print_freq
+        self._t0 = None
+        self._last_t = None
+        self._last_step = None
+
+    # NOTE: BaseCallback.num_timesteps only syncs from the model inside
+    # on_step(); in training/rollout hooks it is stale (0 on resume),
+    # so always read self.model.num_timesteps here
+    def _on_training_start(self) -> None:
+        self._t0 = time.time()
+        self._last_t = self._t0
+        self._last_step = self.model.num_timesteps
+        print(f"[train] start, timestep {self.model.num_timesteps}")
+
+    def _on_rollout_start(self) -> None:
+        print(f"[train] collecting rollout ({self.model.n_steps} steps) ..., timestep {self.model.num_timesteps}")
+
+    def _on_rollout_end(self) -> None:
+        print(f"[train] rollout done, updating policy ..., timestep {self.model.num_timesteps}")
+
+    def _on_step(self) -> bool:
+        if self.n_calls % self.print_freq == 0:
+            now = time.time()
+            fps = (self.num_timesteps - self._last_step) / \
+                max(now - self._last_t, 1e-8)
+            print(f"[train] timestep {self.num_timesteps} | {fps:.2f} steps/s | elapsed {(now - self._t0) / 60.0:.1f} min")
+            self._last_t = now
+            self._last_step = self.num_timesteps
         return True
 
 
@@ -185,10 +222,12 @@ def train(env, config, is_reload=False, only_eval=False):
                                  eval_freq=config.eval_freq,
                                  deterministic=True,
                                  render=False)
-    cbs = [eval_callback]
+    cbs = [eval_callback, ProgressCallback(print_freq=100)]
     if not only_eval:
+        # old reload dirs' baseline_config.yaml may not have ckpt_freq
+        ckpt_freq = config.ckpt_freq if 'ckpt_freq' in config else 1e4
         checkpoint_cb = MyCheckpointCallback(
-            save_freq=config.eval_freq, save_path=_dir, name_prefix="checkpoint", verbose=1,)
+            save_freq=ckpt_freq, save_path=_dir, name_prefix="checkpoint", verbose=1,)
         cbs.append(checkpoint_cb)
 
 
